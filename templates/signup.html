@@ -1,47 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Signup</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
 </head>
+
+
 <body>
-    <h2>Signup</h2>
-    
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
+
+
+    <h2>
+        Signup
+    </h2>
+
+
+    <!-- ================================================= -->
+    <!-- FLASH MESSAGES -->
+    <!-- ================================================= -->
+
+    {% with messages = get_flashed_messages(
+        with_categories=true
+    ) %}
+
         {% if messages %}
+
             <div class="flash-messages">
+
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
+
+                    <div
+                        class="alert alert-{{ category }}"
+                    >
+
+                        {{ message }}
+
+                    </div>
+
                 {% endfor %}
+
             </div>
+
         {% endif %}
+
     {% endwith %}
 
+
+    <!-- ================================================= -->
+    <!-- SIGNUP FORM -->
+    <!-- ================================================= -->
+
     <form method="POST">
+
         {{ form.hidden_tag() }}
+
+
+        <!-- Username -->
+
         <div>
-            <label for="username">Username:</label>
-            {{ form.username(id="username", size=32) }}
+
+            <label for="username">
+                Username:
+            </label>
+
+            {{ form.username(
+                id="username",
+                size=32
+            ) }}
+
+            {% for error in form.username.errors %}
+
+                <span class="error">
+                    {{ error }}
+                </span>
+
+            {% endfor %}
+
         </div>
+
+
+        <!-- Email -->
+
         <div>
-            <label for="email">Email:</label>
-            {{ form.email(id="email", size=32) }}
+
+            <label for="email">
+                Email:
+            </label>
+
+            {{ form.email(
+                id="email",
+                size=32
+            ) }}
+
+            {% for error in form.email.errors %}
+
+                <span class="error">
+                    {{ error }}
+                </span>
+
+            {% endfor %}
+
         </div>
+
+
+        <!-- Password -->
+
         <div>
-            <label for="password">Password:</label>
-            {{ form.password(id="password", size=32) }}
+
+            <label for="password">
+                Password:
+            </label>
+
+            {{ form.password(
+                id="password",
+                size=32
+            ) }}
+
+            {% for error in form.password.errors %}
+
+                <span class="error">
+                    {{ error }}
+                </span>
+
+            {% endfor %}
+
         </div>
+
+
+        <!-- Confirm Password -->
+
         <div>
-            <label for="password">Confirm Password:</label>
-            {{ form.password(id="confirm_password", size=32) }}
+
+            <label for="confirm_password">
+                Confirm Password:
+            </label>
+
+            {{ form.confirm_password(
+                id="confirm_password",
+                size=32
+            ) }}
+
+            {% for error in form.confirm_password.errors %}
+
+                <span class="error">
+                    {{ error }}
+                </span>
+
+            {% endfor %}
+
         </div>
+
+
+        <!-- Submit -->
+
         <div>
-            {{ form.submit(class="btn btn-primary") }}
+
+            {{ form.submit(
+                class="btn btn-primary"
+            ) }}
+
         </div>
+
     </form>
-    <p class="login-link">Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+
+
+    <!-- ================================================= -->
+    <!-- LOGIN LINK -->
+    <!-- ================================================= -->
+
+    <p class="login-link">
+
+        Already have an account?
+
+        <a
+            href="{{ url_for('auth.login') }}"
+        >
+            Login here
+        </a>
+
+    </p>
+
+
 </body>
+
 </html>

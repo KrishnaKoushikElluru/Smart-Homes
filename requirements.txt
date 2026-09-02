@@ -1,0 +1,14 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Migrate
+Flask-Login
+Flask-WTF
+WTForms
+email-validator
+python-dotenv
+requests
+openai
+huggingface_hub
+Pillow
+pymongo

@@ -1,365 +1,2565 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Rentals - SmartHomes</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+
+
     <style>
+
         body {
             margin: 0;
             padding: 0;
-            background-image: url("{{ url_for('static', filename='rental.png') }}");
+
+            background-image:
+                url("{{ url_for('static', filename='rental.png') }}");
+
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
 
-        /* Top Navigation Bar */
-        .top-nav {
-            background-color: rgba(51, 51, 51, 0.9);
-            padding: 15px 0;
+
+        /* ====================================================
+           PROPERTY LOCATION MAP
+        ==================================================== */
+
+        #propertyMap {
             width: 100%;
+            height: 400px;
+            margin-bottom: 15px;
+
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+
+            overflow: hidden;
+        }
+
+
+        .location-search-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+
+        #locationSearch {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+
+        #locationSuggestions {
+            display: none;
+
+            position: absolute;
+
+            top: calc(100% - 15px);
+            left: 0;
+            right: 0;
+
+            background: white;
+
+            border: 1px solid #ccc;
+            border-radius: 4px;
+
+            max-height: 250px;
+            overflow-y: auto;
+
+            z-index: 2000;
+
+            box-shadow:
+                0 4px 10px
+                rgba(0, 0, 0, 0.15);
+        }
+
+
+        .location-suggestion {
+            padding: 10px;
+
+            cursor: pointer;
+
+            color: #333;
+            background: white;
+
+            border-bottom: 1px solid #eee;
+
+            font-size: 14px;
+        }
+
+
+        .location-suggestion:hover {
+            background-color: #f1f1f1;
+        }
+
+
+        .location-help {
+            font-size: 13px;
+            color: #555;
+
+            margin-bottom: 10px;
+        }
+
+
+        /* ====================================================
+           TOP NAVIGATION
+        ==================================================== */
+
+        .top-nav {
+            background-color:
+                rgba(51, 51, 51, 0.9);
+
+            padding: 15px 0;
+
+            width: 100%;
+
             position: fixed;
+
             top: 0;
+
             z-index: 1000;
         }
 
+
         .nav-content {
             max-width: 1200px;
+
             margin: 0 auto;
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             padding: 0 20px;
         }
 
+
         .brand {
             color: #00aaff;
+
             font-size: 24px;
+
             font-weight: bold;
+
             text-decoration: none;
         }
+
 
         .nav-links {
             display: flex;
+
             gap: 20px;
         }
 
+
         .nav-links a {
             color: white;
+
             text-decoration: none;
+
             padding: 5px 10px;
+
             border-radius: 4px;
-            transition: background-color 0.3s;
+
+            transition:
+                background-color 0.3s;
         }
+
 
         .nav-links a:hover {
             background-color: #444;
         }
 
-        /* Main Content */
+
+        /* ====================================================
+           MAIN CONTENT
+        ==================================================== */
+
         .main-content {
             margin-top: 80px;
+
             padding: 20px;
         }
+
 
         .virtual-rentals {
             max-width: 1000px;
+
             margin: 20px auto;
-            background-color: rgba(255, 255, 255, 0.1); /* Changed to very transparent */
-            backdrop-filter: blur(10px); /* Added blur effect */
+
+            background-color:
+                rgba(255, 255, 255, 0.1);
+
+            backdrop-filter: blur(10px);
+
             padding: 30px;
+
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2); /* Added subtle border */
+
+            box-shadow:
+                0 0 20px
+                rgba(0, 0, 0, 0.1);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.2);
         }
+
 
         h2 {
             text-align: center;
+
             color: #0066cc;
+
             margin-bottom: 30px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Added subtle text shadow */
+
+            text-shadow:
+                1px 1px 2px
+                rgba(0, 0, 0, 0.1);
         }
 
-        /* Buttons */
+
+        /* ====================================================
+           BUTTONS
+        ==================================================== */
+
         .rental-options {
             display: flex;
+
             justify-content: center;
+
             gap: 20px;
+
             margin: 20px 0;
         }
 
+
         .rental-options button {
             padding: 12px 25px;
-            background-color: rgba(0, 102, 204, 0.8); /* Made slightly transparent */
+
+            background-color:
+                rgba(0, 102, 204, 0.8);
+
             color: white;
+
             cursor: pointer;
+
             border-radius: 5px;
+
             border: none;
+
             font-size: 1rem;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s;
+
+            box-shadow:
+                0px 4px 6px
+                rgba(0, 0, 0, 0.1);
+
+            transition:
+                background-color 0.3s;
         }
+
 
         .rental-options button:hover {
-            background-color: rgba(0, 64, 128, 0.9);
+            background-color:
+                rgba(0, 64, 128, 0.9);
         }
 
-        /* Forms */
+
+        /* ====================================================
+           FORMS
+        ==================================================== */
+
         .sub-form {
             display: none;
-            background-color: rgba(255, 255, 255, 0.1); /* Changed to very transparent */
-            backdrop-filter: blur(8px); /* Added blur effect */
+
+            background-color:
+                rgba(255, 255, 255, 0.1);
+
+            backdrop-filter: blur(8px);
+
             padding: 20px;
+
             border-radius: 8px;
+
             margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.2);
         }
+
 
         .sub-form label {
             display: block;
+
             margin-bottom: 5px;
+
             color: #333;
+
             font-weight: 500;
         }
 
-        .sub-form input, .sub-form select, .sub-form textarea {
+
+        .sub-form input,
+        .sub-form select,
+        .sub-form textarea {
             width: 100%;
+
             padding: 8px;
+
             margin-bottom: 15px;
-            border: 1px solid rgba(221, 221, 221, 0.5);
+
+            border:
+                1px solid
+                rgba(221, 221, 221, 0.5);
+
             border-radius: 4px;
-            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent input fields */
+
+            background-color:
+                rgba(255, 255, 255, 0.7);
+
             backdrop-filter: blur(4px);
+
+            box-sizing: border-box;
         }
+
 
         .sub-form button {
             width: 100%;
+
             padding: 10px;
-            background-color: rgba(0, 102, 204, 0.8);
+
+            background-color:
+                rgba(0, 102, 204, 0.8);
+
             color: white;
+
             border: none;
+
             border-radius: 4px;
+
             cursor: pointer;
-            transition: background-color 0.3s;
+
+            transition:
+                background-color 0.3s;
         }
+
 
         .sub-form button:hover {
-            background-color: rgba(0, 64, 128, 0.9);
+            background-color:
+                rgba(0, 64, 128, 0.9);
         }
 
-        /* Results */
+
+        /* ====================================================
+           RESULTS
+        ==================================================== */
+
         .results {
             display: flex;
+
             flex-wrap: wrap;
+
             gap: 20px;
+
             justify-content: center;
+
             margin-top: 20px;
         }
 
+
         .results div {
-            background-color: rgba(233, 236, 239, 0.3); /* Made transparent */
+            background-color:
+                rgba(233, 236, 239, 0.3);
+
             backdrop-filter: blur(8px);
+
             padding: 15px;
+
             border-radius: 8px;
+
             width: 300px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.2);
         }
 
-        video {
+
+        .property-image {
             width: 100%;
+
             max-width: 280px;
+
+            max-height: 220px;
+
+            object-fit: cover;
+
             border-radius: 8px;
+
             margin-top: 10px;
         }
 
+
+        /* ====================================================
+           VIEW DETAILS BUTTON
+        ==================================================== */
+
+        .view-details-button {
+            display: inline-block;
+
+            margin-top: 15px;
+
+            padding: 10px 18px;
+
+            background-color: #0066cc;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 5px;
+
+            font-weight: bold;
+
+            transition:
+                background-color 0.3s ease;
+        }
+
+
+        .view-details-button:hover {
+            background-color: #004080;
+        }
+
+
+        /* ====================================================
+           RESPONSIVE
+        ==================================================== */
+
         @media (max-width: 768px) {
+
             .nav-content {
                 flex-direction: column;
+
                 gap: 10px;
             }
 
+
             .nav-links {
                 flex-wrap: wrap;
+
                 justify-content: center;
             }
+
 
             .rental-options {
                 flex-direction: column;
             }
 
+
             .results div {
                 width: 100%;
             }
+
         }
+
     </style>
+
 </head>
+
+
 <body>
-    <!-- Top Navigation -->
+
+
+    <!-- ====================================================
+         TOP NAVIGATION
+    ==================================================== -->
+
     <div class="top-nav">
+
         <div class="nav-content">
-            <a href="#" class="brand">SMART HOMES</a>
+
+            <a
+                href="#"
+                class="brand"
+            >
+                SMART HOMES
+            </a>
+
+
             <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('design') }}">Design Your Home</a>
+
+                <a
+                    href="{{ url_for('home') }}"
+                >
+                    Home
+                </a>
+
+
+                <a
+                    href="{{ url_for('design.design') }}"
+                >
+                    Design Your Home
+                </a>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- Main Content -->
+
+    <!-- ====================================================
+         MAIN CONTENT
+    ==================================================== -->
+
     <div class="main-content">
+
         <div class="virtual-rentals">
-            <h2>Virtual Rentals</h2>
-            
+
+            <h2>
+                Virtual Rentals
+            </h2>
+
+
+            <!-- ==================================================
+                 BUY / SELL BUTTONS
+            ================================================== -->
+
             <div class="rental-options">
-                <button onclick="showForm('buy')">Buy</button>
-                <button onclick="showForm('sell')">Sell</button>
+
+                <button
+                    onclick="showForm('buy')"
+                >
+                    Buy
+                </button>
+
+
+                <button
+                    onclick="showForm('sell')"
+                >
+                    Sell
+                </button>
+
             </div>
 
-            <!-- Buy Form -->
-            <div id="buyForm" class="sub-form">
-                <h3>Search Rentals by Budget</h3>
-                <form id="searchForm" onsubmit="searchRentals(event)">
-                    <label for="budget">Enter your budget:</label>
-                    <input type="number" id="budget" name="budget" required>
-                    
-                    <label for="city_type">Select City Type (optional):</label>
-                    <select id="city_type" name="city_type">
-                        <option value="">All</option>
-                        <option value="Urban">Urban</option>
-                        <option value="Suburban">Suburban</option>
-                        <option value="Rural">Rural</option>
+
+            <!-- ==================================================
+                 BUY / SEARCH FORM
+            ================================================== -->
+
+            <div
+                id="buyForm"
+                class="sub-form"
+            >
+
+                <h3>
+                    Search Properties
+                </h3>
+
+
+                <form
+                    id="searchForm"
+                    onsubmit="searchRentals(event)"
+                >
+
+
+                    <!-- Budget -->
+
+                    <label for="budget">
+                        Maximum Budget:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="budget"
+                        name="budget"
+                        min="0"
+                        required
+                    >
+
+
+                    <!-- City -->
+
+                    <label for="search_city">
+                        City:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="search_city"
+                        name="city"
+                        placeholder="Example: Kurnool"
+                    >
+
+
+                    <!-- Locality -->
+
+                    <label for="search_locality">
+                        Locality:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="search_locality"
+                        name="locality"
+                        placeholder="Example: Pandipadu"
+                    >
+
+
+                    <!-- Listing Type -->
+
+                    <label for="search_listing_type">
+                        Listing Type:
+                    </label>
+
+                    <select
+                        id="search_listing_type"
+                        name="listing_type"
+                    >
+
+                        <option value="">
+                            All
+                        </option>
+
+                        <option value="rent">
+                            Rent
+                        </option>
+
+                        <option value="sell">
+                            Sell
+                        </option>
+
                     </select>
-                    <label for="listing_type">Select Listing Type (optional):</label>
-                    <select id="listing_type" name="listing_type">
-                        <option value="">All</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Sell">Sell</option>
+
+
+                    <!-- Property Type -->
+
+                    <label for="search_property_type">
+                        Property Type:
+                    </label>
+
+                    <select
+                        id="search_property_type"
+                        name="property_type"
+                    >
+
+                        <option value="">
+                            All
+                        </option>
+
+                        <option value="house">
+                            House
+                        </option>
+
+                        <option value="apartment">
+                            Apartment
+                        </option>
+
+                        <option value="villa">
+                            Villa
+                        </option>
+
+                        <option value="plot">
+                            Plot
+                        </option>
+
+                        <option value="flat">
+                            Flat
+                        </option>
+
                     </select>
-                    <button type="submit">Search</button>
+
+
+                    <!-- BHK -->
+
+                    <label for="search_bhk">
+                        BHK:
+                    </label>
+
+                    <select
+                        id="search_bhk"
+                        name="bhk"
+                    >
+
+                        <option value="">
+                            Any
+                        </option>
+
+                        <option value="1">
+                            1 BHK
+                        </option>
+
+                        <option value="2">
+                            2 BHK
+                        </option>
+
+                        <option value="3">
+                            3 BHK
+                        </option>
+
+                        <option value="4">
+                            4 BHK
+                        </option>
+
+                        <option value="5">
+                            5+ BHK
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        type="submit"
+                    >
+                        Search
+                    </button>
+
                 </form>
 
-                <div id="listingsContainer" class="results">
-                    <!-- Search results will appear here -->
+
+                <!-- ==================================================
+                     SEARCH RESULTS
+                ================================================== -->
+
+                <div
+                    id="listingsContainer"
+                    class="results"
+                >
+
+                    <!-- Results inserted by JavaScript -->
+
                 </div>
+
             </div>
 
-            <!-- Sell Form -->
-            <div id="sellForm" class="sub-form">
-                <h3>Submit a Property Listing</h3>
-                <form action="{{ url_for('submit_listing') }}" method="POST" enctype="multipart/form-data">
-                    
-                    <label for="listing_type">Listing Type:</label>
-                    <select id="listing_type" name="listing_type" required>
-                        <option value="rent">Rent</option>
-                        <option value="sell">Sell</option>
+
+            <!-- ==================================================
+                 SELL / SUBMIT PROPERTY FORM
+            ================================================== -->
+
+            <div
+                id="sellForm"
+                class="sub-form"
+            >
+
+                <h3>
+                    Submit a Property Listing
+                </h3>
+
+
+                <form
+                    action="{{ url_for('property.submit_listing') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                >
+
+
+                    <!-- ==================================================
+                         BASIC PROPERTY DETAILS
+                    ================================================== -->
+
+
+                    <!-- Property Type -->
+
+                    <label for="property_type">
+                        Property Type:
+                    </label>
+
+                    <select
+                        id="property_type"
+                        name="property_type"
+                        required
+                    >
+
+                        <option value="">
+                            Choose Property Type
+                        </option>
+
+                        <option value="house">
+                            House
+                        </option>
+
+                        <option value="apartment">
+                            Apartment
+                        </option>
+
+                        <option value="villa">
+                            Villa
+                        </option>
+
+                        <option value="flat">
+                            Flat
+                        </option>
+
+                        <option value="plot">
+                            Plot
+                        </option>
+
                     </select>
 
-                    <label for="price">Price:</label>
-                    <input type="number" id="price" name="price" required>
 
-                    <label for="contact_name">Contact Name:</label>
-                    <input type="text" id="contact_name" name="contact_name" required>
+                    <!-- Listing Type -->
 
-                    <label for="contact_phone">Contact Phone:</label>
-                    <input type="text" id="contact_phone" name="contact_phone" required>
+                    <label for="listing_type">
+                        Listing Type:
+                    </label>
 
-                    <label for="video">Upload Video of Property:</label>
-                    <input type="file" id="video" name="video" accept="video/*" required>
+                    <select
+                        id="listing_type"
+                        name="listing_type"
+                        required
+                    >
 
-                    <label for="city_type">City Type:</label>
-                    <select id="city_type" name="city_type">
-                        <option value="">Choose City Type</option>
-                        <option value="Urban">Urban</option>
-                        <option value="Suburban">Suburban</option>
-                        <option value="Rural">Rural</option>
+                        <option value="rent">
+                            Rent
+                        </option>
+
+                        <option value="sell">
+                            Sell
+                        </option>
+
                     </select>
 
-                    <label for="area">City and Area:</label>
-                    <input type="text" id="area" name="area" required>
 
-                    <label for="specifications">Specifications (Optional):</label>
-                    <textarea id="specifications" name="specifications" rows="4" placeholder="Describe your house..."></textarea>
+                    <!-- Price -->
 
-                    <button type="submit">Submit Listing</button>
+                    <label for="price">
+                        Price:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        min="1"
+                        required
+                    >
+
+
+                    <!-- BHK -->
+
+                    <label for="bhk">
+                        BHK:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="bhk"
+                        name="bhk"
+                        min="1"
+                        placeholder="Example: 3"
+                    >
+
+
+                    <!-- Area -->
+
+                    <label for="area">
+                        Area (sq.ft):
+                    </label>
+
+                    <input
+                        type="number"
+                        id="area"
+                        name="area"
+                        min="1"
+                        step="0.01"
+                        placeholder="Example: 1500"
+                    >
+
+
+                    <!-- Bathrooms -->
+
+                    <label for="bathrooms">
+                        Bathrooms:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="bathrooms"
+                        name="bathrooms"
+                        min="0"
+                        placeholder="Example: 2"
+                    >
+
+
+                    <!-- Balconies -->
+
+                    <label for="balconies">
+                        Balconies:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="balconies"
+                        name="balconies"
+                        min="0"
+                        placeholder="Example: 1"
+                    >
+
+
+                    <!-- Furnishing -->
+
+                    <label for="furnishing">
+                        Furnishing:
+                    </label>
+
+                    <select
+                        id="furnishing"
+                        name="furnishing"
+                    >
+
+                        <option value="">
+                            Select Furnishing
+                        </option>
+
+                        <option value="unfurnished">
+                            Unfurnished
+                        </option>
+
+                        <option value="semi_furnished">
+                            Semi Furnished
+                        </option>
+
+                        <option value="fully_furnished">
+                            Fully Furnished
+                        </option>
+
+                    </select>
+
+
+                    <!-- Facing -->
+
+                    <label for="facing">
+                        Facing:
+                    </label>
+
+                    <select
+                        id="facing"
+                        name="facing"
+                    >
+
+                        <option value="">
+                            Select Facing
+                        </option>
+
+                        <option value="north">
+                            North
+                        </option>
+
+                        <option value="south">
+                            South
+                        </option>
+
+                        <option value="east">
+                            East
+                        </option>
+
+                        <option value="west">
+                            West
+                        </option>
+
+                        <option value="northeast">
+                            North-East
+                        </option>
+
+                        <option value="northwest">
+                            North-West
+                        </option>
+
+                        <option value="southeast">
+                            South-East
+                        </option>
+
+                        <option value="southwest">
+                            South-West
+                        </option>
+
+                    </select>
+
+
+                    <!-- Property Age -->
+
+                    <label for="property_age">
+                        Property Age (years):
+                    </label>
+
+                    <input
+                        type="number"
+                        id="property_age"
+                        name="property_age"
+                        min="0"
+                        placeholder="Example: 7"
+                    >
+
+
+                    <!-- Floor -->
+
+                    <label for="floor_number">
+                        Floor:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="floor_number"
+                        name="floor_number"
+                        min="1"
+                        placeholder="Example: 7"
+                    >
+
+
+                    <!-- Total Floors -->
+
+                    <label for="total_floors">
+                        Total Floors:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="total_floors"
+                        name="total_floors"
+                        min="1"
+                        placeholder="Example: 14"
+                    >
+
+
+                    <!-- ==================================================
+                         CONTACT DETAILS
+                    ================================================== -->
+
+
+                    <!-- Contact Name -->
+
+                    <label for="contact_name">
+                        Contact Name:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="contact_name"
+                        name="contact_name"
+                        required
+                    >
+
+
+                    <!-- Contact Phone -->
+
+                    <label for="contact_phone">
+                        Contact Phone:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="contact_phone"
+                        name="contact_phone"
+                        required
+                    >
+
+
+                    <!-- ==================================================
+                         PROPERTY LOCATION
+                    ================================================== -->
+
+
+                    <!-- Address -->
+
+                    <label for="address">
+                        Address:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="address"
+                        name="address"
+                        required
+                    >
+
+
+                    <!-- Search Property Location -->
+
+                    <label for="locationSearch">
+                        Search Property Location:
+                    </label>
+
+
+                    <div class="location-search-wrapper">
+
+                        <input
+                            type="text"
+                            id="locationSearch"
+                            placeholder="Search for your property location..."
+                            autocomplete="off"
+                        >
+
+
+                        <div
+                            id="locationSuggestions"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="location-help">
+
+                        Search and select the location,
+                        then drag the marker to the exact
+                        property location.
+
+                    </div>
+
+
+                    <!-- Map -->
+
+                    <div
+                        id="propertyMap"
+                    ></div>
+
+
+                    <!-- ==================================================
+                         BUILDING / PROJECT DETAILS
+                    ================================================== -->
+
+
+                    <!-- Project Name -->
+
+                    <label for="project_name">
+                        Project Name:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="project_name"
+                        name="project_name"
+                        placeholder="Example: Tata Homes"
+                    >
+
+
+                    <!-- Gated Community -->
+
+                    <label for="gated_community">
+                        Gated Community:
+                    </label>
+
+                    <select
+                        id="gated_community"
+                        name="gated_community"
+                    >
+
+                        <option value="off">
+                            No
+                        </option>
+
+                        <option value="on">
+                            Yes
+                        </option>
+
+                    </select>
+
+
+                    <!-- ==================================================
+                         RENTAL DETAILS
+                    ================================================== -->
+
+
+                    <!-- Security Deposit -->
+
+                    <label for="security_deposit">
+                        Security Deposit:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="security_deposit"
+                        name="security_deposit"
+                        min="0"
+                        placeholder="Example: 50000"
+                    >
+
+
+                    <!-- Monthly Maintenance -->
+
+                    <label for="maintenance">
+                        Monthly Maintenance:
+                    </label>
+
+                    <input
+                        type="number"
+                        id="maintenance"
+                        name="maintenance"
+                        min="0"
+                        placeholder="Example: 3000"
+                    >
+
+
+                    <!-- Available From -->
+
+                    <label for="available_from">
+                        Available From:
+                    </label>
+
+                    <input
+                        type="date"
+                        id="available_from"
+                        name="available_from"
+                    >
+
+
+                    <!-- Preferred Tenant -->
+
+                    <label for="preferred_tenant">
+                        Preferred Tenant:
+                    </label>
+
+                    <select
+                        id="preferred_tenant"
+                        name="preferred_tenant"
+                    >
+
+                        <option value="">
+                            Select Tenant Type
+                        </option>
+
+                        <option value="students">
+                            Students
+                        </option>
+
+                        <option value="family">
+                            Family
+                        </option>
+
+                        <option value="bachelors">
+                            Bachelors
+                        </option>
+
+                        <option value="anyone">
+                            Anyone
+                        </option>
+
+                    </select>
+
+
+                    <!-- Lease Type -->
+
+                    <label for="lease_type">
+                        Lease Type:
+                    </label>
+
+                    <select
+                        id="lease_type"
+                        name="lease_type"
+                    >
+
+                        <option value="">
+                            Select Lease Type
+                        </option>
+
+                        <option value="short_term">
+                            Short Term
+                        </option>
+
+                        <option value="long_term">
+                            Long Term
+                        </option>
+
+                    </select>
+
+
+                    <!-- Pets Allowed -->
+
+                    <label for="pets_allowed">
+                        Pets Allowed:
+                    </label>
+
+                    <select
+                        id="pets_allowed"
+                        name="pets_allowed"
+                    >
+
+                        <option value="">
+                            Select
+                        </option>
+
+                        <option value="yes">
+                            Yes
+                        </option>
+
+                        <option value="no">
+                            No
+                        </option>
+
+                    </select>
+
+
+                    <!-- ==================================================
+                         LOCATION INFORMATION
+                    ================================================== -->
+
+
+                    <!-- City -->
+
+                    <label for="city">
+                        City:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        required
+                    >
+
+
+                    <!-- Locality -->
+
+                    <label for="locality">
+                        Locality:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="locality"
+                        name="locality"
+                    >
+
+
+                    <!-- Pincode -->
+
+                    <label for="pincode">
+                        Pincode:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="pincode"
+                        name="pincode"
+                    >
+
+
+                    <!-- Latitude -->
+
+                    <label for="latitude">
+                        Latitude (optional):
+                    </label>
+
+                    <input
+                        type="number"
+                        id="latitude"
+                        name="latitude"
+                        step="any"
+                        placeholder="Example: 12.84230234"
+                    >
+
+
+                    <!-- Longitude -->
+
+                    <label for="longitude">
+                        Longitude (optional):
+                    </label>
+
+                    <input
+                        type="number"
+                        id="longitude"
+                        name="longitude"
+                        step="any"
+                        placeholder="Example: 80.15376091"
+                    >
+
+
+                    <!-- ==================================================
+                         ADDITIONAL DETAILS
+                    ================================================== -->
+
+
+                    <!-- Amenities -->
+
+                    <label for="amenities">
+                        Amenities:
+                    </label>
+
+                    <input
+                        type="text"
+                        id="amenities"
+                        name="amenities"
+                        placeholder="Example: Gym, Lift, Security, Power Backup"
+                    >
+
+
+                    <!-- Description -->
+
+                    <label for="description">
+                        Description:
+                    </label>
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="5"
+                        placeholder="Describe your property..."
+                    ></textarea>
+
+
+                    <!-- Property Image -->
+
+                    <label for="image">
+                        Upload Property Image:
+                    </label>
+
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept=".jpg,.jpeg,.png,.webp"
+                    >
+
+
+                    <!-- Submit -->
+
+                    <button
+                        type="submit"
+                    >
+                        Submit Property
+                    </button>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
+
+
+    <!-- ====================================================
+         JAVASCRIPT
+    ==================================================== -->
 
     <script>
-       function searchRentals(event) {
-    event.preventDefault();
-    
-    const budget = document.getElementById('budget').value;
-    const cityType = document.getElementById('city_type').value;
-    const listingType = document.getElementById('listing_type').value; // Fetch listing type
 
-    fetch('{{ url_for("search_rentals") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            budget: parseInt(budget),
-            city_type: cityType,
-            listing_type: listingType // Pass listing type to back-end
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const listingsContainer = document.getElementById('listingsContainer');
-        listingsContainer.innerHTML = '';
-        
-        if (data.listings && data.listings.length > 0) {
-            data.listings.forEach(listing => {
-                const listingElement = document.createElement('div');
-                listingElement.innerHTML = `
-                    <strong>Type:</strong> ${listing.listing_type}<br>
-                    <strong>Price:</strong> ₹${listing.price}<br>
-                    <strong>City Type:</strong> ${listing.city_type || 'Not specified'}<br>
-                    <strong>City and Area:</strong> ${listing.area}<br>
-                    <strong>Contact:</strong> ${listing.contact_name} - ${listing.contact_phone}<br>
-                    <strong>Specifications:</strong> ${listing.specifications || 'N/A'}<br>
-                    <video controls>
-                        <source src="/static/videos/${listing.video_filename}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <hr>
-                `;
-                listingsContainer.appendChild(listingElement);
-            });
-        } else {
-            listingsContainer.innerHTML = '<p>No rentals found matching your criteria.</p>';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const listingsContainer = document.getElementById('listingsContainer');
-        listingsContainer.innerHTML = '<p>An error occurred while searching. Please try again later.</p>';
-    });
-}
 
-    
-        // Show/hide forms
+        /* ==================================================
+           SEARCH PROPERTIES
+        ================================================== */
+
+        function searchRentals(event) {
+
+            event.preventDefault();
+
+
+            const budget =
+                document.getElementById(
+                    'budget'
+                ).value;
+
+
+            const city =
+                document.getElementById(
+                    'search_city'
+                ).value.trim();
+
+
+            const locality =
+                document.getElementById(
+                    'search_locality'
+                ).value.trim();
+
+
+            const listingType =
+                document.getElementById(
+                    'search_listing_type'
+                ).value;
+
+
+            const propertyType =
+                document.getElementById(
+                    'search_property_type'
+                ).value;
+
+
+            const bhk =
+                document.getElementById(
+                    'search_bhk'
+                ).value;
+
+
+            fetch(
+                '{{ url_for("search.search_rentals") }}',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body: JSON.stringify({
+
+                        budget:
+                            parseInt(budget) || 0,
+
+                        city:
+                            city,
+
+                        locality:
+                            locality,
+
+                        listing_type:
+                            listingType,
+
+                        property_type:
+                            propertyType,
+
+                        bhk:
+                            bhk
+
+                    })
+                }
+            )
+
+
+            .then(
+                response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            'Network response was not ok'
+                        );
+
+                    }
+
+                    return response.json();
+
+                }
+            )
+
+
+            .then(
+                data => {
+
+                    const listingsContainer =
+                        document.getElementById(
+                            'listingsContainer'
+                        );
+
+
+                    listingsContainer.innerHTML =
+                        '';
+
+
+                    if (
+                        data.properties &&
+                        data.properties.length > 0
+                    ) {
+
+
+                        data.properties.forEach(
+                            property => {
+
+
+                                const listingElement =
+                                    document.createElement(
+                                        'div'
+                                    );
+
+
+                                /* PROPERTY IMAGE */
+
+                                let imageHTML =
+                                    '';
+
+
+                                if (
+                                    property.image_filename
+                                ) {
+
+                                    imageHTML = `
+
+                                        <img
+                                            class="property-image"
+                                            src="/static/images/properties/${property.image_filename}"
+                                            alt="Property Image"
+                                        >
+
+                                    `;
+
+                                }
+
+
+                                /* VIEW DETAILS URL */
+
+                                const detailsURL =
+                                    `/property/${property.id}`;
+
+
+                                /* RESULT CARD */
+
+                                listingElement.innerHTML = `
+
+                                    <h3>
+                                        ${
+                                            property.property_type
+                                            || 'Property'
+                                        }
+                                    </h3>
+
+
+                                    ${imageHTML}
+
+
+                                    <p>
+
+                                        <strong>
+                                            Listing Type:
+                                        </strong>
+
+                                        ${
+                                            property.listing_type
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Price:
+                                        </strong>
+
+                                        ₹${
+                                            property.price
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            BHK:
+                                        </strong>
+
+                                        ${
+                                            property.bhk
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Area:
+                                        </strong>
+
+                                        ${
+                                            property.area
+                                            || 'N/A'
+                                        }
+
+                                        sq.ft
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            City:
+                                        </strong>
+
+                                        ${
+                                            property.city
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Locality:
+                                        </strong>
+
+                                        ${
+                                            property.locality
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Address:
+                                        </strong>
+
+                                        ${
+                                            property.address
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Contact:
+                                        </strong>
+
+                                        ${
+                                            property.contact_name
+                                            || 'N/A'
+                                        }
+
+                                        -
+
+                                        ${
+                                            property.contact_phone
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <p>
+
+                                        <strong>
+                                            Description:
+                                        </strong>
+
+                                        ${
+                                            property.description
+                                            || 'N/A'
+                                        }
+
+                                    </p>
+
+
+                                    <a
+                                        href="${detailsURL}"
+                                        class="view-details-button"
+                                    >
+                                        View Details
+                                    </a>
+
+                                `;
+
+
+                                listingsContainer.appendChild(
+                                    listingElement
+                                );
+
+                            }
+                        );
+
+                    }
+
+
+                    else {
+
+                        listingsContainer.innerHTML =
+                            '<p>No properties found matching your criteria.</p>';
+
+                    }
+
+                }
+            )
+
+
+            .catch(
+                error => {
+
+                    console.error(
+                        'Error:',
+                        error
+                    );
+
+
+                    const listingsContainer =
+                        document.getElementById(
+                            'listingsContainer'
+                        );
+
+
+                    listingsContainer.innerHTML =
+                        '<p>An error occurred while searching. Please try again later.</p>';
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           SHOW / HIDE FORMS
+        ================================================== */
+
         function showForm(formType) {
-            const buyForm = document.getElementById('buyForm');
-            const sellForm = document.getElementById('sellForm');
-            
-            if (formType === 'buy') {
-                buyForm.style.display = 'block';
-                sellForm.style.display = 'none';
-            } else if (formType === 'sell') {
-                sellForm.style.display = 'block';
-                buyForm.style.display = 'none';
+
+
+            const buyForm =
+                document.getElementById(
+                    'buyForm'
+                );
+
+
+            const sellForm =
+                document.getElementById(
+                    'sellForm'
+                );
+
+
+            if (
+                formType === 'buy'
+            ) {
+
+                buyForm.style.display =
+                    'block';
+
+                sellForm.style.display =
+                    'none';
+
             }
+
+
+            else if (
+                formType === 'sell'
+            ) {
+
+                sellForm.style.display =
+                    'block';
+
+                buyForm.style.display =
+                    'none';
+
+            }
+
         }
+
+
+        /* ==================================================
+           PROPERTY LOCATION MAP
+        ================================================== */
+
+        let propertyMap = null;
+
+        let propertyMarker = null;
+
+        let locationSearchTimer = null;
+
+
+        const DEFAULT_LATITUDE =
+            12.84230234;
+
+
+        const DEFAULT_LONGITUDE =
+            80.15376091;
+
+
+        /* ==================================================
+           INITIALIZE MAP
+        ================================================== */
+
+        function initializePropertyMap() {
+
+
+            if (
+                propertyMap !== null
+            ) {
+
+                propertyMap.invalidateSize();
+
+                return;
+
+            }
+
+
+            propertyMap =
+                L.map(
+                    'propertyMap'
+                ).setView(
+                    [
+                        DEFAULT_LATITUDE,
+                        DEFAULT_LONGITUDE
+                    ],
+                    14
+                );
+
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    maxZoom: 19,
+
+                    attribution:
+                        '&copy; OpenStreetMap contributors'
+                }
+            ).addTo(
+                propertyMap
+            );
+
+
+            /* Click anywhere on map */
+
+            propertyMap.on(
+                'click',
+                function(event) {
+
+                    updatePropertyMarker(
+                        event.latlng.lat,
+                        event.latlng.lng,
+                        true
+                    );
+
+                }
+            );
+
+
+            /* Initial marker */
+
+            updatePropertyMarker(
+                DEFAULT_LATITUDE,
+                DEFAULT_LONGITUDE,
+                false
+            );
+
+        }
+
+
+        /* ==================================================
+           UPDATE MARKER
+        ================================================== */
+
+        function updatePropertyMarker(
+            latitude,
+            longitude,
+            reverseGeocode
+        ) {
+
+
+            if (
+                propertyMarker === null
+            ) {
+
+
+                propertyMarker =
+                    L.marker(
+                        [
+                            latitude,
+                            longitude
+                        ],
+                        {
+                            draggable: true
+                        }
+                    ).addTo(
+                        propertyMap
+                    );
+
+
+                /* Drag marker */
+
+                propertyMarker.on(
+                    'dragend',
+                    function() {
+
+                        const position =
+                            propertyMarker.getLatLng();
+
+
+                        updatePropertyMarker(
+                            position.lat,
+                            position.lng,
+                            true
+                        );
+
+                    }
+                );
+
+            }
+
+
+            else {
+
+                propertyMarker.setLatLng(
+                    [
+                        latitude,
+                        longitude
+                    ]
+                );
+
+            }
+
+
+            propertyMap.setView(
+                [
+                    latitude,
+                    longitude
+                ],
+                16
+            );
+
+
+            /* Fill latitude */
+
+            document.getElementById(
+                'latitude'
+            ).value =
+                latitude.toFixed(8);
+
+
+            /* Fill longitude */
+
+            document.getElementById(
+                'longitude'
+            ).value =
+                longitude.toFixed(8);
+
+
+            if (
+                reverseGeocode
+            ) {
+
+                reverseGeocodePropertyLocation(
+                    latitude,
+                    longitude
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           LOCATION SEARCH
+        ================================================== */
+
+        const locationSearch =
+            document.getElementById(
+                'locationSearch'
+            );
+
+
+        locationSearch.addEventListener(
+            'input',
+            function() {
+
+
+                const query =
+                    this.value.trim();
+
+
+                clearTimeout(
+                    locationSearchTimer
+                );
+
+
+                if (
+                    query.length < 3
+                ) {
+
+                    document.getElementById(
+                        'locationSuggestions'
+                    ).style.display =
+                        'none';
+
+                    return;
+
+                }
+
+
+                locationSearchTimer =
+                    setTimeout(
+                        function() {
+
+                            searchPropertyLocation(
+                                query
+                            );
+
+                        },
+                        700
+                    );
+
+            }
+        );
+
+
+        /* ==================================================
+           SEARCH LOCATION USING NOMINATIM
+        ================================================== */
+
+        async function searchPropertyLocation(
+            query
+        ) {
+
+
+            try {
+
+
+                const url =
+                    'https://nominatim.openstreetmap.org/search?' +
+                    new URLSearchParams({
+
+                        q:
+                            query,
+
+                        format:
+                            'json',
+
+                        addressdetails:
+                            '1',
+
+                        limit:
+                            '5',
+
+                        countrycodes:
+                            'in'
+
+                    });
+
+
+                const response =
+                    await fetch(
+                        url
+                    );
+
+
+                if (
+                    !response.ok
+                ) {
+
+                    throw new Error(
+                        'Location search failed'
+                    );
+
+                }
+
+
+                const results =
+                    await response.json();
+
+
+                displayLocationSuggestions(
+                    results
+                );
+
+            }
+
+
+            catch (error) {
+
+                console.error(
+                    'Location search error:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           DISPLAY SUGGESTIONS
+        ================================================== */
+
+        function displayLocationSuggestions(
+            results
+        ) {
+
+
+            const container =
+                document.getElementById(
+                    'locationSuggestions'
+                );
+
+
+            container.innerHTML =
+                '';
+
+
+            if (
+                results.length === 0
+            ) {
+
+                container.style.display =
+                    'none';
+
+                return;
+
+            }
+
+
+            results.forEach(
+                function(result) {
+
+
+                    const item =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    item.className =
+                        'location-suggestion';
+
+
+                    item.textContent =
+                        result.display_name;
+
+
+                    item.addEventListener(
+                        'click',
+                        function() {
+
+                            selectPropertyLocation(
+                                result
+                            );
+
+                        }
+                    );
+
+
+                    container.appendChild(
+                        item
+                    );
+
+                }
+            );
+
+
+            container.style.display =
+                'block';
+
+        }
+
+
+        /* ==================================================
+           SELECT SEARCH RESULT
+        ================================================== */
+
+        function selectPropertyLocation(
+            result
+        ) {
+
+
+            const latitude =
+                parseFloat(
+                    result.lat
+                );
+
+
+            const longitude =
+                parseFloat(
+                    result.lon
+                );
+
+
+            updatePropertyMarker(
+                latitude,
+                longitude,
+                false
+            );
+
+
+            document.getElementById(
+                'locationSearch'
+            ).value =
+                result.display_name;
+
+
+            const address =
+                result.address || {};
+
+
+            /* Address */
+
+            document.getElementById(
+                'address'
+            ).value =
+                result.display_name || '';
+
+
+            /* City */
+
+            document.getElementById(
+                'city'
+            ).value =
+
+                address.city ||
+
+                address.town ||
+
+                address.village ||
+
+                address.municipality ||
+
+                '';
+
+
+            /* Locality */
+
+            document.getElementById(
+                'locality'
+            ).value =
+
+                address.suburb ||
+
+                address.neighbourhood ||
+
+                address.city_district ||
+
+                '';
+
+
+            /* Pincode */
+
+            document.getElementById(
+                'pincode'
+            ).value =
+
+                address.postcode ||
+
+                '';
+
+
+            document.getElementById(
+                'locationSuggestions'
+            ).style.display =
+                'none';
+
+        }
+
+
+        /* ==================================================
+           REVERSE GEOCODING
+           Used when user clicks/drags marker
+        ================================================== */
+
+        async function reverseGeocodePropertyLocation(
+            latitude,
+            longitude
+        ) {
+
+
+            try {
+
+
+                const url =
+                    'https://nominatim.openstreetmap.org/reverse?' +
+                    new URLSearchParams({
+
+                        lat:
+                            latitude,
+
+                        lon:
+                            longitude,
+
+                        format:
+                            'json',
+
+                        addressdetails:
+                            '1'
+
+                    });
+
+
+                const response =
+                    await fetch(
+                        url
+                    );
+
+
+                if (
+                    !response.ok
+                ) {
+
+                    throw new Error(
+                        'Reverse geocoding failed'
+                    );
+
+                }
+
+
+                const result =
+                    await response.json();
+
+
+                const address =
+                    result.address || {};
+
+
+                /* Address */
+
+                document.getElementById(
+                    'address'
+                ).value =
+                    result.display_name || '';
+
+
+                /* City */
+
+                document.getElementById(
+                    'city'
+                ).value =
+
+                    address.city ||
+
+                    address.town ||
+
+                    address.village ||
+
+                    address.municipality ||
+
+                    '';
+
+
+                /* Locality */
+
+                document.getElementById(
+                    'locality'
+                ).value =
+
+                    address.suburb ||
+
+                    address.neighbourhood ||
+
+                    address.city_district ||
+
+                    '';
+
+
+                /* Pincode */
+
+                document.getElementById(
+                    'pincode'
+                ).value =
+
+                    address.postcode ||
+
+                    '';
+
+
+                /* Search box */
+
+                document.getElementById(
+                    'locationSearch'
+                ).value =
+                    result.display_name || '';
+
+            }
+
+
+            catch (error) {
+
+                console.error(
+                    'Reverse geocoding error:',
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           HIDE SUGGESTIONS WHEN CLICKING OUTSIDE
+        ================================================== */
+
+        document.addEventListener(
+            'click',
+            function(event) {
+
+
+                const wrapper =
+                    document.querySelector(
+                        '.location-search-wrapper'
+                    );
+
+
+                if (
+                    wrapper &&
+                    !wrapper.contains(
+                        event.target
+                    )
+                ) {
+
+                    document.getElementById(
+                        'locationSuggestions'
+                    ).style.display =
+                        'none';
+
+                }
+
+            }
+        );
+
+
+        /* ==================================================
+           CONNECT MAP WITH showForm()
+        ================================================== */
+
+        const originalShowForm =
+            showForm;
+
+
+        showForm = function(
+            formType
+        ) {
+
+
+            originalShowForm(
+                formType
+            );
+
+
+            if (
+                formType === 'sell'
+            ) {
+
+
+                setTimeout(
+                    function() {
+
+                        initializePropertyMap();
+
+                        propertyMap.invalidateSize();
+
+                    },
+                    100
+                );
+
+            }
+
+        };
+
     </script>
+
 </body>
+
 </html>
