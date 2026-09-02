@@ -1,3 +1,4 @@
+{% from "_field_macros.html" import render_field %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,6 +24,12 @@
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
+    <!-- Dynamic property listing form styles -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='property_form.css') }}"
+    >
+
 
     <style>
 
@@ -37,86 +44,6 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-        }
-
-
-        /* ====================================================
-           PROPERTY LOCATION MAP
-        ==================================================== */
-
-        #propertyMap {
-            width: 100%;
-            height: 400px;
-            margin-bottom: 15px;
-
-            border-radius: 8px;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-
-            overflow: hidden;
-        }
-
-
-        .location-search-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-
-        #locationSearch {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-
-        #locationSuggestions {
-            display: none;
-
-            position: absolute;
-
-            top: calc(100% - 15px);
-            left: 0;
-            right: 0;
-
-            background: white;
-
-            border: 1px solid #ccc;
-            border-radius: 4px;
-
-            max-height: 250px;
-            overflow-y: auto;
-
-            z-index: 2000;
-
-            box-shadow:
-                0 4px 10px
-                rgba(0, 0, 0, 0.15);
-        }
-
-
-        .location-suggestion {
-            padding: 10px;
-
-            cursor: pointer;
-
-            color: #333;
-            background: white;
-
-            border-bottom: 1px solid #eee;
-
-            font-size: 14px;
-        }
-
-
-        .location-suggestion:hover {
-            background-color: #f1f1f1;
-        }
-
-
-        .location-help {
-            font-size: 13px;
-            color: #555;
-
-            margin-bottom: 10px;
         }
 
 
@@ -543,6 +470,27 @@
             </h2>
 
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    <div class="pf-flash-container">
+
+                        {% for category, message in messages %}
+
+                            <div class="pf-flash pf-flash-{{ category }}">
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
             <!-- ==================================================
                  BUY / SELL BUTTONS
             ================================================== -->
@@ -567,6 +515,9 @@
 
             <!-- ==================================================
                  BUY / SEARCH FORM
+
+                 NOTE: search/ranking is out of scope for this change
+                 and is left exactly as before.
             ================================================== -->
 
             <div
@@ -757,6 +708,12 @@
 
             <!-- ==================================================
                  SELL / SUBMIT PROPERTY FORM
+
+                 Fully dynamic: which fields are shown depends on the
+                 selected Listing Type + Property Type. The set of
+                 fields is driven by field_config (built from
+                 services/property_fields.py) so the frontend can
+                 never show something the backend would reject.
             ================================================== -->
 
             <div
@@ -768,8 +725,20 @@
                     Submit a Property Listing
                 </h3>
 
+                {% if not geoapify_enabled %}
+
+                    <div class="pf-geoapify-disabled-note">
+                        Location search is currently unavailable
+                        (no Geoapify API key configured). You can
+                        still click on the map or drag the marker
+                        to set the exact location.
+                    </div>
+
+                {% endif %}
+
 
                 <form
+                    class="pf-form"
                     action="{{ url_for('property.submit_listing') }}"
                     method="POST"
                     enctype="multipart/form-data"
@@ -777,667 +746,402 @@
 
 
                     <!-- ==================================================
-                         BASIC PROPERTY DETAILS
+                         LISTING TYPE / PROPERTY TYPE
                     ================================================== -->
 
-
-                    <!-- Property Type -->
-
-                    <label for="property_type">
-                        Property Type:
-                    </label>
-
-                    <select
-                        id="property_type"
-                        name="property_type"
-                        required
-                    >
-
-                        <option value="">
-                            Choose Property Type
-                        </option>
-
-                        <option value="house">
-                            House
-                        </option>
-
-                        <option value="apartment">
-                            Apartment
-                        </option>
-
-                        <option value="villa">
-                            Villa
-                        </option>
-
-                        <option value="flat">
-                            Flat
-                        </option>
-
-                        <option value="plot">
-                            Plot
-                        </option>
-
-                    </select>
-
-
-                    <!-- Listing Type -->
-
-                    <label for="listing_type">
-                        Listing Type:
-                    </label>
-
-                    <select
-                        id="listing_type"
-                        name="listing_type"
-                        required
-                    >
-
-                        <option value="rent">
-                            Rent
-                        </option>
-
-                        <option value="sell">
-                            Sell
-                        </option>
-
-                    </select>
-
-
-                    <!-- Price -->
-
-                    <label for="price">
-                        Price:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        min="1"
-                        required
-                    >
-
-
-                    <!-- BHK -->
-
-                    <label for="bhk">
-                        BHK:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="bhk"
-                        name="bhk"
-                        min="1"
-                        placeholder="Example: 3"
-                    >
-
-
-                    <!-- Area -->
-
-                    <label for="area">
-                        Area (sq.ft):
-                    </label>
-
-                    <input
-                        type="number"
-                        id="area"
-                        name="area"
-                        min="1"
-                        step="0.01"
-                        placeholder="Example: 1500"
-                    >
-
-
-                    <!-- Bathrooms -->
-
-                    <label for="bathrooms">
-                        Bathrooms:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="bathrooms"
-                        name="bathrooms"
-                        min="0"
-                        placeholder="Example: 2"
-                    >
-
-
-                    <!-- Balconies -->
-
-                    <label for="balconies">
-                        Balconies:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="balconies"
-                        name="balconies"
-                        min="0"
-                        placeholder="Example: 1"
-                    >
-
-
-                    <!-- Furnishing -->
-
-                    <label for="furnishing">
-                        Furnishing:
-                    </label>
-
-                    <select
-                        id="furnishing"
-                        name="furnishing"
-                    >
-
-                        <option value="">
-                            Select Furnishing
-                        </option>
-
-                        <option value="unfurnished">
-                            Unfurnished
-                        </option>
-
-                        <option value="semi_furnished">
-                            Semi Furnished
-                        </option>
-
-                        <option value="fully_furnished">
-                            Fully Furnished
-                        </option>
-
-                    </select>
-
-
-                    <!-- Facing -->
-
-                    <label for="facing">
-                        Facing:
-                    </label>
-
-                    <select
-                        id="facing"
-                        name="facing"
-                    >
-
-                        <option value="">
-                            Select Facing
-                        </option>
-
-                        <option value="north">
-                            North
-                        </option>
-
-                        <option value="south">
-                            South
-                        </option>
-
-                        <option value="east">
-                            East
-                        </option>
-
-                        <option value="west">
-                            West
-                        </option>
-
-                        <option value="northeast">
-                            North-East
-                        </option>
-
-                        <option value="northwest">
-                            North-West
-                        </option>
-
-                        <option value="southeast">
-                            South-East
-                        </option>
-
-                        <option value="southwest">
-                            South-West
-                        </option>
-
-                    </select>
-
-
-                    <!-- Property Age -->
-
-                    <label for="property_age">
-                        Property Age (years):
-                    </label>
-
-                    <input
-                        type="number"
-                        id="property_age"
-                        name="property_age"
-                        min="0"
-                        placeholder="Example: 7"
-                    >
-
-
-                    <!-- Floor -->
-
-                    <label for="floor_number">
-                        Floor:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="floor_number"
-                        name="floor_number"
-                        min="1"
-                        placeholder="Example: 7"
-                    >
-
-
-                    <!-- Total Floors -->
-
-                    <label for="total_floors">
-                        Total Floors:
-                    </label>
-
-                    <input
-                        type="number"
-                        id="total_floors"
-                        name="total_floors"
-                        min="1"
-                        placeholder="Example: 14"
-                    >
-
-
-                    <!-- ==================================================
-                         CONTACT DETAILS
-                    ================================================== -->
-
-
-                    <!-- Contact Name -->
-
-                    <label for="contact_name">
-                        Contact Name:
-                    </label>
-
-                    <input
-                        type="text"
-                        id="contact_name"
-                        name="contact_name"
-                        required
-                    >
-
-
-                    <!-- Contact Phone -->
-
-                    <label for="contact_phone">
-                        Contact Phone:
-                    </label>
-
-                    <input
-                        type="text"
-                        id="contact_phone"
-                        name="contact_phone"
-                        required
-                    >
-
-
-                    <!-- ==================================================
-                         PROPERTY LOCATION
-                    ================================================== -->
-
-
-                    <!-- Address -->
-
-                    <label for="address">
-                        Address:
-                    </label>
-
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        required
-                    >
-
-
-                    <!-- Search Property Location -->
-
-                    <label for="locationSearch">
-                        Search Property Location:
-                    </label>
-
-
-                    <div class="location-search-wrapper">
-
-                        <input
-                            type="text"
-                            id="locationSearch"
-                            placeholder="Search for your property location..."
-                            autocomplete="off"
-                        >
-
-
-                        <div
-                            id="locationSuggestions"
-                        ></div>
+                    <div class="pf-section pf-group" data-always-show="true">
+
+                        <h4>What are you listing?</h4>
+
+                        <div class="pf-fields-grid">
+
+                            <div class="pf-field">
+                                <label for="pf_listing_type">Listing Type *</label>
+                                <select id="pf_listing_type" name="listing_type" required>
+                                    {% for value, label in field_config.listingTypes %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="pf_property_type">Property Type *</label>
+                                <select id="pf_property_type" name="property_type" required>
+                                    <option value="">Choose Property Type</option>
+                                    {% for value, label in field_config.propertyTypes %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
 
                     </div>
 
 
-                    <div class="location-help">
+                    <!-- ==================================================
+                         LISTING BASICS
+                    ================================================== -->
 
-                        Search and select the location,
-                        then drag the marker to the exact
-                        property location.
+                    <div class="pf-section pf-group" data-always-show="true">
+
+                        <h4>Listing Details</h4>
+
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.commonListingFields %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
 
                     </div>
 
 
-                    <!-- Map -->
+                    <!-- ==================================================
+                         ROOMS
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="rooms">
+                        <h4>Rooms</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.rooms %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         AREA
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="area">
+                        <h4>Area</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.area %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         BUILDING
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="building">
+                        <h4>Building Details</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.building %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         PROJECT / SOCIETY
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="project">
+                        <h4>Project / Society</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.project %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         PARKING
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="parking">
+                        <h4>Parking</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.parking %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         TYPE-SPECIFIC DETAILS
+                         (villa / plot / farm house / commercial / other)
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="extra">
+                        <h4>Additional Details</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.extra %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         LEGAL
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="legal">
+                        <h4>Legal / Ownership</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.legal %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         PG / HOSTEL DETAILS
+                    ================================================== -->
+
+                    <div class="pf-section pf-group" data-group="pg">
+                        <h4>PG / Hostel Details</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.groups.pg %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+                    <!-- ==================================================
+                         RENT DETAILS (rent listings only, except PG)
+                    ================================================== -->
 
                     <div
-                        id="propertyMap"
-                    ></div>
+                        class="pf-section pf-group"
+                        data-listing-only="rent"
+                        data-property-exclude="pg_hostel"
+                    >
+                        <h4>Rent Details</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.rentFields %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
 
 
                     <!-- ==================================================
-                         BUILDING / PROJECT DETAILS
+                         SALE DETAILS (sell listings only)
                     ================================================== -->
 
-
-                    <!-- Project Name -->
-
-                    <label for="project_name">
-                        Project Name:
-                    </label>
-
-                    <input
-                        type="text"
-                        id="project_name"
-                        name="project_name"
-                        placeholder="Example: Tata Homes"
+                    <div
+                        class="pf-section pf-group"
+                        data-listing-only="sale"
                     >
-
-
-                    <!-- Gated Community -->
-
-                    <label for="gated_community">
-                        Gated Community:
-                    </label>
-
-                    <select
-                        id="gated_community"
-                        name="gated_community"
-                    >
-
-                        <option value="off">
-                            No
-                        </option>
-
-                        <option value="on">
-                            Yes
-                        </option>
-
-                    </select>
+                        <h4>Sale Details</h4>
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.saleFields %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
+                    </div>
 
 
                     <!-- ==================================================
-                         RENTAL DETAILS
+                         LOCATION
                     ================================================== -->
 
+                    <div class="pf-section pf-group" data-always-show="true">
 
-                    <!-- Security Deposit -->
+                        <h4>Location</h4>
 
-                    <label for="security_deposit">
-                        Security Deposit:
-                    </label>
+                        {% if geoapify_enabled %}
 
-                    <input
-                        type="number"
-                        id="security_deposit"
-                        name="security_deposit"
-                        min="0"
-                        placeholder="Example: 50000"
-                    >
+                            <label for="pfLocationSearch">Search Property Location</label>
 
+                            <div class="pf-location-search-wrapper">
 
-                    <!-- Monthly Maintenance -->
+                                <input
+                                    type="text"
+                                    id="pfLocationSearch"
+                                    placeholder="Search for your property location..."
+                                    autocomplete="off"
+                                >
 
-                    <label for="maintenance">
-                        Monthly Maintenance:
-                    </label>
+                                <div id="pfLocationSuggestions" class="pf-location-suggestions"></div>
 
-                    <input
-                        type="number"
-                        id="maintenance"
-                        name="maintenance"
-                        min="0"
-                        placeholder="Example: 3000"
-                    >
+                            </div>
 
+                            <p class="pf-hint">
+                                Search and select the location, then drag the
+                                marker to the exact property location.
+                            </p>
 
-                    <!-- Available From -->
+                        {% endif %}
 
-                    <label for="available_from">
-                        Available From:
-                    </label>
+                        <div id="pfPropertyMap"></div>
 
-                    <input
-                        type="date"
-                        id="available_from"
-                        name="available_from"
-                    >
+                        <div class="pf-fields-grid">
+                            {% for field in field_config.locationFields %}
+                                {{ render_field(field) }}
+                            {% endfor %}
+                        </div>
 
+                        <input type="hidden" id="pf_latitude" name="latitude" required>
+                        <input type="hidden" id="pf_longitude" name="longitude" required>
 
-                    <!-- Preferred Tenant -->
-
-                    <label for="preferred_tenant">
-                        Preferred Tenant:
-                    </label>
-
-                    <select
-                        id="preferred_tenant"
-                        name="preferred_tenant"
-                    >
-
-                        <option value="">
-                            Select Tenant Type
-                        </option>
-
-                        <option value="students">
-                            Students
-                        </option>
-
-                        <option value="family">
-                            Family
-                        </option>
-
-                        <option value="bachelors">
-                            Bachelors
-                        </option>
-
-                        <option value="anyone">
-                            Anyone
-                        </option>
-
-                    </select>
-
-
-                    <!-- Lease Type -->
-
-                    <label for="lease_type">
-                        Lease Type:
-                    </label>
-
-                    <select
-                        id="lease_type"
-                        name="lease_type"
-                    >
-
-                        <option value="">
-                            Select Lease Type
-                        </option>
-
-                        <option value="short_term">
-                            Short Term
-                        </option>
-
-                        <option value="long_term">
-                            Long Term
-                        </option>
-
-                    </select>
-
-
-                    <!-- Pets Allowed -->
-
-                    <label for="pets_allowed">
-                        Pets Allowed:
-                    </label>
-
-                    <select
-                        id="pets_allowed"
-                        name="pets_allowed"
-                    >
-
-                        <option value="">
-                            Select
-                        </option>
-
-                        <option value="yes">
-                            Yes
-                        </option>
-
-                        <option value="no">
-                            No
-                        </option>
-
-                    </select>
+                    </div>
 
 
                     <!-- ==================================================
-                         LOCATION INFORMATION
+                         AMENITIES
                     ================================================== -->
 
+                    <div class="pf-section pf-group" data-always-show="true">
 
-                    <!-- City -->
+                        <h4>Amenities</h4>
 
-                    <label for="city">
-                        City:
-                    </label>
+                        {% for category, options in field_config.amenityCategories.items() %}
 
-                    <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        required
-                    >
+                            <div class="pf-amenity-category">
 
+                                <h5>{{ category | replace("_", " ") | title }}</h5>
 
-                    <!-- Locality -->
+                                <div class="pf-amenity-chips">
 
-                    <label for="locality">
-                        Locality:
-                    </label>
+                                    {% for value, label in options %}
 
-                    <input
-                        type="text"
-                        id="locality"
-                        name="locality"
-                    >
+                                        <label class="pf-amenity-chip">
+                                            <input
+                                                type="checkbox"
+                                                name="amenities"
+                                                value="{{ value }}"
+                                            >
+                                            {{ label }}
+                                        </label>
 
+                                    {% endfor %}
 
-                    <!-- Pincode -->
+                                </div>
 
-                    <label for="pincode">
-                        Pincode:
-                    </label>
+                            </div>
 
-                    <input
-                        type="text"
-                        id="pincode"
-                        name="pincode"
-                    >
+                        {% endfor %}
 
+                        <div class="pf-field">
+                            <label for="pf_custom_amenities">
+                                Other Amenities (comma separated)
+                            </label>
+                            <input
+                                type="text"
+                                id="pf_custom_amenities"
+                                name="custom_amenities"
+                                placeholder="Example: Rainwater Harvesting, Rooftop Lounge"
+                            >
+                        </div>
 
-                    <!-- Latitude -->
-
-                    <label for="latitude">
-                        Latitude (optional):
-                    </label>
-
-                    <input
-                        type="number"
-                        id="latitude"
-                        name="latitude"
-                        step="any"
-                        placeholder="Example: 12.84230234"
-                    >
-
-
-                    <!-- Longitude -->
-
-                    <label for="longitude">
-                        Longitude (optional):
-                    </label>
-
-                    <input
-                        type="number"
-                        id="longitude"
-                        name="longitude"
-                        step="any"
-                        placeholder="Example: 80.15376091"
-                    >
+                    </div>
 
 
                     <!-- ==================================================
-                         ADDITIONAL DETAILS
+                         MEDIA
                     ================================================== -->
 
+                    <div class="pf-section pf-group" data-always-show="true">
 
-                    <!-- Amenities -->
+                        <h4>Photos &amp; Media</h4>
 
-                    <label for="amenities">
-                        Amenities:
-                    </label>
+                        <label for="pf_images">
+                            Property Images (at least 1 required, up to 20)
+                        </label>
 
-                    <input
-                        type="text"
-                        id="amenities"
-                        name="amenities"
-                        placeholder="Example: Gym, Lift, Security, Power Backup"
-                    >
+                        <input
+                            type="file"
+                            id="pf_images"
+                            name="images"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            multiple
+                            required
+                        >
+
+                        <div id="pfImagePreviewList" class="pf-image-list"></div>
+
+                        <label for="pf_videos" style="margin-top: 15px; display: block;">
+                            Property Videos (optional, up to 5)
+                        </label>
+
+                        <input
+                            type="file"
+                            id="pf_videos"
+                            name="videos"
+                            accept=".mp4,.webm,.mov"
+                            multiple
+                        >
+
+                        <label for="pf_floor_plan">Floor Plan (optional)</label>
+                        <input
+                            type="file"
+                            id="pf_floor_plan"
+                            name="floor_plan"
+                            accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        >
+
+                        <label for="pf_brochure">Brochure (optional, PDF)</label>
+                        <input
+                            type="file"
+                            id="pf_brochure"
+                            name="brochure"
+                            accept=".pdf"
+                        >
+
+                        <label for="pf_virtual_tour_url">Virtual Tour URL (optional)</label>
+                        <input
+                            type="url"
+                            id="pf_virtual_tour_url"
+                            name="virtual_tour_url"
+                            placeholder="https://..."
+                        >
+
+                    </div>
 
 
-                    <!-- Description -->
+                    <!-- ==================================================
+                         CONTACT
+                    ================================================== -->
 
-                    <label for="description">
-                        Description:
-                    </label>
+                    <div class="pf-section pf-group" data-always-show="true">
 
-                    <textarea
-                        id="description"
-                        name="description"
-                        rows="5"
-                        placeholder="Describe your property..."
-                    ></textarea>
+                        <h4>Contact Information</h4>
+
+                        <div class="pf-fields-grid">
+
+                            <div class="pf-field">
+                                <label for="pf_contact_name">Contact Name *</label>
+                                <input type="text" id="pf_contact_name" name="contact_name" required>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="pf_contact_phone">Contact Phone *</label>
+                                <input type="text" id="pf_contact_phone" name="contact_phone" required>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="pf_contact_whatsapp">WhatsApp Number</label>
+                                <input type="text" id="pf_contact_whatsapp" name="contact_whatsapp">
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="pf_preferred_contact_method">Preferred Contact Method</label>
+                                <select id="pf_preferred_contact_method" name="preferred_contact_method">
+                                    <option value="phone">Phone</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="email">Email</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                    </div>
 
 
-                    <!-- Property Image -->
-
-                    <label for="image">
-                        Upload Property Image:
-                    </label>
-
-                    <input
-                        type="file"
-                        id="image"
-                        name="image"
-                        accept=".jpg,.jpeg,.png,.webp"
-                    >
-
-
-                    <!-- Submit -->
-
-                    <button
-                        type="submit"
-                    >
+                    <button type="submit" class="pf-submit-button">
                         Submit Property
                     </button>
 
@@ -1451,7 +1155,20 @@
 
 
     <!-- ====================================================
-         JAVASCRIPT
+         FIELD CONFIG (single source of truth, shared with backend)
+    ==================================================== -->
+
+    <script>
+        window.PROPERTY_FIELD_CONFIG = {{ field_config | tojson }};
+        window.PROPERTY_IMAGE_CATEGORIES = {{ image_categories | tojson }};
+        window.GEOAPIFY_ENABLED = {{ geoapify_enabled | tojson }};
+    </script>
+
+    <script src="{{ url_for('static', filename='property_form.js') }}"></script>
+
+
+    <!-- ====================================================
+         JAVASCRIPT (search tab + buy/sell toggle — unchanged)
     ==================================================== -->
 
     <script>
@@ -1859,704 +1576,13 @@
                 buyForm.style.display =
                     'none';
 
-            }
-
-        }
-
-
-        /* ==================================================
-           PROPERTY LOCATION MAP
-        ================================================== */
-
-        let propertyMap = null;
-
-        let propertyMarker = null;
-
-        let locationSearchTimer = null;
-
-
-        const DEFAULT_LATITUDE =
-            12.84230234;
-
-
-        const DEFAULT_LONGITUDE =
-            80.15376091;
-
-
-        /* ==================================================
-           INITIALIZE MAP
-        ================================================== */
-
-        function initializePropertyMap() {
-
-
-            if (
-                propertyMap !== null
-            ) {
-
-                propertyMap.invalidateSize();
-
-                return;
-
-            }
-
-
-            propertyMap =
-                L.map(
-                    'propertyMap'
-                ).setView(
-                    [
-                        DEFAULT_LATITUDE,
-                        DEFAULT_LONGITUDE
-                    ],
-                    14
-                );
-
-
-            L.tileLayer(
-                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                {
-                    maxZoom: 19,
-
-                    attribution:
-                        '&copy; OpenStreetMap contributors'
+                if (window.pfInitMapIfVisible) {
+                    window.pfInitMapIfVisible();
                 }
-            ).addTo(
-                propertyMap
-            );
-
-
-            /* Click anywhere on map */
-
-            propertyMap.on(
-                'click',
-                function(event) {
-
-                    updatePropertyMarker(
-                        event.latlng.lat,
-                        event.latlng.lng,
-                        true
-                    );
-
-                }
-            );
-
-
-            /* Initial marker */
-
-            updatePropertyMarker(
-                DEFAULT_LATITUDE,
-                DEFAULT_LONGITUDE,
-                false
-            );
-
-        }
-
-
-        /* ==================================================
-           UPDATE MARKER
-        ================================================== */
-
-        function updatePropertyMarker(
-            latitude,
-            longitude,
-            reverseGeocode
-        ) {
-
-
-            if (
-                propertyMarker === null
-            ) {
-
-
-                propertyMarker =
-                    L.marker(
-                        [
-                            latitude,
-                            longitude
-                        ],
-                        {
-                            draggable: true
-                        }
-                    ).addTo(
-                        propertyMap
-                    );
-
-
-                /* Drag marker */
-
-                propertyMarker.on(
-                    'dragend',
-                    function() {
-
-                        const position =
-                            propertyMarker.getLatLng();
-
-
-                        updatePropertyMarker(
-                            position.lat,
-                            position.lng,
-                            true
-                        );
-
-                    }
-                );
-
-            }
-
-
-            else {
-
-                propertyMarker.setLatLng(
-                    [
-                        latitude,
-                        longitude
-                    ]
-                );
-
-            }
-
-
-            propertyMap.setView(
-                [
-                    latitude,
-                    longitude
-                ],
-                16
-            );
-
-
-            /* Fill latitude */
-
-            document.getElementById(
-                'latitude'
-            ).value =
-                latitude.toFixed(8);
-
-
-            /* Fill longitude */
-
-            document.getElementById(
-                'longitude'
-            ).value =
-                longitude.toFixed(8);
-
-
-            if (
-                reverseGeocode
-            ) {
-
-                reverseGeocodePropertyLocation(
-                    latitude,
-                    longitude
-                );
 
             }
 
         }
-
-
-        /* ==================================================
-           LOCATION SEARCH
-        ================================================== */
-
-        const locationSearch =
-            document.getElementById(
-                'locationSearch'
-            );
-
-
-        locationSearch.addEventListener(
-            'input',
-            function() {
-
-
-                const query =
-                    this.value.trim();
-
-
-                clearTimeout(
-                    locationSearchTimer
-                );
-
-
-                if (
-                    query.length < 3
-                ) {
-
-                    document.getElementById(
-                        'locationSuggestions'
-                    ).style.display =
-                        'none';
-
-                    return;
-
-                }
-
-
-                locationSearchTimer =
-                    setTimeout(
-                        function() {
-
-                            searchPropertyLocation(
-                                query
-                            );
-
-                        },
-                        700
-                    );
-
-            }
-        );
-
-
-        /* ==================================================
-           SEARCH LOCATION USING NOMINATIM
-        ================================================== */
-
-        async function searchPropertyLocation(
-            query
-        ) {
-
-
-            try {
-
-
-                const url =
-                    'https://nominatim.openstreetmap.org/search?' +
-                    new URLSearchParams({
-
-                        q:
-                            query,
-
-                        format:
-                            'json',
-
-                        addressdetails:
-                            '1',
-
-                        limit:
-                            '5',
-
-                        countrycodes:
-                            'in'
-
-                    });
-
-
-                const response =
-                    await fetch(
-                        url
-                    );
-
-
-                if (
-                    !response.ok
-                ) {
-
-                    throw new Error(
-                        'Location search failed'
-                    );
-
-                }
-
-
-                const results =
-                    await response.json();
-
-
-                displayLocationSuggestions(
-                    results
-                );
-
-            }
-
-
-            catch (error) {
-
-                console.error(
-                    'Location search error:',
-                    error
-                );
-
-            }
-
-        }
-
-
-        /* ==================================================
-           DISPLAY SUGGESTIONS
-        ================================================== */
-
-        function displayLocationSuggestions(
-            results
-        ) {
-
-
-            const container =
-                document.getElementById(
-                    'locationSuggestions'
-                );
-
-
-            container.innerHTML =
-                '';
-
-
-            if (
-                results.length === 0
-            ) {
-
-                container.style.display =
-                    'none';
-
-                return;
-
-            }
-
-
-            results.forEach(
-                function(result) {
-
-
-                    const item =
-                        document.createElement(
-                            'div'
-                        );
-
-
-                    item.className =
-                        'location-suggestion';
-
-
-                    item.textContent =
-                        result.display_name;
-
-
-                    item.addEventListener(
-                        'click',
-                        function() {
-
-                            selectPropertyLocation(
-                                result
-                            );
-
-                        }
-                    );
-
-
-                    container.appendChild(
-                        item
-                    );
-
-                }
-            );
-
-
-            container.style.display =
-                'block';
-
-        }
-
-
-        /* ==================================================
-           SELECT SEARCH RESULT
-        ================================================== */
-
-        function selectPropertyLocation(
-            result
-        ) {
-
-
-            const latitude =
-                parseFloat(
-                    result.lat
-                );
-
-
-            const longitude =
-                parseFloat(
-                    result.lon
-                );
-
-
-            updatePropertyMarker(
-                latitude,
-                longitude,
-                false
-            );
-
-
-            document.getElementById(
-                'locationSearch'
-            ).value =
-                result.display_name;
-
-
-            const address =
-                result.address || {};
-
-
-            /* Address */
-
-            document.getElementById(
-                'address'
-            ).value =
-                result.display_name || '';
-
-
-            /* City */
-
-            document.getElementById(
-                'city'
-            ).value =
-
-                address.city ||
-
-                address.town ||
-
-                address.village ||
-
-                address.municipality ||
-
-                '';
-
-
-            /* Locality */
-
-            document.getElementById(
-                'locality'
-            ).value =
-
-                address.suburb ||
-
-                address.neighbourhood ||
-
-                address.city_district ||
-
-                '';
-
-
-            /* Pincode */
-
-            document.getElementById(
-                'pincode'
-            ).value =
-
-                address.postcode ||
-
-                '';
-
-
-            document.getElementById(
-                'locationSuggestions'
-            ).style.display =
-                'none';
-
-        }
-
-
-        /* ==================================================
-           REVERSE GEOCODING
-           Used when user clicks/drags marker
-        ================================================== */
-
-        async function reverseGeocodePropertyLocation(
-            latitude,
-            longitude
-        ) {
-
-
-            try {
-
-
-                const url =
-                    'https://nominatim.openstreetmap.org/reverse?' +
-                    new URLSearchParams({
-
-                        lat:
-                            latitude,
-
-                        lon:
-                            longitude,
-
-                        format:
-                            'json',
-
-                        addressdetails:
-                            '1'
-
-                    });
-
-
-                const response =
-                    await fetch(
-                        url
-                    );
-
-
-                if (
-                    !response.ok
-                ) {
-
-                    throw new Error(
-                        'Reverse geocoding failed'
-                    );
-
-                }
-
-
-                const result =
-                    await response.json();
-
-
-                const address =
-                    result.address || {};
-
-
-                /* Address */
-
-                document.getElementById(
-                    'address'
-                ).value =
-                    result.display_name || '';
-
-
-                /* City */
-
-                document.getElementById(
-                    'city'
-                ).value =
-
-                    address.city ||
-
-                    address.town ||
-
-                    address.village ||
-
-                    address.municipality ||
-
-                    '';
-
-
-                /* Locality */
-
-                document.getElementById(
-                    'locality'
-                ).value =
-
-                    address.suburb ||
-
-                    address.neighbourhood ||
-
-                    address.city_district ||
-
-                    '';
-
-
-                /* Pincode */
-
-                document.getElementById(
-                    'pincode'
-                ).value =
-
-                    address.postcode ||
-
-                    '';
-
-
-                /* Search box */
-
-                document.getElementById(
-                    'locationSearch'
-                ).value =
-                    result.display_name || '';
-
-            }
-
-
-            catch (error) {
-
-                console.error(
-                    'Reverse geocoding error:',
-                    error
-                );
-
-            }
-
-        }
-
-
-        /* ==================================================
-           HIDE SUGGESTIONS WHEN CLICKING OUTSIDE
-        ================================================== */
-
-        document.addEventListener(
-            'click',
-            function(event) {
-
-
-                const wrapper =
-                    document.querySelector(
-                        '.location-search-wrapper'
-                    );
-
-
-                if (
-                    wrapper &&
-                    !wrapper.contains(
-                        event.target
-                    )
-                ) {
-
-                    document.getElementById(
-                        'locationSuggestions'
-                    ).style.display =
-                        'none';
-
-                }
-
-            }
-        );
-
-
-        /* ==================================================
-           CONNECT MAP WITH showForm()
-        ================================================== */
-
-        const originalShowForm =
-            showForm;
-
-
-        showForm = function(
-            formType
-        ) {
-
-
-            originalShowForm(
-                formType
-            );
-
-
-            if (
-                formType === 'sell'
-            ) {
-
-
-                setTimeout(
-                    function() {
-
-                        initializePropertyMap();
-
-                        propertyMap.invalidateSize();
-
-                    },
-                    100
-                );
-
-            }
-
-        };
 
     </script>
 

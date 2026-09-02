@@ -1,3 +1,4 @@
+{% from "_property_view.html" import render_property_body %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -490,6 +491,8 @@
 
             gap: 10px;
 
+            margin-bottom: 10px;
+
         }
 
 
@@ -747,11 +750,11 @@
 
 
         <a
-    href="javascript:history.back()"
-    class="back-button"
->
-    ← Back to Listings
-</a>
+            href="javascript:history.back()"
+            class="back-button"
+        >
+            ← Back to Listings
+        </a>
 
 
         <div class="property-container">
@@ -767,14 +770,10 @@
 
                     <h1 class="property-title">
 
-                        {{ property.property.type | title }}
+                        {{ property.property.type | replace("_", " ") | title }}
 
                         {% if property.property.bhk %}
-
-                            -
-                            {{ property.property.bhk }}
-                            BHK
-
+                            - {{ property.property.bhk }} BHK
                         {% endif %}
 
                     </h1>
@@ -785,10 +784,7 @@
                         {{ property.location.city | title }}
 
                         {% if property.location.locality %}
-
-                            •
-                            {{ property.location.locality }}
-
+                            • {{ property.location.locality }}
                         {% endif %}
 
                     </div>
@@ -799,9 +795,7 @@
                 <div>
 
                     <span class="status-badge">
-
                         {{ property.listing.status }}
-
                     </span>
 
                 </div>
@@ -820,9 +814,7 @@
                     ₹{{ property.listing.price }}
 
                     {% if property.listing.type == "rent" %}
-
                         / month
-
                     {% endif %}
 
                 </div>
@@ -831,12 +823,7 @@
                 <div class="listing-type">
 
                     Listing Type:
-
-                    <strong>
-
-                        {{ property.listing.type | title }}
-
-                    </strong>
+                    <strong>{{ property.listing.type | title }}</strong>
 
                 </div>
 
@@ -844,9 +831,7 @@
                 {% if property.listing.price_negotiable %}
 
                     <div class="negotiable">
-
                         ✓ Price Negotiable
-
                     </div>
 
                 {% endif %}
@@ -855,946 +840,41 @@
 
 
             <!-- ==================================================
-                 PROPERTY IMAGES
+                 SHARED PROPERTY BODY
             ================================================== -->
 
-            <h2 class="section-title">
-
-                Property Images
-
-            </h2>
-
-
-            {% if property.media.images %}
-
-                <div class="image-gallery">
-
-                    {% for image in property.media.images %}
-
-                        <img
-                            src="{{ url_for(
-                                'static',
-                                filename='images/properties/' + image
-                            ) }}"
-                            alt="Property Image"
-                        >
-
-                    {% endfor %}
-
-                </div>
-
-            {% else %}
-
-                <div class="no-image">
-
-                    No property images available.
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 PROPERTY INFORMATION
-            ================================================== -->
-
-            <h2 class="section-title">
-
-                Property Information
-
-            </h2>
-
-
-            <div class="info-grid">
-
-
-                {% if property.property.type %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Property Type
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.type | title }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.bhk %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            BHK
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.bhk }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.bathrooms %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Bathrooms
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.bathrooms }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.balconies %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Balconies
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.balconies }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.area_sqft %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Super Built-up Area
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.area_sqft }}
-
-                            sq.ft
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.carpet_area_sqft %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Carpet Area
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.carpet_area_sqft }}
-
-                            sq.ft
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.furnishing %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Furnishing
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{
-                                property.property.furnishing
-                                | replace("_", " ")
-                                | title
-                            }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.facing %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Facing
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.facing | title }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.property_age is not none %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Property Age
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.property_age }}
-
-                            years
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.floor_number is not none %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Floor
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.floor_number }}
-
-                            /
-
-                            {{ property.property.total_floors }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.property.total_floors is not none %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Total Floors
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.property.total_floors }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-            <!-- ==================================================
-                 BUILDING / PROJECT DETAILS
-            ================================================== -->
-
-            <h2 class="section-title">
-
-                Building & Project Details
-
-            </h2>
-
-
-            <div class="info-grid">
-
-
-                {% if property.get('building', {}).get('project_name') %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Project Name
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.get('building', {}).get('project_name') }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                <div class="info-card">
-
-                    <div class="info-label">
-
-                        Gated Community
-
-                    </div>
-
-                    <div class="info-value">
-
-                        {% if property.get('building', {}).get('gated_community', false) %}
-
-                            Yes
-
-                        {% else %}
-
-                            No
-
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ==================================================
-                 BUILDING AMENITIES
-            ================================================== -->
-
-            {% if property.get('building', {}).get('amenities') %}
-
-                <h2 class="section-title">
-
-                    Building Amenities
-
-                </h2>
-
-
-                <div class="amenities">
-
-                    {% for amenity in property.get('building', {}).get('amenities', []) %}
-
-                        <span class="amenity">
-
-                            {{
-                                amenity
-                                | replace("_", " ")
-                                | title
-                            }}
-
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 LOCATION
-            ================================================== -->
-
-            <h2 class="section-title">
-
-                Location
-
-            </h2>
-
-
-            <div class="info-grid">
-
-
-                {% if property.location.address %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Address
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.location.address }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.location.city %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            City
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.location.city | title }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.location.locality %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Locality
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.location.locality }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.location.pincode %}
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Pincode
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {{ property.location.pincode }}
-
-                        </div>
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-            <!-- ==================================================
-                 MAP COORDINATES
-            ================================================== -->
-
-            {% if property.location.coordinates %}
-
-                {% set coords =
-                    property.location.coordinates.coordinates
-                %}
-
-
-                {% if coords and coords | length == 2 %}
-
-                    <div class="coordinates-box">
-
-                        <strong>
-                            Coordinates
-                        </strong>
-
-                        <br><br>
-
-                        Latitude:
-
-                        {{ coords[1] }}
-
-                        <br>
-
-                        Longitude:
-
-                        {{ coords[0] }}
-
-                    </div>
-
-
-                    <a
-                        class="map-button"
-                        target="_blank"
-                        href="https://www.google.com/maps/search/?api=1&query={{ coords[1] }},{{ coords[0] }}"
-                    >
-
-                        📍 Open Location in Google Maps
-
-                    </a>
-
-                {% endif %}
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 AMENITIES
-            ================================================== -->
-
-            {% if property.get('building', {}).get('amenities') %}
-
-                <h2 class="section-title">
-
-                    Amenities
-
-                </h2>
-
-
-                <div class="amenities">
-
-                    {% for amenity in property.get('building', {}).get('amenities', []) %}
-
-                        <span class="amenity">
-
-                            {{
-                                amenity
-                                | replace("_", " ")
-                                | title
-                            }}
-
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 DESCRIPTION
-            ================================================== -->
-
-            {% if property.description.text %}
-
-                <h2 class="section-title">
-
-                    Description
-
-                </h2>
-
-
-                <div class="description">
-
-                    {{ property.description.text }}
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 RENTAL DETAILS
-            ================================================== -->
-
-            {% if property.rental %}
-
-                <h2 class="section-title">
-
-                    Rental Details
-
-                </h2>
-
-
-                <div class="info-grid">
-
-
-                    {% if property.rental.security_deposit is not none %}
-
-                        <div class="info-card">
-
-                            <div class="info-label">
-
-                                Security Deposit
-
-                            </div>
-
-                            <div class="info-value">
-
-                                ₹{{ property.rental.security_deposit }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if property.rental.maintenance is not none %}
-
-                        <div class="info-card">
-
-                            <div class="info-label">
-
-                                Monthly Maintenance
-
-                            </div>
-
-                            <div class="info-value">
-
-                                ₹{{ property.rental.maintenance }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if property.rental.available_from %}
-
-                        <div class="info-card">
-
-                            <div class="info-label">
-
-                                Available From
-
-                            </div>
-
-                            <div class="info-value">
-
-                                {{ property.rental.available_from }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if property.rental.preferred_tenant %}
-
-                        <div class="info-card">
-
-                            <div class="info-label">
-
-                                Preferred Tenant
-
-                            </div>
-
-                            <div class="info-value">
-
-                                {{
-                                    property.rental.preferred_tenant
-                                    | replace("_", " ")
-                                    | title
-                                }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    {% if property.rental.lease_type %}
-
-                        <div class="info-card">
-
-                            <div class="info-label">
-
-                                Lease Type
-
-                            </div>
-
-                            <div class="info-value">
-
-                                {{
-                                    property.rental.lease_type
-                                    | replace("_", " ")
-                                    | title
-                                }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <div class="info-card">
-
-                        <div class="info-label">
-
-                            Pets Allowed
-
-                        </div>
-
-                        <div class="info-value">
-
-                            {% if property.rental.pets_allowed %}
-
-                                Yes
-
-                            {% else %}
-
-                                No
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 SALE DETAILS
-            ================================================== -->
-
-            {% if property.sale %}
-
-                <h2 class="section-title">
-
-                    Sale Details
-
-                </h2>
-
-
-                <div class="info-grid">
-
-                    {% for key, value in property.sale.items() %}
-
-                        {% if value is not none %}
-
-                            <div class="info-card">
-
-                                <div class="info-label">
-
-                                    {{
-                                        key
-                                        | replace("_", " ")
-                                        | title
-                                    }}
-
-                                </div>
-
-                                <div class="info-value">
-
-                                    {{ value }}
-
-                                </div>
-
-                            </div>
-
-                        {% endif %}
-
-                    {% endfor %}
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 VIDEOS
-            ================================================== -->
-
-            {% if property.media.videos %}
-
-                <h2 class="section-title">
-
-                    Property Videos
-
-                </h2>
-
-
-                <div class="video-gallery">
-
-                    {% for video in property.media.videos %}
-
-                        <video
-                            controls
-                        >
-
-                            <source
-                                src="{{ url_for(
-                                    'static',
-                                    filename='videos/properties/' + video
-                                ) }}"
-                            >
-
-                            Your browser does not support
-                            video playback.
-
-                        </video>
-
-                    {% endfor %}
-
-                </div>
-
-            {% endif %}
-
-
-            <!-- ==================================================
-                 CONTACT
-            ================================================== -->
-
-            <h2 class="section-title">
-
-                Contact
-
-            </h2>
-
-
-            <div class="contact-box">
-
-
-                {% if property.contact.name %}
-
-                    <div class="contact-name">
-
-                        {{ property.contact.name }}
-
-                    </div>
-
-                {% endif %}
-
-
-                {% if property.contact.phone %}
-
-                    <div class="contact-phone">
-
-                        📞
-                        {{ property.contact.phone }}
-
-                    </div>
-
-                {% endif %}
-
-            </div>
+            {{ render_property_body(property, field_labels, amenity_labels) }}
 
 
             <!-- ==================================================
                  SOURCE
             ================================================== -->
 
-            <h2 class="section-title">
+            {% if property.source and property.source.type %}
 
-                Listing Source
+                <h2 class="section-title">Listing Source</h2>
 
-            </h2>
+                <div class="source-box">
 
-
-            <div class="source-box">
-
-
-                {% if property.source.type %}
-
-                    <strong>
-
-                        Source Type:
-
-                    </strong>
-
+                    <strong>Source Type:</strong>
                     {{ property.source.type | title }}
 
-                {% endif %}
+                    {% if property.source.url %}
 
+                        <br><br>
 
-                {% if property.source.url %}
+                        <strong>Original Listing:</strong>
+                        <br>
 
-                    <br><br>
+                        <a href="{{ property.source.url }}" target="_blank" rel="noopener noreferrer">
+                            {{ property.source.url }}
+                        </a>
 
+                    {% endif %}
 
-                    <strong>
+                </div>
 
-                        Original Listing:
-
-                    </strong>
-
-
-                    <br>
-
-
-                    <a
-                        href="{{ property.source.url }}"
-                        target="_blank"
-                    >
-
-                        {{ property.source.url }}
-
-                    </a>
-
-                {% endif %}
-
-            </div>
+            {% endif %}
 
 
         </div>

@@ -1,0 +1,527 @@
+{# ==========================================================
+   Shared property rendering used by both profile.html (a user's
+   own listings) and property_details.html (public detail page).
+
+   Renders only the sections that actually have data, and only
+   shows the rich new-schema sections (rooms/area/building/
+   project/parking/type_details/legal/pg_details/amenities) when
+   they exist — older documents created before this schema simply
+   fall back to the legacy summary fields that were always stored
+   on `property` / `building`, so nothing crashes.
+
+   Expects CSS classes matching property_details.html's stylesheet:
+   section-title, info-grid, info-card, info-label, info-value,
+   amenities, amenity, image-gallery, video-gallery, no-image.
+   ========================================================== #}
+
+{% macro render_dict_grid(data, labels) %}
+
+    {% if data %}
+
+        <div class="info-grid">
+
+            {% for key, value in data.items() %}
+
+                {% if value is not none and value != "" and value != [] %}
+
+                    <div class="info-card">
+
+                        <div class="info-label">
+                            {{ labels.get(key, key | replace("_", " ") | title) }}
+                        </div>
+
+                        <div class="info-value">
+
+                            {% if value is sameas true %}
+                                Yes
+                            {% elif value is sameas false %}
+                                No
+                            {% elif value is iterable and value is not string %}
+                                {{ value | join(", ") | replace("_", " ") | title }}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+{% endmacro %}
+
+
+{% macro render_amenity_chips(values, amenity_labels) %}
+
+    {% if values %}
+
+        <div class="amenities">
+
+            {% for value in values %}
+
+                <span class="amenity">
+                    {{ amenity_labels.get(value, value | replace("_", " ") | title) }}
+                </span>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+{% endmacro %}
+
+
+{% macro render_property_body(p, labels, amenity_labels) %}
+
+    {% set media = p.get("media", {}) or {} %}
+    {% set is_new_style = (
+        p.get("rooms") or p.get("area") or p.get("type_details")
+        or p.get("parking") or p.get("legal") or p.get("pg_details")
+        or (p.get("amenities") is mapping)
+    ) %}
+
+
+    <!-- ==================================================
+         IMAGES
+    ================================================== -->
+
+    <h2 class="section-title">Property Images</h2>
+
+    {% if media.images %}
+
+        {% set cover_filenames = [] %}
+        {% for item in media.get("image_meta", []) if item.get("is_cover") %}
+            {% set _ = cover_filenames.append(item.filename) %}
+        {% endfor %}
+
+        <div class="image-gallery">
+
+            {% for image in media.images %}
+
+                <img
+                    src="{{ url_for('static', filename='images/properties/' + image) }}"
+                    alt="Property Image"
+                    {% if image in cover_filenames %}title="Cover photo"{% endif %}
+                >
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="no-image">No property images available.</div>
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         VIDEOS
+    ================================================== -->
+
+    {% if media.videos %}
+
+        <h2 class="section-title">Property Videos</h2>
+
+        <div class="video-gallery">
+
+            {% for video in media.videos %}
+
+                <video controls>
+                    <source src="{{ url_for('static', filename='videos/properties/' + video) }}">
+                    Your browser does not support video playback.
+                </video>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         FLOOR PLAN / BROCHURE / VIRTUAL TOUR
+    ================================================== -->
+
+    {% if media.floor_plan or media.brochure or media.virtual_tour_url %}
+
+        <h2 class="section-title">Floor Plan &amp; Documents</h2>
+
+        <div class="info-grid">
+
+            {% if media.floor_plan %}
+
+                <div class="info-card">
+                    <div class="info-label">Floor Plan</div>
+                    <div class="info-value">
+                        <a href="{{ url_for('static', filename='documents/properties/' + media.floor_plan) }}" target="_blank">
+                            View Floor Plan
+                        </a>
+                    </div>
+                </div>
+
+            {% endif %}
+
+            {% if media.brochure %}
+
+                <div class="info-card">
+                    <div class="info-label">Brochure</div>
+                    <div class="info-value">
+                        <a href="{{ url_for('static', filename='documents/properties/' + media.brochure) }}" target="_blank">
+                            Download Brochure
+                        </a>
+                    </div>
+                </div>
+
+            {% endif %}
+
+            {% if media.virtual_tour_url %}
+
+                <div class="info-card">
+                    <div class="info-label">Virtual Tour</div>
+                    <div class="info-value">
+                        <a href="{{ media.virtual_tour_url }}" target="_blank" rel="noopener noreferrer">
+                            Open Virtual Tour
+                        </a>
+                    </div>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         PROPERTY INFORMATION
+    ================================================== -->
+
+    {% if is_new_style %}
+
+        {% if p.get("rooms") %}
+            <h2 class="section-title">Rooms</h2>
+            {{ render_dict_grid(p.rooms, labels) }}
+        {% endif %}
+
+        {% if p.get("area") %}
+            <h2 class="section-title">Area</h2>
+            {{ render_dict_grid(p.area, labels) }}
+        {% endif %}
+
+        {% if p.get("building") %}
+            <h2 class="section-title">Building Details</h2>
+            {{ render_dict_grid(p.building, labels) }}
+        {% endif %}
+
+        {% if p.get("project") %}
+            <h2 class="section-title">Project / Society</h2>
+            {{ render_dict_grid(p.project, labels) }}
+        {% endif %}
+
+        {% if p.get("parking") %}
+            <h2 class="section-title">Parking</h2>
+            {{ render_dict_grid(p.parking, labels) }}
+        {% endif %}
+
+        {% if p.get("type_details") %}
+            <h2 class="section-title">Additional Details</h2>
+            {{ render_dict_grid(p.type_details, labels) }}
+        {% endif %}
+
+        {% if p.get("legal") %}
+            <h2 class="section-title">Legal / Ownership</h2>
+            {{ render_dict_grid(p.legal, labels) }}
+        {% endif %}
+
+        {% if p.get("pg_details") %}
+            <h2 class="section-title">PG / Hostel Details</h2>
+            {{ render_dict_grid(p.pg_details, labels) }}
+        {% endif %}
+
+        {% if p.get("amenities") %}
+
+            <h2 class="section-title">Amenities</h2>
+
+            {% for category, values in p.amenities.items() %}
+                {{ render_amenity_chips(values, amenity_labels) }}
+            {% endfor %}
+
+        {% endif %}
+
+    {% else %}
+
+        {# ---- legacy documents created before this schema ---- #}
+
+        <h2 class="section-title">Property Information</h2>
+
+        <div class="info-grid">
+
+            {% set legacy = p.get("property", {}) or {} %}
+
+            {% if legacy.type %}
+                <div class="info-card">
+                    <div class="info-label">Property Type</div>
+                    <div class="info-value">{{ legacy.type | title }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.bhk is not none %}
+                <div class="info-card">
+                    <div class="info-label">BHK</div>
+                    <div class="info-value">{{ legacy.bhk }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.area_sqft is not none %}
+                <div class="info-card">
+                    <div class="info-label">Area</div>
+                    <div class="info-value">{{ legacy.area_sqft }} sq.ft</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.carpet_area_sqft is not none %}
+                <div class="info-card">
+                    <div class="info-label">Carpet Area</div>
+                    <div class="info-value">{{ legacy.carpet_area_sqft }} sq.ft</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.bathrooms is not none %}
+                <div class="info-card">
+                    <div class="info-label">Bathrooms</div>
+                    <div class="info-value">{{ legacy.bathrooms }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.balconies is not none %}
+                <div class="info-card">
+                    <div class="info-label">Balconies</div>
+                    <div class="info-value">{{ legacy.balconies }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.furnishing %}
+                <div class="info-card">
+                    <div class="info-label">Furnishing</div>
+                    <div class="info-value">{{ legacy.furnishing | replace("_", " ") | title }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.facing %}
+                <div class="info-card">
+                    <div class="info-label">Facing</div>
+                    <div class="info-value">{{ legacy.facing | title }}</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.property_age is not none %}
+                <div class="info-card">
+                    <div class="info-label">Property Age</div>
+                    <div class="info-value">{{ legacy.property_age }} years</div>
+                </div>
+            {% endif %}
+
+            {% if legacy.floor_number is not none %}
+                <div class="info-card">
+                    <div class="info-label">Floor</div>
+                    <div class="info-value">
+                        {{ legacy.floor_number }}
+                        {% if legacy.total_floors is not none %} / {{ legacy.total_floors }}{% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+
+        {% set legacy_building = p.get("building", {}) or {} %}
+
+        {% if legacy_building.project_name or legacy_building.gated_community %}
+
+            <h2 class="section-title">Building &amp; Project Details</h2>
+
+            <div class="info-grid">
+
+                {% if legacy_building.project_name %}
+                    <div class="info-card">
+                        <div class="info-label">Project / Society</div>
+                        <div class="info-value">{{ legacy_building.project_name }}</div>
+                    </div>
+                {% endif %}
+
+                <div class="info-card">
+                    <div class="info-label">Gated Community</div>
+                    <div class="info-value">{{ "Yes" if legacy_building.gated_community else "No" }}</div>
+                </div>
+
+            </div>
+
+        {% endif %}
+
+        {% if legacy_building.amenities %}
+
+            <h2 class="section-title">Amenities</h2>
+
+            <div class="amenities">
+                {% for amenity in legacy_building.amenities %}
+                    <span class="amenity">{{ amenity }}</span>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         LOCATION
+    ================================================== -->
+
+    {% set location = p.get("location", {}) or {} %}
+
+    <h2 class="section-title">Location</h2>
+
+    <div class="info-grid">
+
+        {% if location.address %}
+            <div class="info-card">
+                <div class="info-label">Address</div>
+                <div class="info-value">{{ location.address }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.city %}
+            <div class="info-card">
+                <div class="info-label">City</div>
+                <div class="info-value">{{ location.city | title }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.state %}
+            <div class="info-card">
+                <div class="info-label">State</div>
+                <div class="info-value">{{ location.state | title }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.locality %}
+            <div class="info-card">
+                <div class="info-label">Locality</div>
+                <div class="info-value">{{ location.locality }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.sub_locality %}
+            <div class="info-card">
+                <div class="info-label">Sub-locality</div>
+                <div class="info-value">{{ location.sub_locality }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.landmark %}
+            <div class="info-card">
+                <div class="info-label">Landmark</div>
+                <div class="info-value">{{ location.landmark }}</div>
+            </div>
+        {% endif %}
+
+        {% if location.pincode %}
+            <div class="info-card">
+                <div class="info-label">Pincode</div>
+                <div class="info-value">{{ location.pincode }}</div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    {% set coords = location.get("coordinates", {}).get("coordinates") if location.get("coordinates") else none %}
+
+    {% if coords and coords | length == 2 %}
+
+        <div class="coordinates-box">
+            <strong>Coordinates</strong><br><br>
+            Latitude: {{ coords[1] }}<br>
+            Longitude: {{ coords[0] }}
+        </div>
+
+        <a
+            class="map-button"
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://www.google.com/maps/search/?api=1&query={{ coords[1] }},{{ coords[0] }}"
+        >
+            📍 Open Location in Google Maps
+        </a>
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         RENTAL DETAILS
+    ================================================== -->
+
+    {% if p.get("rental") %}
+        <h2 class="section-title">Rental Details</h2>
+        {{ render_dict_grid(p.rental, labels) }}
+    {% endif %}
+
+
+    <!-- ==================================================
+         SALE DETAILS
+    ================================================== -->
+
+    {% if p.get("sale") %}
+        <h2 class="section-title">Sale Details</h2>
+        {{ render_dict_grid(p.sale, labels) }}
+    {% endif %}
+
+
+    <!-- ==================================================
+         DESCRIPTION
+    ================================================== -->
+
+    {% if p.get("description", {}).get("text") %}
+
+        <h2 class="section-title">Description</h2>
+
+        <div class="description">{{ p.description.text }}</div>
+
+    {% endif %}
+
+
+    <!-- ==================================================
+         CONTACT
+    ================================================== -->
+
+    {% set contact = p.get("contact", {}) or {} %}
+
+    {% if contact.name or contact.phone %}
+
+        <h2 class="section-title">Contact</h2>
+
+        <div class="contact-box">
+
+            {% if contact.name %}
+                <div class="contact-name">{{ contact.name }}</div>
+            {% endif %}
+
+            {% if contact.phone %}
+                <div class="contact-phone">📞 {{ contact.phone }}</div>
+            {% endif %}
+
+            {% if contact.whatsapp %}
+                <div class="contact-phone">💬 WhatsApp: {{ contact.whatsapp }}</div>
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+{% endmacro %}

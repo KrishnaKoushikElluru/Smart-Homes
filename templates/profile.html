@@ -1,3 +1,4 @@
+{% from "_property_view.html" import render_property_body %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -268,30 +269,26 @@
 
 
         /* =====================================================
-           SECTIONS
+           SHARED SECTION STYLING
+           (matches _property_view.html macro output)
            ===================================================== */
 
-        .section {
-
-            margin-top: 25px;
-
-            padding-top: 15px;
-
-            border-top: 1px solid #eee;
-
-        }
-
-
-        .section h3 {
+        .section-title {
 
             color: #444;
+
+            border-bottom: 1px solid #eee;
+
+            padding-bottom: 8px;
+
+            margin-top: 25px;
 
             margin-bottom: 15px;
 
         }
 
 
-        .details-grid {
+        .info-grid {
 
             display: grid;
 
@@ -306,7 +303,7 @@
         }
 
 
-        .detail {
+        .info-card {
 
             background-color: #fafafa;
 
@@ -319,13 +316,26 @@
         }
 
 
-        .detail strong {
+        .info-label {
 
-            display: block;
+            font-size: 13px;
 
-            color: #555;
+            color: #777;
 
             margin-bottom: 5px;
+
+        }
+
+
+        .info-value {
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            color: #222;
+
+            word-break: break-word;
 
         }
 
@@ -344,6 +354,8 @@
 
             line-height: 1.6;
 
+            white-space: pre-wrap;
+
         }
 
 
@@ -358,6 +370,8 @@
             flex-wrap: wrap;
 
             gap: 10px;
+
+            margin-bottom: 10px;
 
         }
 
@@ -376,10 +390,10 @@
 
 
         /* =====================================================
-           IMAGE GALLERY
+           IMAGE / VIDEO GALLERY
            ===================================================== */
 
-        .image-grid {
+        .image-gallery {
 
             display: grid;
 
@@ -394,7 +408,7 @@
         }
 
 
-        .property-image {
+        .image-gallery img {
 
             width: 100%;
 
@@ -409,11 +423,22 @@
         }
 
 
-        /* =====================================================
-           VIDEO GALLERY
-           ===================================================== */
+        .no-image {
 
-        .video-grid {
+            padding: 20px;
+
+            text-align: center;
+
+            background: #f0f0f0;
+
+            border-radius: 8px;
+
+            color: #777;
+
+        }
+
+
+        .video-gallery {
 
             display: grid;
 
@@ -428,7 +453,7 @@
         }
 
 
-        .property-video {
+        .video-gallery video {
 
             width: 100%;
 
@@ -437,6 +462,86 @@
             border-radius: 8px;
 
             border: 1px solid #ddd;
+
+        }
+
+
+        /* =====================================================
+           CONTACT / LOCATION
+           ===================================================== */
+
+        .contact-box {
+
+            background: #eef8f0;
+
+            border-left: 5px solid #28a745;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+        }
+
+
+        .contact-name {
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            margin-bottom: 6px;
+
+        }
+
+
+        .contact-phone {
+
+            font-size: 15px;
+
+            color: #0066cc;
+
+        }
+
+
+        .coordinates-box {
+
+            background: #fafafa;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            font-family: monospace;
+
+            overflow-x: auto;
+
+            margin-top: 15px;
+
+        }
+
+
+        .map-button {
+
+            display: inline-block;
+
+            margin-top: 12px;
+
+            padding: 10px 18px;
+
+            background: #0066cc;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 6px;
+
+        }
+
+
+        .map-button:hover {
+
+            background: #004080;
 
         }
 
@@ -620,977 +725,61 @@
 
                         <h2>
 
-                            {{ listing.property.type|title }}
+                            {{ listing.property.type | replace("_", " ") | title }}
 
                             {% if listing.property.bhk %}
-
-                                -
-                                {{ listing.property.bhk }}
-                                BHK
-
+                                - {{ listing.property.bhk }} BHK
                             {% endif %}
 
                         </h2>
 
 
                         <span class="status">
-
                             {{ listing.listing.status|title }}
-
                         </span>
 
                     </div>
 
 
                     <!-- =============================================
-                         BASIC LISTING INFORMATION
+                         LISTING SUMMARY
                          ============================================= -->
 
-                    <div class="section">
+                    <div class="info-grid">
 
-                        <h3>
-                            Listing Information
-                        </h3>
+                        <div class="info-card">
+                            <div class="info-label">Listing Type</div>
+                            <div class="info-value">{{ listing.listing.type | title }}</div>
+                        </div>
 
-
-                        <div class="details-grid">
-
-
-                            <div class="detail">
-
-                                <strong>
-                                    Listing Type
-                                </strong>
-
-                                {{ listing.listing.type|title }}
-
-                            </div>
-
-
-                            <div class="detail">
-
-                                <strong>
-                                    Price
-                                </strong>
-
+                        <div class="info-card">
+                            <div class="info-label">Price</div>
+                            <div class="info-value">
                                 ₹{{ listing.listing.price }}
-
-                                {% if listing.listing.type == "rent" %}
-
-                                    / month
-
-                                {% endif %}
-
+                                {% if listing.listing.type == "rent" %} / month{% endif %}
                             </div>
-
-
-                            <div class="detail">
-
-                                <strong>
-                                    Currency
-                                </strong>
-
-                                {{ listing.listing.currency }}
-
-                            </div>
-
-
-                            <div class="detail">
-
-                                <strong>
-                                    Price Negotiable
-                                </strong>
-
-                                {% if listing.listing.price_negotiable %}
-
-                                    Yes
-
-                                {% else %}
-
-                                    No
-
-                                {% endif %}
-
-                            </div>
-
-
                         </div>
+
+                        <div class="info-card">
+                            <div class="info-label">Price Negotiable</div>
+                            <div class="info-value">{{ "Yes" if listing.listing.price_negotiable else "No" }}</div>
+                        </div>
+
+                        {% if listing.listing.title %}
+                            <div class="info-card">
+                                <div class="info-label">Title</div>
+                                <div class="info-value">{{ listing.listing.title }}</div>
+                            </div>
+                        {% endif %}
 
                     </div>
 
 
                     <!-- =============================================
-                         PROPERTY INFORMATION
+                         SHARED PROPERTY BODY
                          ============================================= -->
 
-                    <div class="section">
-
-                        <h3>
-                            Property Information
-                        </h3>
-
-
-                        <div class="details-grid">
-
-
-                            <div class="detail">
-
-                                <strong>
-                                    Property Type
-                                </strong>
-
-                                {{ listing.property.type|title }}
-
-                            </div>
-
-
-                            {% if listing.property.bhk is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        BHK
-                                    </strong>
-
-                                    {{ listing.property.bhk }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.area_sqft is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Built-up Area
-                                    </strong>
-
-                                    {{ listing.property.area_sqft }}
-                                    sq.ft
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.carpet_area_sqft is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Carpet Area
-                                    </strong>
-
-                                    {{ listing.property.carpet_area_sqft }}
-                                    sq.ft
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.bathrooms is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Bathrooms
-                                    </strong>
-
-                                    {{ listing.property.bathrooms }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.balconies is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Balconies
-                                    </strong>
-
-                                    {{ listing.property.balconies }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.furnishing %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Furnishing
-                                    </strong>
-
-                                    {{ listing.property.furnishing|replace(
-                                        "_",
-                                        " "
-                                    )|title }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.facing %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Facing
-                                    </strong>
-
-                                    {{ listing.property.facing|title }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.property_age is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Property Age
-                                    </strong>
-
-                                    {{ listing.property.property_age }}
-                                    years
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.floor_number is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Floor
-                                    </strong>
-
-                                    {{ listing.property.floor_number }}
-
-                                    {% if listing.property.total_floors is not none %}
-
-                                        /
-                                        {{ listing.property.total_floors }}
-
-                                    {% endif %}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.property.total_floors is not none %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Total Floors
-                                    </strong>
-
-                                    {{ listing.property.total_floors }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =============================================
-                         LOCATION
-                         ============================================= -->
-
-                    <div class="section">
-
-                        <h3>
-                            Location
-                        </h3>
-
-
-                        <div class="details-grid">
-
-
-                            {% if listing.location.address %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Address
-                                    </strong>
-
-                                    {{ listing.location.address }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.location.city %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        City
-                                    </strong>
-
-                                    {{ listing.location.city }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.location.locality %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Locality
-                                    </strong>
-
-                                    {{ listing.location.locality }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.location.pincode %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Pincode
-                                    </strong>
-
-                                    {{ listing.location.pincode }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.location.coordinates %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Coordinates
-                                    </strong>
-
-                                    Latitude:
-                                    {{ listing.location.coordinates.coordinates[1] }}
-
-                                    <br>
-
-                                    Longitude:
-                                    {{ listing.location.coordinates.coordinates[0] }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =============================================
-                         BUILDING INFORMATION
-                         ============================================= -->
-
-                    {% if listing.building %}
-
-                        <div class="section">
-
-                            <h3>
-                                Building Information
-                            </h3>
-
-
-                            <div class="details-grid">
-
-
-                                {% if listing.building.project_name %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Project / Society
-                                        </strong>
-
-                                        {{ listing.building.project_name }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Gated Community
-                                    </strong>
-
-                                    {% if listing.building.gated_community %}
-
-                                        Yes
-
-                                    {% else %}
-
-                                        No
-
-                                    {% endif %}
-
-                                </div>
-
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         AMENITIES
-                         ============================================= -->
-
-                    {% if listing.building
-                        and listing.building.amenities %}
-
-                        <div class="section">
-
-                            <h3>
-                                Amenities
-                            </h3>
-
-
-                            <div class="amenities">
-
-                                {% for amenity in
-                                    listing.building.amenities %}
-
-                                    <span class="amenity">
-
-                                        {{ amenity|replace(
-                                            "_",
-                                            " "
-                                        )|title }}
-
-                                    </span>
-
-                                {% endfor %}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         CONTACT
-                         ============================================= -->
-
-                    <div class="section">
-
-                        <h3>
-                            Contact Information
-                        </h3>
-
-
-                        <div class="details-grid">
-
-
-                            {% if listing.contact.name %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Contact Name
-                                    </strong>
-
-                                    {{ listing.contact.name }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            {% if listing.contact.phone %}
-
-                                <div class="detail">
-
-                                    <strong>
-                                        Contact Phone
-                                    </strong>
-
-                                    {{ listing.contact.phone }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =============================================
-                         DESCRIPTION
-                         ============================================= -->
-
-                    {% if listing.description
-                        and listing.description.text %}
-
-                        <div class="section">
-
-                            <h3>
-                                Description
-                            </h3>
-
-
-                            <div class="description">
-
-                                {{ listing.description.text }}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         IMAGES
-                         ============================================= -->
-
-                    {% if listing.media
-                        and listing.media.images %}
-
-                        <div class="section">
-
-                            <h3>
-                                Property Images
-                            </h3>
-
-
-                            <div class="image-grid">
-
-                                {% for image in
-                                    listing.media.images %}
-
-                                    <img
-                                        src="{{ url_for(
-                                            'static',
-                                            filename='images/properties/' + image
-                                        ) }}"
-                                        alt="Property Image"
-                                        class="property-image"
-                                    >
-
-                                {% endfor %}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         VIDEOS
-                         ============================================= -->
-
-                    {% if listing.media
-                        and listing.media.videos %}
-
-                        <div class="section">
-
-                            <h3>
-                                Property Videos
-                            </h3>
-
-
-                            <div class="video-grid">
-
-                                {% for video in
-                                    listing.media.videos %}
-
-                                    <video
-                                        class="property-video"
-                                        controls
-                                    >
-
-                                        <source
-                                            src="{{ url_for(
-                                                'static',
-                                                filename='videos/properties/' + video
-                                            ) }}"
-                                        >
-
-                                        Your browser does not
-                                        support video playback.
-
-                                    </video>
-
-                                {% endfor %}
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         RENTAL DETAILS
-                         ============================================= -->
-
-                    {% if listing.rental %}
-
-                        <div class="section">
-
-                            <h3>
-                                Rental Details
-                            </h3>
-
-
-                            <div class="details-grid">
-
-
-                                {% if listing.rental.security_deposit
-                                    is not none %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Security Deposit
-                                        </strong>
-
-                                        ₹{{ listing.rental.security_deposit }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.rental.maintenance
-                                    is not none %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Monthly Maintenance
-                                        </strong>
-
-                                        ₹{{ listing.rental.maintenance }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.rental.available_from %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Available From
-                                        </strong>
-
-                                        {{ listing.rental.available_from }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.rental.preferred_tenant %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Preferred Tenant
-                                        </strong>
-
-                                        {{ listing.rental.preferred_tenant|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.rental.lease_type %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Lease Type
-                                        </strong>
-
-                                        {{ listing.rental.lease_type|replace(
-                                            "_",
-                                            " "
-                                        )|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.rental.pets_allowed
-                                    is not none %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Pets Allowed
-                                        </strong>
-
-                                        {% if listing.rental.pets_allowed %}
-
-                                            Yes
-
-                                        {% else %}
-
-                                            No
-
-                                        {% endif %}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         SALE DETAILS
-                         ============================================= -->
-
-                    {% if listing.sale %}
-
-                        <div class="section">
-
-                            <h3>
-                                Sale Details
-                            </h3>
-
-
-                            <div class="details-grid">
-
-
-                                {% if listing.sale.transaction_type %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Transaction Type
-                                        </strong>
-
-                                        {{ listing.sale.transaction_type|replace(
-                                            "_",
-                                            " "
-                                        )|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.sale.ownership %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Ownership
-                                        </strong>
-
-                                        {{ listing.sale.ownership|replace(
-                                            "_",
-                                            " "
-                                        )|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.sale.possession_status %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Possession Status
-                                        </strong>
-
-                                        {{ listing.sale.possession_status|replace(
-                                            "_",
-                                            " "
-                                        )|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.sale.rera_id %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            RERA ID
-                                        </strong>
-
-                                        {{ listing.sale.rera_id }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         SOURCE
-                         ============================================= -->
-
-                    {% if listing.source %}
-
-                        <div class="section">
-
-                            <h3>
-                                Source
-                            </h3>
-
-
-                            <div class="details-grid">
-
-
-                                {% if listing.source.type %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Source Type
-                                        </strong>
-
-                                        {{ listing.source.type|title }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.source.url %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Source URL
-                                        </strong>
-
-                                        <a
-                                            href="{{ listing.source.url }}"
-                                            target="_blank"
-                                        >
-                                            View Source
-                                        </a>
-
-                                    </div>
-
-                                {% endif %}
-
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =============================================
-                         DATES
-                         ============================================= -->
-
-                    {% if listing.created_at
-                        or listing.updated_at %}
-
-                        <div class="section">
-
-                            <h3>
-                                Listing Information
-                            </h3>
-
-
-                            <div class="details-grid">
-
-
-                                {% if listing.created_at %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Listed On
-                                        </strong>
-
-                                        {{ listing.created_at }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                {% if listing.updated_at %}
-
-                                    <div class="detail">
-
-                                        <strong>
-                                            Last Updated
-                                        </strong>
-
-                                        {{ listing.updated_at }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                            </div>
-
-                        </div>
-
-                    {% endif %}
+                    {{ render_property_body(listing, field_labels, amenity_labels) }}
 
 
                     <!-- =============================================

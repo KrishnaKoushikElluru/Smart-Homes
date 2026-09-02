@@ -1,0 +1,255 @@
+/* ================================================================
+   Dynamic property listing submission form
+   ================================================================ */
+
+.pf-form [hidden] {
+    display: none !important;
+}
+
+.pf-flash-container {
+    margin-bottom: 15px;
+}
+
+.pf-flash {
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.pf-flash-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.pf-flash-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.pf-flash-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.pf-section {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.pf-section > h4 {
+    margin: 0 0 12px;
+    color: #0066cc;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(0, 102, 204, 0.25);
+    padding-bottom: 6px;
+}
+
+.pf-section > p.pf-hint {
+    font-size: 12px;
+    color: #555;
+    margin: -6px 0 12px;
+}
+
+.pf-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px 16px;
+}
+
+.pf-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.pf-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.pf-field input[type="text"],
+.pf-field input[type="number"],
+.pf-field input[type="date"],
+.pf-field input[type="url"],
+.pf-field select,
+.pf-field textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.pf-checkbox-label {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+.pf-checkbox-label input {
+    width: 16px;
+    height: 16px;
+}
+
+/* ----------------------------------------------------------------
+   Amenities
+---------------------------------------------------------------- */
+
+.pf-amenity-category {
+    margin-bottom: 14px;
+}
+
+.pf-amenity-category h5 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #666;
+}
+
+.pf-amenity-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pf-amenity-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0f4fa;
+    border: 1px solid #d5e0ee;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pf-amenity-chip input {
+    accent-color: #0066cc;
+}
+
+/* ----------------------------------------------------------------
+   Media
+---------------------------------------------------------------- */
+
+.pf-image-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.pf-image-item {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.pf-image-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.pf-image-item select {
+    width: 100%;
+    margin-bottom: 6px;
+    font-size: 12px;
+    padding: 4px;
+}
+
+.pf-image-item label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ----------------------------------------------------------------
+   Location search + map
+---------------------------------------------------------------- */
+
+.pf-location-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.pf-location-suggestions {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 2000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.pf-location-suggestion {
+    padding: 10px;
+    cursor: pointer;
+    color: #333;
+    background: white;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.pf-location-suggestion:hover {
+    background-color: #f1f1f1;
+}
+
+#pfPropertyMap {
+    width: 100%;
+    height: 350px;
+    margin: 10px 0 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.pf-geoapify-disabled-note {
+    font-size: 12px;
+    color: #a15c00;
+    background: #fff6e5;
+    border: 1px solid #ffe0a3;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+}
+
+/* ----------------------------------------------------------------
+   Errors / submit
+---------------------------------------------------------------- */
+
+.pf-submit-button {
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(0, 102, 204, 0.9);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.pf-submit-button:hover {
+    background-color: rgba(0, 64, 128, 0.95);
+}

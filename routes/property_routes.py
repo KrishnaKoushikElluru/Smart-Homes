@@ -1,5 +1,6 @@
-import os
-from datetime import datetime
+from urllib.parse import urlparse
+
+import requests
 
 from flask import (
     Blueprint,
@@ -8,7 +9,8 @@ from flask import (
     redirect,
     url_for,
     flash,
-    current_app
+    current_app,
+    jsonify
 )
 
 from flask_login import (
@@ -16,7 +18,40 @@ from flask_login import (
     current_user
 )
 
-from werkzeug.utils import secure_filename
+from services.property_fields import (
+    PROPERTY_TYPE_VALUES,
+    LISTING_TYPE_VALUES,
+    RENT_ONLY_PROPERTY_TYPES,
+    COMMON_LISTING_FIELDS,
+    LOCATION_FIELDS,
+    ROOMS_FIELDS,
+    AREA_FIELDS,
+    BUILDING_FIELDS,
+    PROJECT_FIELDS,
+    PARKING_FIELDS,
+    EXTRA_FIELDS,
+    LEGAL_FIELDS,
+    PG_FIELDS,
+    RENT_FIELDS,
+    SALE_FIELDS,
+    AMENITY_CATEGORIES,
+    build_field_config,
+    build_label_lookup,
+    build_amenity_label_lookup
+)
+
+from services.property_validation import (
+    parse_fields,
+    parse_group_for_type,
+    parse_latitude_longitude,
+    parse_phone
+)
+
+from services import media_service
+from services.media_service import (
+    MediaValidationError,
+    IMAGE_CATEGORIES
+)
 
 
 property_bp = Blueprint(
@@ -34,59 +69,6 @@ def get_property_service():
     return current_app.extensions[
         "property_service"
     ]
-
-
-# ============================================================
-# FILE CONFIGURATION
-# ============================================================
-
-IMAGE_EXTENSIONS = {
-    "jpg",
-    "jpeg",
-    "png",
-    "webp"
-}
-
-
-VIDEO_EXTENSIONS = {
-    "mp4",
-    "webm",
-    "mov"
-}
-
-
-IMAGE_DIRECTORY = (
-    "static/images/properties"
-)
-
-
-VIDEO_DIRECTORY = (
-    "static/videos/properties"
-)
-
-
-# ============================================================
-# FILE VALIDATION
-# ============================================================
-
-def allowed_file(
-    filename,
-    allowed_extensions
-):
-
-    if not filename:
-        return False
-
-    if "." not in filename:
-        return False
-
-    extension = (
-        filename
-        .rsplit(".", 1)[-1]
-        .lower()
-    )
-
-    return extension in allowed_extensions
 
 
 # ============================================================
@@ -113,12 +95,14 @@ def profile():
     return render_template(
         "profile.html",
         user=current_user,
-        listings=properties
+        listings=properties,
+        field_labels=build_label_lookup(),
+        amenity_labels=build_amenity_label_lookup()
     )
 
 
 # ============================================================
-# RENTALS / ACTIVE PROPERTIES
+# RENTALS / ACTIVE PROPERTIES + SUBMISSION FORM
 # ============================================================
 
 @property_bp.route(
@@ -139,8 +123,14 @@ def rentals():
 
     return render_template(
         "rentals.html",
-        listings=properties
+        listings=properties,
+        field_config=build_field_config(),
+        image_categories=IMAGE_CATEGORIES,
+        geoapify_enabled=bool(
+            current_app.config.get("GEOAPIFY_API_KEY")
+        )
     )
+
 
 # ============================================================
 # VIEW PROPERTY DETAILS
@@ -163,10 +153,6 @@ def property_details(property_id):
         )
     )
 
-    # --------------------------------------------------------
-    # Property not found
-    # --------------------------------------------------------
-
     if property_item is None:
 
         flash(
@@ -180,14 +166,193 @@ def property_details(property_id):
             )
         )
 
-    # --------------------------------------------------------
-    # Render details page
-    # --------------------------------------------------------
-
     return render_template(
         "property_details.html",
-        property=property_item
+        property=property_item,
+        field_labels=build_label_lookup(),
+        amenity_labels=build_amenity_label_lookup()
     )
+
+
+# ============================================================
+# LOCATION AUTOCOMPLETE / REVERSE GEOCODING PROXY
+#
+# The Geoapify API key lives only on the server (read from the
+# environment). The frontend calls these same-origin endpoints
+# instead of talking to Geoapify directly.
+# ============================================================
+
+GEOAPIFY_GEOCODE_URL = "https://api.geoapify.com/v1/geocode"
+
+
+@property_bp.route(
+    "/api/location/autocomplete",
+    methods=["GET"]
+)
+@login_required
+def location_autocomplete():
+
+    api_key = current_app.config.get(
+        "GEOAPIFY_API_KEY"
+    )
+
+    if not api_key:
+
+        return jsonify({
+            "error": "Location search is not configured.",
+            "results": []
+        })
+
+    query = (
+        request.args.get("text") or ""
+    ).strip()[:200]
+
+    if len(query) < 3:
+        return jsonify({"results": []})
+
+    params = {
+        "text": query,
+        "apiKey": api_key,
+        "filter": "countrycode:in",
+        "format": "json",
+        "limit": 6
+    }
+
+    latitude = request.args.get("lat")
+    longitude = request.args.get("lon")
+
+    if latitude and longitude:
+
+        try:
+
+            params["bias"] = (
+                f"proximity:{float(longitude)},{float(latitude)}"
+            )
+
+        except ValueError:
+            pass
+
+    try:
+
+        response = requests.get(
+            f"{GEOAPIFY_GEOCODE_URL}/autocomplete",
+            params=params,
+            timeout=6
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+    except (requests.RequestException, ValueError):
+
+        return jsonify({
+            "error": "Location search is temporarily unavailable.",
+            "results": []
+        })
+
+    results = []
+
+    for item in data.get("results", []):
+
+        results.append({
+            "formatted": item.get("formatted"),
+            "address_line1": item.get("address_line1"),
+            "city": (
+                item.get("city")
+                or item.get("county")
+            ),
+            "state": item.get("state"),
+            "locality": (
+                item.get("suburb")
+                or item.get("district")
+            ),
+            "sub_locality": (
+                item.get("neighbourhood")
+                or item.get("quarter")
+            ),
+            "postcode": item.get("postcode"),
+            "lat": item.get("lat"),
+            "lon": item.get("lon")
+        })
+
+    return jsonify({"results": results})
+
+
+@property_bp.route(
+    "/api/location/reverse",
+    methods=["GET"]
+)
+@login_required
+def location_reverse():
+
+    api_key = current_app.config.get(
+        "GEOAPIFY_API_KEY"
+    )
+
+    if not api_key:
+
+        return jsonify({
+            "error": "Location search is not configured."
+        })
+
+    try:
+
+        latitude = float(request.args.get("lat", ""))
+        longitude = float(request.args.get("lon", ""))
+
+    except (TypeError, ValueError):
+
+        return jsonify({
+            "error": "Invalid coordinates."
+        }), 400
+
+    params = {
+        "lat": latitude,
+        "lon": longitude,
+        "apiKey": api_key,
+        "format": "json"
+    }
+
+    try:
+
+        response = requests.get(
+            f"{GEOAPIFY_GEOCODE_URL}/reverse",
+            params=params,
+            timeout=6
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+    except (requests.RequestException, ValueError):
+
+        return jsonify({
+            "error": "Reverse geocoding is temporarily unavailable."
+        })
+
+    results = data.get("results", [])
+    item = results[0] if results else {}
+
+    return jsonify({
+        "formatted": item.get("formatted"),
+        "city": (
+            item.get("city")
+            or item.get("county")
+        ),
+        "state": item.get("state"),
+        "locality": (
+            item.get("suburb")
+            or item.get("district")
+        ),
+        "sub_locality": (
+            item.get("neighbourhood")
+            or item.get("quarter")
+        ),
+        "postcode": item.get("postcode")
+    })
+
 
 # ============================================================
 # SUBMIT PROPERTY
@@ -200,801 +365,397 @@ def property_details(property_id):
 @login_required
 def submit_listing():
 
+    form = request.form
+    errors = []
+
+
     # ========================================================
-    # BASIC LISTING INFORMATION
+    # LISTING TYPE / PROPERTY TYPE
     # ========================================================
 
-    listing_type = request.form.get(
-        "listing_type",
-        ""
+    listing_type = (
+        form.get("listing_type") or ""
     ).strip().lower()
 
-    price = request.form.get(
-        "price",
-        ""
-    ).strip()
+    property_type = (
+        form.get("property_type") or ""
+    ).strip().lower()
 
-    price_negotiable = (
-        request.form.get(
-            "price_negotiable"
+    if listing_type not in LISTING_TYPE_VALUES:
+        errors.append("Please select a valid listing type (Rent or Sell).")
+
+    if property_type not in PROPERTY_TYPE_VALUES:
+        errors.append("Please select a valid property type.")
+
+    if (
+        property_type in RENT_ONLY_PROPERTY_TYPES
+        and listing_type == "sell"
+    ):
+        errors.append(
+            "PG / Hostel listings can only be listed for rent."
         )
-        == "on"
+
+    # Every field below depends on knowing a valid type, so stop here.
+
+    if errors:
+
+        for message in errors:
+            flash(message, "danger")
+
+        return redirect(
+            url_for("property.rentals")
+        )
+
+
+    # ========================================================
+    # COMMON LISTING FIELDS
+    # ========================================================
+
+    listing_values, listing_errors = parse_fields(
+        form,
+        COMMON_LISTING_FIELDS
     )
 
-
-    # ========================================================
-    # PROPERTY INFORMATION
-    # ========================================================
-
-    property_type = request.form.get(
-        "property_type",
-        ""
-    ).strip()
-
-    bhk = request.form.get(
-        "bhk",
-        ""
-    ).strip()
-
-    area = request.form.get(
-        "area_sqft",
-        ""
-    ).strip()
-
-    carpet_area = request.form.get(
-        "carpet_area_sqft",
-        ""
-    ).strip()
-
-    bathrooms = request.form.get(
-        "bathrooms",
-        ""
-    ).strip()
-
-    balconies = request.form.get(
-        "balconies",
-        ""
-    ).strip()
-
-    furnishing = request.form.get(
-        "furnishing",
-        ""
-    ).strip().lower()
-
-    facing = request.form.get(
-        "facing",
-        ""
-    ).strip().lower()
-
-    property_age = request.form.get(
-        "property_age",
-        ""
-    ).strip()
-
-    floor_number = request.form.get(
-        "floor_number",
-        ""
-    ).strip()
-
-    total_floors = request.form.get(
-        "total_floors",
-        ""
-    ).strip()
+    errors.extend(listing_errors)
 
 
     # ========================================================
     # LOCATION
     # ========================================================
 
-    address = request.form.get(
-        "address",
-        ""
-    ).strip()
-
-    city = request.form.get(
-        "city",
-        ""
-    ).strip()
-
-    locality = request.form.get(
-        "locality",
-        ""
-    ).strip()
-
-    pincode = request.form.get(
-        "pincode",
-        ""
-    ).strip()
-
-    latitude = request.form.get(
-        "latitude",
-        ""
-    ).strip()
-
-    longitude = request.form.get(
-        "longitude",
-        ""
-    ).strip()
-
-
-    # ========================================================
-    # BUILDING
-    # ========================================================
-
-    project_name = request.form.get(
-        "project_name",
-        ""
-    ).strip()
-
-    gated_community = (
-        request.form.get(
-            "gated_community"
-        )
-        == "on"
+    location_values, location_errors = parse_fields(
+        form,
+        LOCATION_FIELDS
     )
 
-    amenities = request.form.getlist(
-        "amenities"
+    errors.extend(location_errors)
+
+    latitude, longitude, coordinate_error = (
+        parse_latitude_longitude(form)
     )
+
+    if coordinate_error:
+        errors.append(coordinate_error)
 
 
     # ========================================================
     # CONTACT
     # ========================================================
 
-    contact_name = request.form.get(
-        "contact_name",
-        ""
+    contact_name = (
+        form.get("contact_name") or ""
     ).strip()
 
-    contact_phone = request.form.get(
+    if not contact_name:
+        errors.append("Contact name is required.")
+
+    contact_phone, phone_error = parse_phone(
+        form,
         "contact_phone",
-        ""
-    ).strip()
-
-
-    # ========================================================
-    # DESCRIPTION
-    # ========================================================
-
-    description_text = request.form.get(
-        "description",
-        ""
-    ).strip()
-
-
-    # ========================================================
-    # RENTAL INFORMATION
-    # ========================================================
-
-    security_deposit = request.form.get(
-        "security_deposit",
-        ""
-    ).strip()
-
-    maintenance = request.form.get(
-        "maintenance",
-        ""
-    ).strip()
-
-    available_from = request.form.get(
-        "available_from",
-        ""
-    ).strip()
-
-    preferred_tenant = request.form.get(
-        "preferred_tenant",
-        ""
-    ).strip()
-
-    lease_type = request.form.get(
-        "lease_type",
-        ""
-    ).strip()
-
-    pets_allowed_value = request.form.get(
-        "pets_allowed"
+        "Contact phone",
+        required=True
     )
 
-    pets_allowed = None
+    if phone_error:
+        errors.append(phone_error)
 
-    if pets_allowed_value == "yes":
-        pets_allowed = True
-
-    elif pets_allowed_value == "no":
-        pets_allowed = False
-
-
-    # ========================================================
-    # SALE INFORMATION
-    # ========================================================
-
-    transaction_type = request.form.get(
-        "transaction_type",
-        ""
-    ).strip()
-
-    ownership = request.form.get(
-        "ownership",
-        ""
-    ).strip()
-
-    possession_status = request.form.get(
-        "possession_status",
-        ""
-    ).strip()
-
-    rera_id = request.form.get(
-        "rera_id",
-        ""
-    ).strip()
-
-
-    # ========================================================
-    # REQUIRED VALIDATION
-    # ========================================================
-
-    if listing_type not in [
-        "rent",
-        "sell"
-    ]:
-
-        flash(
-            "Please select rent or sell.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    if not property_type:
-
-        flash(
-            "Property type is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    if not price:
-
-        flash(
-            "Price is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    if not contact_name or not contact_phone:
-
-        flash(
-            "Contact information is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    # ========================================================
-    # PRICE
-    # ========================================================
-
-    try:
-
-        price_value = int(price)
-
-        if price_value <= 0:
-            raise ValueError
-
-    except ValueError:
-
-        flash(
-            "Price must be a valid positive number.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    # ========================================================
-    # NUMERIC PROPERTY VALUES
-    # ========================================================
-
-    def parse_positive_int(
-        value,
-        field_name
-    ):
-
-        if not value:
-            return None, None
-
-        try:
-
-            number = int(value)
-
-            if number <= 0:
-                raise ValueError
-
-            return number, None
-
-        except ValueError:
-
-            return (
-                None,
-                f"{field_name} must be a valid positive number."
-            )
-
-
-    def parse_positive_float(
-        value,
-        field_name
-    ):
-
-        if not value:
-            return None, None
-
-        try:
-
-            number = float(value)
-
-            if number <= 0:
-                raise ValueError
-
-            return number, None
-
-        except ValueError:
-
-            return (
-                None,
-                f"{field_name} must be a valid positive number."
-            )
-
-
-    bhk_value, error = parse_positive_int(
-        bhk,
-        "BHK"
+    contact_whatsapp, whatsapp_error = parse_phone(
+        form,
+        "contact_whatsapp",
+        "WhatsApp number",
+        required=False
     )
 
-    if error:
+    if whatsapp_error:
+        errors.append(whatsapp_error)
 
-        flash(
-            error,
-            "danger"
-        )
+    preferred_contact_method = (
+        form.get("preferred_contact_method") or "phone"
+    ).strip().lower()
 
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
+    if preferred_contact_method not in {"phone", "whatsapp", "email"}:
+        preferred_contact_method = "phone"
 
 
-    bathrooms_value, error = parse_positive_int(
-        bathrooms,
-        "Bathrooms"
+    # ========================================================
+    # TYPE-DEPENDENT GROUPS
+    # ========================================================
+
+    rooms_values, rooms_errors = parse_group_for_type(
+        form, ROOMS_FIELDS, property_type
     )
+    errors.extend(rooms_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    balconies_value, error = parse_positive_int(
-        balconies,
-        "Balconies"
+    area_values, area_errors = parse_group_for_type(
+        form, AREA_FIELDS, property_type
     )
+    errors.extend(area_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    property_age_value, error = parse_positive_int(
-        property_age,
-        "Property age"
+    building_values, building_errors = parse_group_for_type(
+        form, BUILDING_FIELDS, property_type
     )
+    errors.extend(building_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    floor_number_value, error = parse_positive_int(
-        floor_number,
-        "Floor number"
+    project_values, project_errors = parse_group_for_type(
+        form, PROJECT_FIELDS, property_type
     )
+    errors.extend(project_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    total_floors_value, error = parse_positive_int(
-        total_floors,
-        "Total floors"
+    parking_values, parking_errors = parse_group_for_type(
+        form, PARKING_FIELDS, property_type
     )
+    errors.extend(parking_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    area_value, error = parse_positive_float(
-        area,
-        "Area"
+    extra_values, extra_errors = parse_group_for_type(
+        form, EXTRA_FIELDS, property_type
     )
+    errors.extend(extra_errors)
 
-    if error:
-
-        flash(
-            error,
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    carpet_area_value, error = parse_positive_float(
-        carpet_area,
-        "Carpet area"
+    legal_values, legal_errors = parse_group_for_type(
+        form, LEGAL_FIELDS, property_type
     )
+    errors.extend(legal_errors)
 
-    if error:
+    pg_values = {}
 
-        flash(
-            error,
-            "danger"
+    if property_type == "pg_hostel":
+
+        pg_values, pg_errors = parse_group_for_type(
+            form, PG_FIELDS, property_type
         )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
+        errors.extend(pg_errors)
 
 
     # ========================================================
-    # LOCATION VALIDATION
+    # RENT / SALE (mutually exclusive — never both stored)
     # ========================================================
 
-    if not latitude or not longitude:
+    rental_values = {}
+    sale_values = {}
 
-        flash(
-            "Please select the property location on the map.",
-            "danger"
+    if listing_type == "rent" and property_type != "pg_hostel":
+
+        rental_values, rent_errors = parse_fields(
+            form, RENT_FIELDS
         )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    try:
-
-        latitude_value = float(
-            latitude
-        )
-
-        longitude_value = float(
-            longitude
-        )
-
-        if not -90 <= latitude_value <= 90:
-            raise ValueError
-
-        if not -180 <= longitude_value <= 180:
-            raise ValueError
-
-    except ValueError:
-
-        flash(
-            "Invalid map coordinates.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    # ========================================================
-    # IMAGE UPLOAD
-    # ========================================================
-
-    image_files = request.files.getlist(
-        "images"
-    )
-
-    image_files = [
-        image
-        for image in image_files
-        if image and image.filename
-    ]
-
-
-    # At least one image is compulsory
-
-    if not image_files:
-
-        flash(
-            "At least one property image is required.",
-            "danger"
-        )
-
-        return redirect(
-            url_for(
-                "property.profile"
-            )
-        )
-
-
-    # ========================================================
-    # VIDEO UPLOAD
-    # ========================================================
-
-    video_files = request.files.getlist(
-        "videos"
-    )
-
-    video_files = [
-        video
-        for video in video_files
-        if video and video.filename
-    ]
-
-
-    # ========================================================
-    # CREATE DIRECTORIES
-    # ========================================================
-
-    os.makedirs(
-        IMAGE_DIRECTORY,
-        exist_ok=True
-    )
-
-    os.makedirs(
-        VIDEO_DIRECTORY,
-        exist_ok=True
-    )
-
-
-    # ========================================================
-    # SAVE IMAGES
-    # ========================================================
-
-    image_filenames = []
-
-
-    for image_file in image_files:
-
-        filename = secure_filename(
-            image_file.filename
-        )
-
-
-        if not allowed_file(
-            filename,
-            IMAGE_EXTENSIONS
-        ):
-
-            flash(
-                "Only JPG, JPEG, PNG and WEBP "
-                "images are allowed.",
-                "danger"
-            )
-
-            return redirect(
-                url_for(
-                    "property.profile"
-                )
-            )
-
-
-        image_file.save(
-            os.path.join(
-                IMAGE_DIRECTORY,
-                filename
-            )
-        )
-
-
-        image_filenames.append(
-            filename
-        )
-
-
-    # ========================================================
-    # SAVE VIDEOS
-    # ========================================================
-
-    video_filenames = []
-
-
-    for video_file in video_files:
-
-        filename = secure_filename(
-            video_file.filename
-        )
-
-
-        if not allowed_file(
-            filename,
-            VIDEO_EXTENSIONS
-        ):
-
-            flash(
-                "Only MP4, WEBM and MOV "
-                "videos are allowed.",
-                "danger"
-            )
-
-            return redirect(
-                url_for(
-                    "property.profile"
-                )
-            )
-
-
-        video_file.save(
-            os.path.join(
-                VIDEO_DIRECTORY,
-                filename
-            )
-        )
-
-
-        video_filenames.append(
-            filename
-        )
-
-
-    # ========================================================
-    # BUILD RENTAL DATA
-    # ========================================================
-
-    rental_data = None
-
-
-    if listing_type == "rent":
-
-        rental_data = {
-
-            "security_deposit":
-                int(security_deposit)
-                if security_deposit
-                else None,
-
-            "maintenance":
-                int(maintenance)
-                if maintenance
-                else None,
-
-            "available_from":
-                available_from
-                if available_from
-                else None,
-
-            "preferred_tenant":
-                preferred_tenant
-                if preferred_tenant
-                else None,
-
-            "lease_type":
-                lease_type
-                if lease_type
-                else None,
-
-            "pets_allowed":
-                pets_allowed
-        }
-
-
-    # ========================================================
-    # BUILD SALE DATA
-    # ========================================================
-
-    sale_data = None
-
+        errors.extend(rent_errors)
 
     if listing_type == "sell":
 
-        sale_data = {
+        sale_values, sale_errors = parse_fields(
+            form, SALE_FIELDS
+        )
+        errors.extend(sale_errors)
 
-            "transaction_type":
-                transaction_type
-                if transaction_type
-                else None,
 
-            "ownership":
-                ownership
-                if ownership
-                else None,
+    # ========================================================
+    # AMENITIES
+    # ========================================================
 
-            "possession_status":
-                possession_status
-                if possession_status
-                else None,
+    known_amenity_values = {
+        value
+        for options in AMENITY_CATEGORIES.values()
+        for value, _ in options
+    }
 
-            "rera_id":
-                rera_id
-                if rera_id
-                else None
-        }
+    selected_amenities = [
+        value
+        for value in form.getlist("amenities")
+        if value in known_amenity_values
+    ]
+
+    custom_amenities_raw = (
+        form.get("custom_amenities") or ""
+    ).strip()
+
+    custom_amenities = []
+
+    if custom_amenities_raw:
+
+        for item in custom_amenities_raw.split(","):
+
+            item = item.strip()[:40]
+
+            if item:
+                custom_amenities.append(item)
+
+    custom_amenities = custom_amenities[:20]
+
+    amenities_by_category = {}
+
+    for category, options in AMENITY_CATEGORIES.items():
+
+        option_values = {value for value, _ in options}
+
+        amenities_by_category[category] = [
+            value
+            for value in selected_amenities
+            if value in option_values
+        ]
+
+    amenities_by_category["custom"] = custom_amenities
+
+    flat_amenities = selected_amenities + custom_amenities
+
+
+    # ========================================================
+    # MEDIA
+    # ========================================================
+
+    image_files = [
+        image
+        for image in request.files.getlist("images")
+        if image and image.filename
+    ]
+
+    video_files = [
+        video
+        for video in request.files.getlist("videos")
+        if video and video.filename
+    ]
+
+    floor_plan_file = request.files.get("floor_plan")
+
+    brochure_file = request.files.get("brochure")
+
+    virtual_tour_url = (
+        form.get("virtual_tour_url") or ""
+    ).strip()
+
+    if virtual_tour_url:
+
+        parsed_url = urlparse(virtual_tour_url)
+
+        if (
+            parsed_url.scheme not in ("http", "https")
+            or not parsed_url.netloc
+        ):
+
+            errors.append(
+                "Virtual tour URL must be a valid http/https link."
+            )
+
+    try:
+        media_service.validate_images(image_files)
+
+    except MediaValidationError as exc:
+        errors.append(str(exc))
+
+    try:
+        media_service.validate_videos(video_files)
+
+    except MediaValidationError as exc:
+        errors.append(str(exc))
+
+    try:
+
+        media_service.validate_single_document(
+            floor_plan_file,
+            media_service.FLOOR_PLAN_EXTENSIONS,
+            media_service.MAX_DOCUMENT_BYTES,
+            "Floor plan"
+        )
+
+    except MediaValidationError as exc:
+        errors.append(str(exc))
+
+    try:
+
+        media_service.validate_single_document(
+            brochure_file,
+            media_service.DOCUMENT_EXTENSIONS,
+            media_service.MAX_DOCUMENT_BYTES,
+            "Brochure"
+        )
+
+    except MediaValidationError as exc:
+        errors.append(str(exc))
+
+
+    # ========================================================
+    # STOP HERE IF ANYTHING FAILED
+    #
+    # Validated fully before any file touches disk.
+    # ========================================================
+
+    if errors:
+
+        for message in errors:
+            flash(message, "danger")
+
+        return redirect(
+            url_for("property.rentals")
+        )
+
+
+    # ========================================================
+    # SAVE MEDIA
+    # ========================================================
+
+    static_root = current_app.static_folder
+
+    try:
+        cover_index = int(form.get("cover_image", "0"))
+
+    except ValueError:
+        cover_index = 0
+
+    image_categories = [
+        form.get(f"image_category_{index}", "other")
+        for index in range(len(image_files))
+    ]
+
+    image_filenames, image_meta = media_service.save_images(
+        image_files,
+        image_categories,
+        cover_index,
+        static_root
+    )
+
+    video_filenames = media_service.save_videos(
+        video_files,
+        static_root
+    )
+
+    floor_plan_filename = media_service.save_single_document(
+        floor_plan_file,
+        static_root
+    )
+
+    brochure_filename = media_service.save_single_document(
+        brochure_file,
+        static_root
+    )
+
+
+    # ========================================================
+    # BACKWARD-COMPATIBLE SUMMARY VALUES
+    #
+    # `property.bhk` / `property.area_sqft` are read by the
+    # existing search + ranking code (out of scope for this
+    # change), so they are always kept populated/consistent.
+    # ========================================================
+
+    bhk_numeric = None
+    bhk_raw = rooms_values.get("bhk")
+
+    if bhk_raw is not None:
+
+        try:
+
+            bhk_numeric = float(bhk_raw)
+
+            if bhk_numeric.is_integer():
+                bhk_numeric = int(bhk_numeric)
+
+        except (TypeError, ValueError):
+            bhk_numeric = None
+
+    area_summary = (
+        area_values.get("super_built_up_sqft")
+        or area_values.get("built_up_sqft")
+        or area_values.get("plot_sqft")
+    )
 
 
     # ========================================================
@@ -1004,208 +765,110 @@ def submit_listing():
     property_data = {
 
         "seller": {
-
-            "user_id":
-                current_user.id,
-
-            "username":
-                current_user.username
+            "user_id": current_user.id,
+            "username": current_user.username
         },
-
 
         "listing": {
-
-            "type":
-                listing_type,
-
-            "price":
-                price_value,
-
-            "currency":
-                "INR",
-
-            "status":
-                "active",
-
-            "price_negotiable":
-                price_negotiable
+            "type": listing_type,
+            "status": "active",
+            "price": listing_values["price"],
+            "currency": "INR",
+            "price_negotiable": listing_values.get("price_negotiable", False),
+            "title": listing_values.get("title"),
+            "posted_by": listing_values.get("posted_by", "owner")
         },
-
 
         "property": {
-
-            "type":
-                property_type,
-
-            "bhk":
-                bhk_value,
-
-            "area_sqft":
-                area_value,
-
-            "carpet_area_sqft":
-                carpet_area_value,
-
-            "bathrooms":
-                bathrooms_value,
-
-            "balconies":
-                balconies_value,
-
-            "furnishing":
-                furnishing
-                if furnishing
-                else None,
-
-            "facing":
-                facing
-                if facing
-                else None,
-
-            "property_age":
-                property_age_value,
-
-            "floor_number":
-                floor_number_value,
-
-            "total_floors":
-                total_floors_value
+            "type": property_type,
+            "bhk": bhk_numeric,
+            "area_sqft": area_summary,
+            "carpet_area_sqft": area_values.get("carpet_sqft"),
+            "bathrooms": rooms_values.get("bathrooms"),
+            "balconies": rooms_values.get("balconies"),
+            "furnishing": building_values.get("furnishing"),
+            "facing": building_values.get("facing"),
+            "property_age": building_values.get("property_age"),
+            "floor_number": building_values.get("floor_number"),
+            "total_floors": building_values.get("total_floors")
         },
 
+        "rooms": rooms_values or None,
+        "area": area_values or None,
+        "building": building_values or None,
+        "project": project_values or None,
+        "parking": parking_values or None,
+        "type_details": extra_values or None,
+        "legal": legal_values or None,
+        "pg_details": pg_values or None,
+
+        "amenities": amenities_by_category,
+        "features": flat_amenities,
+
+        "rental": rental_values or None,
+        "sale": sale_values or None,
 
         "location": {
-
-            "address":
-                address,
-
-            "city":
-                city,
-
-            "locality":
-                locality,
-
-            "pincode":
-                pincode,
-
+            "address": location_values.get("address"),
+            "state": location_values.get("state"),
+            "city": location_values.get("city"),
+            "locality": location_values.get("locality"),
+            "sub_locality": location_values.get("sub_locality"),
+            "landmark": location_values.get("landmark"),
+            "pincode": location_values.get("pincode"),
             "coordinates": {
-
-                "type":
-                    "Point",
-
-                "coordinates": [
-
-                    longitude_value,
-
-                    latitude_value
-                ]
+                "type": "Point",
+                "coordinates": [longitude, latitude]
             }
         },
 
-
-        "building": {
-
-            "project_name":
-                project_name
-                if project_name
-                else None,
-
-            "gated_community":
-                gated_community,
-
-            "amenities":
-                amenities
-        },
-
-
-        "rental":
-            rental_data,
-
-
-        "sale":
-            sale_data,
-
-
         "contact": {
-
-            "name":
-                contact_name,
-
-            "phone":
-                contact_phone
+            "name": contact_name,
+            "phone": contact_phone,
+            "whatsapp": contact_whatsapp,
+            "preferred_contact_method": preferred_contact_method
         },
-
 
         "description": {
-
-            "text":
-                description_text,
-
-            "language":
-                "en"
+            "text": listing_values.get("description", ""),
+            "language": "en"
         },
-
 
         "media": {
-
-            "images":
-                image_filenames,
-
-            "videos":
-                video_filenames
+            "images": image_filenames,
+            "image_meta": image_meta,
+            "videos": video_filenames,
+            "floor_plan": floor_plan_filename,
+            "brochure": brochure_filename,
+            "virtual_tour_url": virtual_tour_url or None
         },
-
 
         "source": {
-
-            "type":
-                "owner",
-
-            "url":
-                None
+            "type": "owner",
+            "url": None
         },
 
-
         "search": {
-
-            "keywords":
-                [],
-
-            "embedding":
-                None
+            "keywords": [],
+            "embedding": None
         }
     }
-
-
-    # ========================================================
-    # SAVE PROPERTY
-    # ========================================================
 
     property_service = (
         get_property_service()
     )
 
-
-    property_id = (
-        property_service.create_property(
-            property_data
-        )
+    property_service.create_property(
+        property_data
     )
-
-
-    # ========================================================
-    # SUCCESS
-    # ========================================================
 
     flash(
         "Property listed successfully!",
         "success"
     )
 
-
     return redirect(
-        url_for(
-            "property.profile"
-        )
+        url_for("property.profile")
     )
 
 
@@ -1226,13 +889,11 @@ def delete_listing(
         get_property_service()
     )
 
-
     property_item = (
         property_service.get_property(
             property_id
         )
     )
-
 
     if property_item is None:
 
@@ -1247,12 +908,10 @@ def delete_listing(
             )
         )
 
-
     seller = property_item.get(
         "seller",
         {}
     )
-
 
     if seller.get(
         "user_id"
@@ -1270,18 +929,15 @@ def delete_listing(
             )
         )
 
-
     property_service.update_status(
         property_id,
         "inactive"
     )
 
-
     flash(
         "Property has been unlisted.",
         "success"
     )
-
 
     return redirect(
         url_for(

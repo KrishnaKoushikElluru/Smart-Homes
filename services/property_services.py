@@ -19,6 +19,38 @@ class PropertyService:
 
 
     # ========================================================
+    # INDEXES
+    #
+    # Idempotent: safe to call on every app startup. Supports the
+    # listing phase's own lookups (owner's listings, active feed)
+    # as well as the existing search/ranking queries, without
+    # creating redundant indexes.
+    # ========================================================
+
+    def ensure_indexes(self):
+
+        self.collection.create_index("seller.user_id")
+
+        self.collection.create_index("listing.type")
+
+        self.collection.create_index("listing.status")
+
+        self.collection.create_index("property.type")
+
+        self.collection.create_index("location.city")
+
+        self.collection.create_index("location.locality")
+
+        self.collection.create_index("listing.price")
+
+        self.collection.create_index("property.bhk")
+
+        self.collection.create_index(
+            [("location.coordinates", "2dsphere")]
+        )
+
+
+    # ========================================================
     # CREATE
     # ========================================================
 
@@ -530,6 +562,24 @@ class PropertyService:
 
         return (
             result.modified_count > 0
+        )
+
+
+    # ========================================================
+    # UPDATE STATUS
+    # ========================================================
+
+    def update_status(
+        self,
+        property_id,
+        status
+    ):
+
+        return self.update_property(
+            property_id,
+            {
+                "listing.status": status
+            }
         )
 
 

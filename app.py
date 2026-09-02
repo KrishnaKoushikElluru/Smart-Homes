@@ -54,7 +54,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 app.config["MAX_CONTENT_LENGTH"] = (
-    16 * 1024 * 1024
+    # Large enough for a full listing submission (up to 20 images,
+    # 5 videos, a floor plan and a brochure) under the per-file
+    # limits enforced in services/media_service.py.
+    120 * 1024 * 1024
+)
+
+app.config["GEOAPIFY_API_KEY"] = os.getenv(
+    "GEOAPIFY_API_KEY"
 )
 
 
@@ -97,6 +104,8 @@ property_service = PropertyService(
 app.extensions[
     "property_service"
 ] = property_service
+
+property_service.ensure_indexes()
 
 
 
