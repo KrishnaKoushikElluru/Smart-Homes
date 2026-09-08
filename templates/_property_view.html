@@ -1,18 +1,4 @@
-{# ==========================================================
-   Shared property rendering used by both profile.html (a user's
-   own listings) and property_details.html (public detail page).
 
-   Renders only the sections that actually have data, and only
-   shows the rich new-schema sections (rooms/area/building/
-   project/parking/type_details/legal/pg_details/amenities) when
-   they exist — older documents created before this schema simply
-   fall back to the legacy summary fields that were always stored
-   on `property` / `building`, so nothing crashes.
-
-   Expects CSS classes matching property_details.html's stylesheet:
-   section-title, info-grid, info-card, info-label, info-value,
-   amenities, amenity, image-gallery, video-gallery, no-image.
-   ========================================================== #}
 
 {% macro render_dict_grid(data, labels) %}
 

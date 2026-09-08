@@ -3,27 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Login - SmartHomes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST" class="login-form">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                <label for="username">Username:</label>
-                {{ form.username(id="username", size=32) }}
+
+    <div class="sh-login-page">
+
+        <!-- ============================================================
+             LEFT BRANDED VISUAL (hidden on tablet/mobile)
+        ============================================================ -->
+
+        <div class="sh-login-visual">
+            <div class="sh-login-visual-content">
+                <a href="{{ url_for('home') }}" class="sh-login-brand">SMART HOMES</a>
+                <h2>Find your next home with confidence</h2>
+                <p>
+                    Browse verified listings, manage the properties you've
+                    posted, and connect with buyers and renters — all in
+                    one place.
+                </p>
             </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                {{ form.password(id="password", size=32) }}
+        </div>
+
+        <!-- ============================================================
+             RIGHT LOGIN CARD
+        ============================================================ -->
+
+        <div class="sh-login-form-side">
+            <div class="sh-login-card">
+
+                <a href="{{ url_for('home') }}" class="sh-login-brand sh-login-brand--mobile">
+                    SMART HOMES
+                </a>
+
+                <h1>Welcome back</h1>
+                <p class="sh-login-subtitle">
+                    Log in to manage your listings and saved properties.
+                </p>
+
+                <!-- ==================================================
+                     FLASH MESSAGES (login errors / logout confirmation)
+                ================================================== -->
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="sh-flash-container">
+                            {% for category, message in messages %}
+                                <div class="sh-flash sh-flash-{{ category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- ==================================================
+                     LOGIN FORM
+                ================================================== -->
+
+                <form method="POST" class="sh-login-form">
+                    {{ form.hidden_tag() }}
+
+                    <div class="sh-form-group">
+                        <label for="username">Username</label>
+                        {{ form.username(
+                            id="username",
+                            class="sh-input",
+                            autocomplete="username",
+                            placeholder="Enter your username"
+                        ) }}
+                        {% for error in form.username.errors %}
+                            <span class="sh-field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="sh-form-group">
+                        <label for="password">Password</label>
+                        <div class="sh-password-wrapper">
+                            {{ form.password(
+                                id="password",
+                                class="sh-input",
+                                autocomplete="current-password",
+                                placeholder="Enter your password"
+                            ) }}
+                            <button
+                                type="button"
+                                class="sh-password-toggle"
+                                id="shPasswordToggle"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                            >
+                                <svg id="shEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        {% for error in form.password.errors %}
+                            <span class="sh-field-error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="sh-form-group">
+                        {{ form.submit(class="sh-submit-btn") }}
+                    </div>
+                </form>
+
+                <p class="sh-signup-link">
+                    New to SmartHomes? <a href="{{ url_for('auth.signup') }}">Create an account</a>
+                </p>
+
             </div>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-primary") }}
-            </div>
-        </form>
-        <p class="signup-link">New User? <a href="{{ url_for('auth.signup') }}">Sign up here</a></p>
+        </div>
+
     </div>
+
+    <!-- ================================================================
+         Show/hide password — purely client-side, no backend involved.
+    ================================================================ -->
+
+    <script>
+        (function () {
+            "use strict";
+
+            var toggle = document.getElementById("shPasswordToggle");
+            var passwordInput = document.getElementById("password");
+
+            if (!toggle || !passwordInput) return;
+
+            toggle.addEventListener("click", function () {
+
+                var isHidden = passwordInput.type === "password";
+
+                passwordInput.type = isHidden ? "text" : "password";
+                toggle.setAttribute("aria-pressed", String(isHidden));
+                toggle.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+            });
+        })();
+    </script>
+
 </body>
 </html>

@@ -4,6 +4,6 @@ import os
 # Load .env file
 load_dotenv()
 
-# Print values
-print(f"OpenAI API Key: {os.getenv('OPENAI_API_KEY')}")
-print(f"Flask Secret Key: {os.getenv('FLASK_SECRET_KEY')}")
+# Print whether secrets are set, without exposing their values
+print(f"OpenAI API Key set: {bool(os.getenv('OPENAI_API_KEY'))}")
+print(f"Flask Secret Key set: {bool(os.getenv('FLASK_SECRET_KEY'))}")

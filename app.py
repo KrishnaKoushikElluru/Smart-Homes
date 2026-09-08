@@ -19,6 +19,7 @@ import extensions
 from models import User
 from services.mongo_service import MongoService
 from services.property_services import PropertyService
+from services.osm_location_service import OSMLocationService
 load_dotenv("secret.env")
 from routes.auth_routes import auth_bp
 from routes.property_routes import property_bp
@@ -64,6 +65,58 @@ app.config["GEOAPIFY_API_KEY"] = os.getenv(
     "GEOAPIFY_API_KEY"
 )
 
+app.config["MAPPLS_API_KEY"] = os.getenv(
+    "MAPPLS_API_KEY"
+)
+
+# ============================================================
+# OSM / NOMINATIM CONFIGURATION
+#
+# Kept fully env-driven and provider-isolated (see
+# services/osm_location_service.py) so the OSM backend can later move
+# to a self-hosted Nominatim instance, another self-hosted OSM
+# geocoder, or a locally indexed dataset without any application code
+# changes - only these environment variables would change.
+# ============================================================
+
+app.config["OSM_NOMINATIM_URL"] = os.getenv(
+    "OSM_NOMINATIM_URL",
+    "https://nominatim.openstreetmap.org/search"
+)
+
+app.config["OSM_USER_AGENT"] = os.getenv(
+    "OSM_USER_AGENT",
+    "SmartHomes-LocationResolver/1.0 (contact: apisupport@smarthomes.local)"
+)
+
+app.config["OSM_TIMEOUT"] = int(os.getenv(
+    "OSM_TIMEOUT",
+    "8"
+))
+
+app.config["OSM_CACHE_ENABLED"] = os.getenv(
+    "OSM_CACHE_ENABLED",
+    "true"
+).strip().lower() not in ("false", "0", "no")
+
+app.config["OSM_CACHE_TTL_SECONDS"] = int(os.getenv(
+    "OSM_CACHE_TTL_SECONDS",
+    str(30 * 24 * 60 * 60)
+))
+
+# See services/osm_location_service.py module docstring for how these
+# were calibrated against geo_coordinate_benchmark/results/osm_results.json
+# rather than chosen arbitrarily.
+app.config["OSM_MATCH_MIN_SCORE"] = float(os.getenv(
+    "OSM_MATCH_MIN_SCORE",
+    "0.40"
+))
+
+app.config["OSM_MATCH_MIN_MARGIN"] = float(os.getenv(
+    "OSM_MATCH_MIN_MARGIN",
+    "0.05"
+))
+
 
 # ============================================================
 # EXTENSIONS
@@ -106,6 +159,23 @@ app.extensions[
 ] = property_service
 
 property_service.ensure_indexes()
+
+osm_location_service = OSMLocationService(
+    mongo_service=mongo_service,
+    nominatim_url=app.config["OSM_NOMINATIM_URL"],
+    user_agent=app.config["OSM_USER_AGENT"],
+    timeout_seconds=app.config["OSM_TIMEOUT"],
+    cache_enabled=app.config["OSM_CACHE_ENABLED"],
+    cache_ttl_seconds=app.config["OSM_CACHE_TTL_SECONDS"],
+    min_score=app.config["OSM_MATCH_MIN_SCORE"],
+    min_margin=app.config["OSM_MATCH_MIN_MARGIN"],
+)
+
+app.extensions[
+    "osm_location_service"
+] = osm_location_service
+
+osm_location_service.ensure_indexes()
 
 
 

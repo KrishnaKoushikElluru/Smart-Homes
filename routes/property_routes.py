@@ -53,6 +53,9 @@ from services.media_service import (
     IMAGE_CATEGORIES
 )
 
+from services import geospatial_service
+from services import mappls_service
+
 
 property_bp = Blueprint(
     "property",
@@ -172,6 +175,63 @@ def property_details(property_id):
         field_labels=build_label_lookup(),
         amenity_labels=build_amenity_label_lookup()
     )
+
+
+# ============================================================
+# NEARBY POINTS OF INTEREST (GeoSpatial Phase 2)
+#
+# Read-only lookup: derives POIs on demand from a property's already
+# -stored coordinates via services/geospatial_service.py. Nothing
+# here is persisted on the property document - see that module's
+# docstring for why.
+# ============================================================
+
+@property_bp.route(
+    "/api/property/<property_id>/nearby-poi",
+    methods=["GET"]
+)
+@login_required
+def property_nearby_poi(property_id):
+
+    property_service = get_property_service()
+
+    property_item = property_service.get_property(property_id)
+
+    if property_item is None:
+        return jsonify({"error": "Property not found."}), 404
+
+    location = property_item.get("location") or {}
+
+    coordinates = (
+        (location.get("coordinates") or {}).get("coordinates")
+    )
+
+    if not coordinates or len(coordinates) != 2:
+
+        empty_categories = {
+            key: [] for key in geospatial_service.POI_CATEGORIES
+        }
+
+        empty_categories.update({
+            key: [] for key in geospatial_service.LEGACY_CATEGORY_ALIASES
+        })
+
+        return jsonify({
+            "error": "This property has no location coordinates.",
+            "categories": empty_categories
+        })
+
+    longitude, latitude = coordinates[0], coordinates[1]
+
+    api_key = current_app.config.get("GEOAPIFY_API_KEY")
+
+    result = geospatial_service.get_nearby_pois(
+        latitude,
+        longitude,
+        api_key
+    )
+
+    return jsonify(result)
 
 
 # ============================================================
@@ -352,6 +412,96 @@ def location_reverse():
         ),
         "postcode": item.get("postcode")
     })
+
+
+# ============================================================
+# POI COORDINATE RESOLUTION (Mappls -> OSM)
+#
+# Development/testing endpoint for the new Mappls -> OSM coordinate
+# -resolution pipeline (see services/mappls_service.py and
+# services/osm_location_service.py). NOT yet wired into property
+# search - this only resolves a named place into coordinates so the
+# pipeline can be exercised and verified on its own before any search
+# flow depends on it. Mappls decides WHICH entity a query means; OSM
+# only ever tries to locate the SAME entity Mappls already selected -
+# it never re-ranks or second-guesses Mappls' choice.
+# ============================================================
+
+@property_bp.route(
+    "/api/location/resolve-poi",
+    methods=["POST"]
+)
+@login_required
+def resolve_poi():
+
+    data = request.get_json(silent=True) or {}
+
+    query = (data.get("query") or "").strip()[:200]
+
+    if not query:
+        return jsonify({"error": "A 'query' field is required."}), 400
+
+    mappls_key = current_app.config.get("MAPPLS_API_KEY")
+
+    # Mappls' own ambiguity resolution depends heavily on this: without a
+    # location bias, a short/generic query (e.g. "SRM") can resolve to an
+    # unrelated place anywhere in India (confirmed during manual testing -
+    # see the implementation report). Callers may pass their own
+    # "lat,lon" (e.g. the city the user is currently searching in);
+    # SmartHomes' current listings are Chennai-only, so that's the
+    # fallback default - NOT a hard-coded assumption once other cities
+    # are onboarded, just today's sensible default.
+    location_bias = (data.get("location_bias") or "").strip() or "12.9716,80.2217"
+
+    mappls_result = mappls_service.resolve_place(
+        query, mappls_key, location_bias=location_bias
+    )
+
+    response = {
+        "query": query,
+        "mappls": {
+            "status": mappls_result["status"],
+            "place_name": mappls_result["place_name"],
+            "place_address": mappls_result["place_address"],
+            "eloc": mappls_result["eloc"],
+            "type": mappls_result["type"],
+            "error": mappls_result["error"],
+        },
+        "osm": None,
+    }
+
+    if mappls_result["status"] != "matched":
+        # Nothing for OSM to look for - Mappls itself didn't resolve an
+        # entity. Do not fabricate an OSM attempt.
+        return jsonify(response)
+
+    osm_service = current_app.extensions.get("osm_location_service")
+
+    osm_result = osm_service.resolve_coordinates({
+        "place_name": mappls_result["place_name"],
+        "address": mappls_result["place_address"],
+        "eloc": mappls_result["eloc"],
+        "type": mappls_result["type"],
+    })
+
+    response["osm"] = {
+        "status": osm_result["status"],
+        "latitude": osm_result["latitude"],
+        "longitude": osm_result["longitude"],
+        "display_name": osm_result["display_name"],
+        "confidence": osm_result["confidence"],
+        "match_method": osm_result["match_method"],
+        "matched_name": osm_result["matched_name"],
+        "matched_address": osm_result["matched_address"],
+        "osm_id": osm_result["osm_id"],
+        "osm_type": osm_result["osm_type"],
+        "osm_category": osm_result["osm_category"],
+        "candidate_count": osm_result["candidate_count"],
+        "alternates": osm_result["alternates"],
+        "error": osm_result["error"],
+    }
+
+    return jsonify(response)
 
 
 # ============================================================

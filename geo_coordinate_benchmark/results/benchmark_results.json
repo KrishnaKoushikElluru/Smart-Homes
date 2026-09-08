@@ -1,0 +1,1872 @@
+{
+  "VIT Chennai": {
+    "mappls_selected": {
+      "placeName": "VIT Chennai",
+      "placeAddress": "Vandalur Kelambakkam Road, SH 121, Kandigai, Chennai, Tamil Nadu, 600127",
+      "eLoc": "2NB2R6",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 5,
+      "best": {
+        "name": "VIT Chennai library Block",
+        "full_text": "VIT Chennai library Block, Vandalur - Mambakkam - Kelambakkam Road, Keezhakottaiyur, Chennai Corporation, Tiruporur, Chengalpattu, Tamil Nadu, 600127, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600127",
+        "category_plausible": true,
+        "osm_id": 304851802,
+        "osm_type": "way",
+        "osm_class": "building",
+        "osm_type_tag": "university",
+        "lat": 12.8410462,
+        "lon": 80.1540384,
+        "display_name": "VIT Chennai library Block, Vandalur - Mambakkam - Kelambakkam Road, Keezhakottaiyur, Chennai Corporation, Tiruporur, Chengalpattu, Tamil Nadu, 600127, India",
+        "importance": 5.509498741126142e-05,
+        "extratags": {
+          "layer": "1",
+          "roof:shape": "flat",
+          "nohousenumber": "yes",
+          "building:colour": "white",
+          "building:levels": "4",
+          "building:material": "cement_block"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4866,
+      "distance_from_reference_m": 55.94359465187393
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 221,
+      "best": {
+        "name": "Vit Chennai",
+        "full_text": "Chennai, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "campus_building",
+        "confidence": 0.7390045523643494,
+        "websites": [
+          "http://chennai.vit.ac.in/"
+        ],
+        "phones": null,
+        "brand": null,
+        "lon": 80.15234,
+        "lat": 12.844428
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.587,
+      "distance_from_reference_m": 454.13182475702985,
+      "download_meta": {
+        "center_lat": 12.8410462,
+        "center_lon": 80.1540384,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 12.8406,
+      "lon": 80.1538,
+      "confidence": "cross_source_agreement",
+      "note": "Converges across the prior Geoapify benchmark's Reverse Geocode test, OSM's multiple VIT-building matches (12.8403-12.8443 range), and Overture's own match (12.8444) -- all within ~450m of each other."
+    }
+  },
+  "IIT Madras": {
+    "mappls_selected": {
+      "placeName": "Indian Institute Of Technology, Madras",
+      "placeAddress": "Indian Institute Of Technology Madras IIT PO, Chennai, Tamil Nadu, 600036",
+      "eLoc": "TSBB58",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Indian Institute of Technology - Madras",
+        "full_text": "Indian Institute of Technology - Madras, Adayar, Ward 174, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600036, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600036",
+        "category_plausible": true,
+        "osm_id": 24730814,
+        "osm_type": "way",
+        "osm_class": "amenity",
+        "osm_type_tag": "university",
+        "lat": 12.9941561,
+        "lon": 80.2366826,
+        "display_name": "Indian Institute of Technology - Madras, Adayar, Ward 174, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600036, India",
+        "importance": 0.45670105723186827,
+        "extratags": {
+          "phone": "+91 44 2257 8101",
+          "barrier": "wall",
+          "website": "https://www.iitm.ac.in/",
+          "operator": "Goverment of India",
+          "wikidata": "Q858662",
+          "education": "university",
+          "wikipedia": "en:Indian Institute of Technology Madras;en:IIT Madras",
+          "wheelchair": "yes",
+          "opening_hours": "24/7",
+          "operator:type": "public",
+          "school:gender": "mixed",
+          "internet_access": "yes",
+          "isced:2011:level": "bachelor;doctorate;master",
+          "wikimedia_commons": "Category:IIT Madras"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "ENTITY_MATCH",
+      "entity_label": "GOOD",
+      "raw_score": 0.7011,
+      "distance_from_reference_m": 437.79098573965945
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 13264,
+      "best": {
+        "name": "Indian Institute of Technology Madras",
+        "full_text": "Indian Institute of Technology Madras I.I.T., Chennai, 600036, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600036",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "school",
+        "confidence": 0.8757860660552979,
+        "websites": [
+          "http://www.iitm.ac.in/"
+        ],
+        "phones": null,
+        "brand": null,
+        "lon": 80.233666,
+        "lat": 12.99147432
+      },
+      "entity_verdict": "ENTITY_MATCH",
+      "entity_label": "GOOD",
+      "raw_score": 0.6928,
+      "distance_from_reference_m": 4.6609717905699855,
+      "download_meta": {
+        "center_lat": 12.9941561,
+        "center_lon": 80.2366826,
+        "radius_deg": 0.03,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 12.9915,
+      "lon": 80.2337,
+      "confidence": "general_knowledge",
+      "note": "Well-known main-gate area of a very large, well-documented campus; exact point within campus varies by which entrance/building is meant."
+    }
+  },
+  "Anna University": {
+    "mappls_selected": {
+      "placeName": "Anna University Chennai, Chennai",
+      "placeAddress": "Sardar Patel Road, Guindy, Chennai, Tamil Nadu, 600025",
+      "eLoc": "BSDF53",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 3,
+      "best": {
+        "name": "Anna University",
+        "full_text": "Anna University, Sardar Patel Road, Srinagar Colony, Ward 171, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600025, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600025",
+        "category_plausible": false,
+        "osm_id": 3263017226,
+        "osm_type": "node",
+        "osm_class": "highway",
+        "osm_type_tag": "bus_stop",
+        "lat": 13.0083174,
+        "lon": 80.2334438,
+        "display_name": "Anna University, Sardar Patel Road, Srinagar Colony, Ward 171, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600025, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "bin": "no",
+          "bus": "yes",
+          "lit": "yes",
+          "bench": "yes",
+          "shelter": "yes",
+          "local_ref": "IIT",
+          "tactile_paving": "yes",
+          "public_transport": "platform",
+          "check_date:shelter": "2023-11-02"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4426,
+      "distance_from_reference_m": 348.0263532409836
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 9605,
+      "best": {
+        "name": "College Of Engineering, Guindy, Anna University Chennai",
+        "full_text": "Sardar Patel Road, Chennai, 600025, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600025",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "college_university",
+        "confidence": 0.9796498477458954,
+        "websites": [
+          "https://www.annauniv.edu/"
+        ],
+        "phones": [
+          "+914422200303"
+        ],
+        "brand": null,
+        "lon": 80.235410232544,
+        "lat": 13.010193408374
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5655,
+      "distance_from_reference_m": 67.45911430836419,
+      "download_meta": {
+        "center_lat": 13.0083174,
+        "center_lon": 80.2334438,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 13.0108,
+      "lon": 80.2354,
+      "confidence": "general_knowledge",
+      "note": "Guindy campus administrative building area; approximate, campus spans a wide area."
+    }
+  },
+  "SRM Kattankulathur": {
+    "mappls_selected": {
+      "placeName": "SRM Medical College, Kancheepuram",
+      "placeAddress": "Kattankulathur, Potheri, SRM Nagar, Nandivaram Guduvancheri, Tamil Nadu, 603203",
+      "eLoc": "CC1D8S",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Srm Medical College Hospital And Research Centre",
+        "full_text": "Srm Medical College Hospital And Research Centre, TP Stairs, Potheri, Chengalpattu, Tamil Nadu, 603203, India",
+        "city": null,
+        "state": "Tamil Nadu",
+        "postcode": "603203",
+        "category_plausible": true,
+        "osm_id": 6934737010,
+        "osm_type": "node",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 12.8210402,
+        "lon": 80.0479585,
+        "display_name": "Srm Medical College Hospital And Research Centre, TP Stairs, Potheri, Chengalpattu, Tamil Nadu, 603203, India",
+        "importance": 5.509498741126142e-05,
+        "extratags": null,
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5066,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 852,
+      "best": {
+        "name": "S.R.M. Hosptial & Research Center",
+        "full_text": "Srm Nagar, Potheri, Kattankulathur, Chennai, 603203, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "603203",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "hospital",
+        "confidence": 0.5347709655761719,
+        "websites": null,
+        "phones": null,
+        "brand": null,
+        "lon": 80.048147,
+        "lat": 12.82088
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5858,
+      "distance_from_reference_m": null,
+      "download_meta": {
+        "center_lat": 12.8210402,
+        "center_lon": 80.0479585,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "UNKNOWN / NOT VERIFIED for a precise point -- OSM and the prior Geoapify benchmark both landed near 12.82-12.84, 80.04-80.05, which is at least mutually consistent, but not independently surveyed."
+    }
+  },
+  "Sathyabama University": {
+    "mappls_selected": {
+      "placeName": "Sathyabama Institute Of Science And Technology, Jeppiaar Nagar",
+      "placeAddress": "Rajiv Gandhi Salai, Jeppiaar Nagar, Old Mahabalipuram Road, Chennai, Tamil Nadu, 600119",
+      "eLoc": "3SS8S4",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Hindustan Institute of Technology": {
+    "mappls_selected": {
+      "placeName": "Hindustan Institute Of Technology",
+      "placeAddress": "Indira Nagar, Dharmapuri, Tamil Nadu, 636701",
+      "eLoc": "SXR7PQ",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 5,
+      "best": {
+        "name": "Institute of Technology (Block D)",
+        "full_text": "Institute of Technology (Block D), Tragad gam road, Tragad, Ghatlodiya Taluka, Ahmedabad, Gujarat, 382501, India",
+        "city": null,
+        "state": "Gujarat",
+        "postcode": "382501",
+        "category_plausible": true,
+        "osm_id": 7820887,
+        "osm_type": "relation",
+        "osm_class": "building",
+        "osm_type_tag": "college",
+        "lat": 23.1277287,
+        "lon": 72.5439099,
+        "display_name": "Institute of Technology (Block D), Tragad gam road, Tragad, Ghatlodiya Taluka, Ahmedabad, Gujarat, 382501, India",
+        "importance": 6.633783474474735e-05,
+        "extratags": {
+          "roof:shape": "flat",
+          "roof:levels": "1",
+          "nohousenumber": "yes",
+          "building:levels": "2"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "REJECTED",
+      "entity_label": "REJECTED",
+      "raw_score": 0.3353,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Apollo Hospital Chennai": {
+    "mappls_selected": {
+      "placeName": "Apollo Hospitals, Chennai",
+      "placeAddress": "10/169, 1st Street, No 21, Greams Lane, Off Greams Road, Thousand Lights West, Near Asan Memorial Senior Secondary School, Chennai, Tamil Nadu, 600006",
+      "eLoc": "F28B45",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 6,
+      "best": {
+        "name": "Apollo Hospital",
+        "full_text": "Apollo Hospital, Greams Lane, Ward 111, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, 600006, India, CMWSSB Division 111",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600006",
+        "category_plausible": true,
+        "osm_id": 211260239,
+        "osm_type": "way",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 13.0632248,
+        "lon": 80.2515817,
+        "display_name": "Apollo Hospital, Greams Lane, Ward 111, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, 600006, India, CMWSSB Division 111",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "healthcare": "hospital"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5136,
+      "distance_from_reference_m": 380.4439182970394
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 22433,
+      "best": {
+        "name": "Best Nephrologist - Dr. Rajeev | Apollo Hospitals | Chennai",
+        "full_text": "Greams Lane, 21, Greams Rd, Thousand Lights, Chennai, Tamil Nadu, 600006, IN",
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "postcode": "600006",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "hospital",
+        "confidence": 0.85,
+        "websites": [
+          "https://www.apollo247.com/doctors/45b778c2-7788-43b0-a868-e15b0aadace5"
+        ],
+        "phones": [
+          "08046961837"
+        ],
+        "brand": null,
+        "lon": 80.2545099,
+        "lat": 13.0604673
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6075,
+      "distance_from_reference_m": 531.8867004969354,
+      "download_meta": {
+        "center_lat": 13.0632248,
+        "center_lon": 80.2515817,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 13.0604,
+      "lon": 80.2496,
+      "confidence": "general_knowledge",
+      "note": "Well-known Greams Road flagship branch location; approximate."
+    }
+  },
+  "MIOT Hospital": {
+    "mappls_selected": {
+      "placeName": "Mint Hospitals",
+      "placeAddress": "19/1, 1st Avenue, Shastri Nagar, Chennai, Tamil Nadu, 600020",
+      "eLoc": "ISHTDU",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Mint Hospitals",
+        "full_text": "Mint Hospitals, Shastri Nagar 1st Avenue, Jeevarathinam Nagar, Ward 176, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600020, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600020",
+        "category_plausible": true,
+        "osm_id": 7823415065,
+        "osm_type": "node",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 13.0013494,
+        "lon": 80.258796,
+        "display_name": "Mint Hospitals, Shastri Nagar 1st Avenue, Jeevarathinam Nagar, Ward 176, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600020, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "healthcare": "hospital"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6582,
+      "distance_from_reference_m": 7509.700695153152
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 6666,
+      "best": {
+        "name": "Mint Hospitals",
+        "full_text": "No 19/1, 1st Avenue, Shastri, Chennai, 600020, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600020",
+        "category_plausible": true,
+        "overture_id": null,
+        "overture_category": "hospital",
+        "confidence": 0.914647102355957,
+        "websites": [
+          "http://www.minthospitals.com/"
+        ],
+        "phones": [
+          "+914424434444"
+        ],
+        "brand": null,
+        "lon": 80.25724106,
+        "lat": 13.00129767
+      },
+      "entity_verdict": "ENTITY_MATCH",
+      "entity_label": "GOOD",
+      "raw_score": 0.7137,
+      "distance_from_reference_m": 7342.244020811801,
+      "download_meta": {
+        "center_lat": 13.0013494,
+        "center_lon": 80.258796,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query (also matched 'Mint Hospitals' -- tests if Overture repeats the same confusion)"
+      }
+    },
+    "ground_truth": {
+      "lat": 13.0067,
+      "lon": 80.1897,
+      "confidence": "general_knowledge",
+      "note": "Well-known Manapakkam location; note BOTH Mappls and OSM matched a DIFFERENT entity ('Mint Hospitals'/'Mint Hospitals') for this query -- this reference exists specifically to demonstrate that mismatch, not because either resolver found it."
+    }
+  },
+  "Fortis Malar Hospital": {
+    "mappls_selected": {
+      "placeName": "Sanchu Animal Hospital",
+      "placeAddress": "4, Opposite Fortis Malar Hospital, Adyar Bridge Road, Gandhi Nagar, Arunachalapuram, Adyar, Chennai, Tamil Nadu, 600020",
+      "eLoc": "N8I9MY",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Sanchu Animal Hospital",
+        "full_text": "Sanchu Animal Hospital, 1st Main Road, Siddapura, Kundalahalli, Bengaluru East City Corporation, Bengaluru, Bangalore East, Bengaluru Urban, Karnataka, 560066, India",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "postcode": "560066",
+        "category_plausible": true,
+        "osm_id": 12651832966,
+        "osm_type": "node",
+        "osm_class": "amenity",
+        "osm_type_tag": "veterinary",
+        "lat": 12.9558806,
+        "lon": 77.7308147,
+        "display_name": "Sanchu Animal Hospital, 1st Main Road, Siddapura, Kundalahalli, Bengaluru East City Corporation, Bengaluru, Bangalore East, Bengaluru Urban, Karnataka, 560066, India",
+        "importance": 7.094453345536e-05,
+        "extratags": {
+          "check_date": "2025-03-11"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "REJECTED",
+      "entity_label": "REJECTED",
+      "raw_score": 0.2883,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 9675,
+      "best": {
+        "name": "Sanchu Animal Hospital",
+        "full_text": "No. 4, Adyar Bridge Rd, opposite Fortis Malar Hospital, Chennai, 600020, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600020",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "veterinarian",
+        "confidence": 0.7537615299224854,
+        "websites": [
+          "https://veterinary-hospital.sanchuanimalhospital.com/sanchu/animal-hospital-in-bengaluru/animal-hospital-in-koramangala/sanchu-animal-hospital-in-koramangala-bengaluru--1729b567-e162-457c-84d0-674bd59827ba/home"
+        ],
+        "phones": [
+          "+919445160101"
+        ],
+        "brand": "Sanchu Animal Hospital",
+        "lon": 80.25929301,
+        "lat": 13.00939127
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6671,
+      "distance_from_reference_m": null,
+      "download_meta": {
+        "center_lat": 13.0002,
+        "center_lon": 80.2565,
+        "radius_deg": 0.03,
+        "center_source": "NOT OSM's own result (which was a cross-state Bangalore mismatch, useless as a search center) -- instead the broad, well-known 'Adyar, Chennai' locality center, taken from Mappls' own address text ('...Adyar, Chennai, 600020'), to give Overture a fair chance at the right neighbourhood"
+      }
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "UNKNOWN / NOT VERIFIED -- not independently corroborated in this research; the Adyar locality area is known but not a precise point."
+    }
+  },
+  "MGM Healthcare Chennai": {
+    "mappls_selected": {
+      "placeName": "MGM Health Care",
+      "placeAddress": "BR 84050, Plot No 72, BNT Connections Building, 4th Floor, Nelson Manickam Road, Aminjikarai, Chennai, Tamil Nadu, 600029",
+      "eLoc": "OAA1Y5",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Global Hospital Chennai": {
+    "mappls_selected": {
+      "placeName": "Global Hospitals Chennai Parking",
+      "placeAddress": "Global Hospitals, Chennai, Tamil Nadu, 600100",
+      "eLoc": "9DAHE4",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Global Hospitals",
+        "full_text": "Global Hospitals, Crescent Avenue, Gandhinagar, Ward 175, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600020, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600020",
+        "category_plausible": true,
+        "osm_id": 170104584,
+        "osm_type": "way",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 13.0098023,
+        "lon": 80.2514702,
+        "display_name": "Global Hospitals, Crescent Avenue, Gandhinagar, Ward 175, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600020, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "healthcare": "hospital"
+        },
+        "strategy": "freeform_address_only"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4517,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Phoenix Marketcity Chennai": {
+    "mappls_selected": {
+      "placeName": "W, Phoenix Market City Chennai",
+      "placeAddress": "Shop S-11 & S-12, Second Floor, Phoenix Marketcity, No 142, Velachery Main Road, Velachery, Chennai, Tamil Nadu, 600042",
+      "eLoc": "RFAXTE",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Express Avenue": {
+    "mappls_selected": {
+      "placeName": "Express Avenue Mall",
+      "placeAddress": "No 17, Pattullos Road, Express Estate, Thousand Lights, Royapettah, Chennai, Tamil Nadu, 600002",
+      "eLoc": "68SS43",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 2,
+      "best": {
+        "name": "Express Avenue Mall",
+        "full_text": "Express Avenue Mall, Ward 111, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": null,
+        "category_plausible": false,
+        "osm_id": 217645019,
+        "osm_type": "way",
+        "osm_class": "landuse",
+        "osm_type_tag": "retail",
+        "lat": 13.0588206,
+        "lon": 80.2641028,
+        "display_name": "Express Avenue Mall, Ward 111, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "importance": 0.45533791270208157,
+        "extratags": {
+          "wikidata": "Q5421659",
+          "wikipedia": "en:Express Avenue",
+          "wikimedia_commons": "Category:Express Avenue"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4198,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "VR Chennai": {
+    "mappls_selected": {
+      "placeName": "VR Chennai Anna Nagar",
+      "placeAddress": "Metro Zone 44, Pillaiyar Koil Street, Jawaharlal Nehru Road, Anna Nagar, Thirumangalam, Chennai, Tamil Nadu, 600040",
+      "eLoc": "TYMHDB",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Chennai Citi Centre": {
+    "mappls_selected": {
+      "placeName": "Chennai Citi Centre",
+      "placeAddress": "10/11, Dr Radhakrishnan Road, Dr Radhakrishnan Salai, Loganathan Colony, Mylapore, Chennai, Tamil Nadu, 600004",
+      "eLoc": "4DTB7F",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Forum Vijaya Mall": {
+    "mappls_selected": {
+      "placeName": "Nexus Vijaya",
+      "placeAddress": "183, Green Park Private Entrance, Arcot Road, NSK Salai, Vadapalani, Chennai, Tamil Nadu, 600026",
+      "eLoc": "WUOFTA",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Nexus Vijaya Mall",
+        "full_text": "Nexus Vijaya Mall, Arcot Road, Appaswamy Trellis, Ward 130, Zone 10 Kodambakkam, Chennai Corporation, Chennai, Tamil Nadu, 600026, India, CMWSSB Division 129",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600026",
+        "category_plausible": true,
+        "osm_id": 355637768,
+        "osm_type": "way",
+        "osm_class": "shop",
+        "osm_type_tag": "mall",
+        "lat": 13.0507225,
+        "lon": 80.2095901,
+        "display_name": "Nexus Vijaya Mall, Arcot Road, Appaswamy Trellis, Ward 130, Zone 10 Kodambakkam, Chennai Corporation, Chennai, Tamil Nadu, 600026, India, CMWSSB Division 129",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "building": "yes",
+          "building:levels": "5"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5018,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Chennai Central": {
+    "mappls_selected": {
+      "placeName": "Chennai Central",
+      "placeAddress": "Chennai, Tamil Nadu, 600003",
+      "eLoc": "7F71SB",
+      "type": "LOCALITY"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 8,
+      "best": {
+        "name": "Chennai Central",
+        "full_text": "Chennai Central, Rasappa Chetty Street, Evening Bazaar, Ward 59, Zone 5 Royapuram, Chennai Corporation, Chennai, Tamil Nadu, 600001, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600001",
+        "category_plausible": true,
+        "osm_id": 217845073,
+        "osm_type": "way",
+        "osm_class": "railway",
+        "osm_type_tag": "station",
+        "lat": 13.0865507,
+        "lon": 80.274858,
+        "display_name": "Chennai Central, Rasappa Chetty Street, Evening Bazaar, Ward 59, Zone 5 Royapuram, Chennai Corporation, Chennai, Tamil Nadu, 600001, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "area": "yes",
+          "operator": "Southern Railway",
+          "public_transport": "station"
+        },
+        "strategy": "name_plus_city"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.502,
+      "distance_from_reference_m": 621.4079477819967
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 14341,
+      "best": {
+        "name": "Chennai Pattinam",
+        "full_text": "Chennai, TN, India, Chennai, 600003, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600003",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "comedy_club",
+        "confidence": 0.1803666651248932,
+        "websites": null,
+        "phones": null,
+        "brand": null,
+        "lon": 80.2823489,
+        "lat": 13.083539
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6489,
+      "distance_from_reference_m": 1265.1223550184636,
+      "download_meta": {
+        "center_lat": 13.0865507,
+        "center_lon": 80.274858,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 13.0827,
+      "lon": 80.2707,
+      "confidence": "cross_source_agreement",
+      "note": "Converges with both the prior Geoapify benchmark's exact-name match (13.0866,80.2749, conf=1.0) and this session's OSM railway-class match (13.0866,80.2749) -- independent agreement."
+    }
+  },
+  "Chennai Egmore": {
+    "mappls_selected": {
+      "placeName": "Ramada By Wyndham Chennai Egmore",
+      "placeAddress": "Gandhi Irwin Bridge Road, Egmore, Chennai, Tamil Nadu, 600008",
+      "eLoc": "QMXQEO",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 3,
+      "best": {
+        "name": "Gandhi Irwin Bridge",
+        "full_text": "Gandhi Irwin Bridge, Ward 61, Zone 5 Royapuram, Chennai Corporation, Chennai, Tamil Nadu, 600003, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600003",
+        "category_plausible": false,
+        "osm_id": 209561027,
+        "osm_type": "way",
+        "osm_class": "highway",
+        "osm_type_tag": "secondary",
+        "lat": 13.0789758,
+        "lon": 80.2653154,
+        "display_name": "Gandhi Irwin Bridge, Ward 61, Zone 5 Royapuram, Chennai Corporation, Chennai, Tamil Nadu, 600003, India",
+        "importance": 0.053406137941557914,
+        "extratags": {
+          "lanes": "2",
+          "layer": "1",
+          "bridge": "yes",
+          "oneway": "yes",
+          "surface": "asphalt"
+        },
+        "strategy": "freeform_address_only"
+      },
+      "entity_verdict": "ENTITY_MISMATCH",
+      "entity_label": "WRONG",
+      "raw_score": 0.2369,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Tambaram Railway Station": {
+    "mappls_selected": {
+      "placeName": "Tambaram Railway Station",
+      "placeAddress": "Railway Colony Quarters, Tambaram East, Chennai, Tamil Nadu, 600045",
+      "eLoc": "EECC4B",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 2,
+      "best": {
+        "name": "Tambaram Railway Station",
+        "full_text": "Tambaram Railway Station, Tambaram Flyover Ramp, Irumbuliyur, Tambaram, Chengalpattu, Tamil Nadu, 600045, India",
+        "city": "Tambaram",
+        "state": "Tamil Nadu",
+        "postcode": "600045",
+        "category_plausible": false,
+        "osm_id": 442131985,
+        "osm_type": "node",
+        "osm_class": "highway",
+        "osm_type_tag": "bus_stop",
+        "lat": 12.9254158,
+        "lon": 80.1169355,
+        "display_name": "Tambaram Railway Station, Tambaram Flyover Ramp, Irumbuliyur, Tambaram, Chengalpattu, Tamil Nadu, 600045, India",
+        "importance": 5.509498741126142e-05,
+        "extratags": {
+          "bus": "yes",
+          "public_transport": "platform"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.592,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Koyambedu Bus Terminus": {
+    "mappls_selected": {
+      "placeName": "Chennai Mofussil Bus Terminal",
+      "placeAddress": "Cmbt Passenger Way, Koyambedu, Chennai, Tamil Nadu, 600107",
+      "eLoc": "542E65",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Koyambedu Mofussil Bus Terminal",
+        "full_text": "Koyambedu Mofussil Bus Terminal, Bus Entry, Ward 127, Zone 10 Kodambakkam, Maduravoyal, Chennai Corporation, Chennai, Tamil Nadu, 600107, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600107",
+        "category_plausible": true,
+        "osm_id": 10980207099,
+        "osm_type": "node",
+        "osm_class": "amenity",
+        "osm_type_tag": "bus_station",
+        "lat": 13.0665289,
+        "lon": 80.2062855,
+        "display_name": "Koyambedu Mofussil Bus Terminal, Bus Entry, Ward 127, Zone 10 Kodambakkam, Maduravoyal, Chennai Corporation, Chennai, Tamil Nadu, 600107, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "bus": "yes",
+          "public_transport": "station"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5548,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Marina Beach": {
+    "mappls_selected": {
+      "placeName": "Marina Beach",
+      "placeAddress": "Marina Beach Road, Triplicane, Kamarajar Salai, Chennai, Tamil Nadu, 600005",
+      "eLoc": "S3F411",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Marina Beach",
+        "full_text": "Marina Beach, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": null,
+        "category_plausible": null,
+        "osm_id": 22902280,
+        "osm_type": "way",
+        "osm_class": "natural",
+        "osm_type_tag": "beach",
+        "lat": 13.0532752,
+        "lon": 80.2833106,
+        "display_name": "Marina Beach, Zone 9 Teynampet, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "importance": 0.46460522941004834,
+        "extratags": {
+          "wikidata": "Q673659",
+          "wikipedia": "en:Marina Beach",
+          "wikimedia_commons": "Category:Marina Beach"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4825,
+      "distance_from_reference_m": 377.30769277268826
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 9047,
+      "best": {
+        "name": "Marina Beach",
+        "full_text": "Marina Beach, Triplicane, Chennai, 600005, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600005",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "beach",
+        "confidence": 0.5998647212982178,
+        "websites": null,
+        "phones": null,
+        "brand": null,
+        "lon": 80.28515248,
+        "lat": 13.06026282
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6383,
+      "distance_from_reference_m": 1179.4807781724635,
+      "download_meta": {
+        "center_lat": 13.0532752,
+        "center_lon": 80.2833106,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": 13.05,
+      "lon": 80.2824,
+      "confidence": "general_knowledge",
+      "note": "A ~6km-long beach, not a point -- any coordinate along its length is arguably 'correct'; this is a central reference point only."
+    }
+  },
+  "Guindy National Park": {
+    "mappls_selected": {
+      "placeName": "Guindy National Park",
+      "placeAddress": "Guindy Raj Bhawan, 259 Anna Salai, Dms Compound, Teynampet, Rangeguindy, Chennai, Tamil Nadu, 600022",
+      "eLoc": "ST7S58",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Guindy National Park",
+        "full_text": "Guindy National Park, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": null,
+        "category_plausible": false,
+        "osm_id": 25006292,
+        "osm_type": "way",
+        "osm_class": "boundary",
+        "osm_type_tag": "national_park",
+        "lat": 13.000005,
+        "lon": 80.2280448,
+        "display_name": "Guindy National Park, Chennai Corporation, Chennai, Tamil Nadu, India",
+        "importance": 0.47726623894833625,
+        "extratags": {
+          "natural": "wood",
+          "tourism": "attraction",
+          "wikidata": "Q648548",
+          "wikipedia": "en:Guindy National Park",
+          "protect_class": "2",
+          "wikimedia_commons": "Category:Guindy National Park"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4057,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 14229,
+      "best": {
+        "name": "Guindy National Park",
+        "full_text": "Rangeguindy, Chennai, 600022, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600022",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "national_park",
+        "confidence": 0.731264054775238,
+        "websites": null,
+        "phones": [
+          "+914429505150"
+        ],
+        "brand": null,
+        "lon": 80.23785901,
+        "lat": 13.00487179
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5123,
+      "distance_from_reference_m": null,
+      "download_meta": {
+        "center_lat": 13.000005,
+        "center_lon": 80.2280448,
+        "radius_deg": 0.03,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "UNKNOWN / NOT VERIFIED -- the park spans a large, irregularly-shaped estate shared with Raj Bhavan; no single reliable reference point was established in this research."
+    }
+  },
+  "Chennai Airport": {
+    "mappls_selected": {
+      "placeName": "Chennai International Airport",
+      "placeAddress": "Great Southern Trunk Road, Meenambakkam, Chennai, Tamil Nadu, 600016",
+      "eLoc": "39V8JK",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 2,
+      "best": {
+        "name": "Chennai International Airport",
+        "full_text": "Chennai International Airport, Grand Southern Trunk Road, Meenambakkam, Tirusulam, Alandur, Chennai, Tamil Nadu, 600027, India",
+        "city": "Meenambakkam",
+        "state": "Tamil Nadu",
+        "postcode": "600027",
+        "category_plausible": true,
+        "osm_id": 23633604,
+        "osm_type": "way",
+        "osm_class": "aeroway",
+        "osm_type_tag": "aerodrome",
+        "lat": 12.993374,
+        "lon": 80.1725867,
+        "display_name": "Chennai International Airport, Grand Southern Trunk Road, Meenambakkam, Tirusulam, Alandur, Chennai, Tamil Nadu, 600027, India",
+        "importance": 0.5313330276421782,
+        "extratags": {
+          "website": "https://www.chennaiairport.com/",
+          "wikidata": "Q502670",
+          "wikipedia": "en:Chennai International Airport",
+          "wheelchair": "yes",
+          "aerodrome:type": "international"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4591,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "IIT Madras Research Park": {
+    "mappls_selected": {
+      "placeName": "IITM Research Park",
+      "placeAddress": "Taramani, Chennai, Tamil Nadu, 600113",
+      "eLoc": "25ZJ4F",
+      "type": "SUB_LOCALITY"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 2,
+      "best": {
+        "name": "IITM Research Park",
+        "full_text": "IITM Research Park, IITM RP Kanagam Gate, IITM Research Park, Ward 180, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600113, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600113",
+        "category_plausible": true,
+        "osm_id": 102580647,
+        "osm_type": "way",
+        "osm_class": "building",
+        "osm_type_tag": "commercial",
+        "lat": 12.9908006,
+        "lon": 80.2423647,
+        "display_name": "IITM Research Park, IITM RP Kanagam Gate, IITM Research Park, Ward 180, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600113, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "email": "enquiry@respark.iitm.ac.in",
+          "building:levels": "12"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6627,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Tidel Park Chennai": {
+    "mappls_selected": {
+      "placeName": "Tidel Park",
+      "placeAddress": "Taramani, Chennai, Tamil Nadu, 600113",
+      "eLoc": "AO9SND",
+      "type": "SUB_LOCALITY"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 4,
+      "best": {
+        "name": "Tidel park",
+        "full_text": "Tidel park, Rajiv Gandhi IT Expressway, Ward 180, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600113, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600113",
+        "category_plausible": false,
+        "osm_id": 1183430763,
+        "osm_type": "node",
+        "osm_class": "highway",
+        "osm_type_tag": "bus_stop",
+        "lat": 12.9893849,
+        "lon": 80.2508691,
+        "display_name": "Tidel park, Rajiv Gandhi IT Expressway, Ward 180, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600113, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "bus": "yes",
+          "operator": "MTC",
+          "public_transport": "platform"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.6127,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "VIT": {
+    "mappls_selected": {
+      "placeName": "Visvesvaraya Industrial And Technological Museum",
+      "placeAddress": "No 5216, Kasturba Road, Ambedkar Veedhi, Cubbon Park, Gandhi Nagar, Near Chinna Swamy Stadium, Bengaluru, Karnataka, 560001",
+      "eLoc": "CQC28F",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 1,
+      "best": {
+        "name": "Visvesvaraya Industrial and Technology Museum",
+        "full_text": "Visvesvaraya Industrial and Technology Museum, Kasturba Road, Sampangirama Nagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560001, India",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "postcode": "560001",
+        "category_plausible": true,
+        "osm_id": 327551780,
+        "osm_type": "way",
+        "osm_class": "tourism",
+        "osm_type_tag": "museum",
+        "lat": 12.9752028,
+        "lon": 77.5964268,
+        "display_name": "Visvesvaraya Industrial and Technology Museum, Kasturba Road, Sampangirama Nagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560001, India",
+        "importance": 0.19619210675062,
+        "extratags": {
+          "fee": "yes",
+          "phone": "+91-080-22866200",
+          "museum": "technology",
+          "website": "https://vismuseum.gov.in/",
+          "wikidata": "Q3537014",
+          "wikipedia": "en:Visvesvaraya Industrial and Technological Museum",
+          "check_date": "2023-12-31",
+          "opening_hours": "Mo-Su 10:00-18:00",
+          "operator:type": "government",
+          "wikimedia_commons": "Category:Visvesvaraya Industrial and Technological Museum",
+          "name:etymology:wikidata": "Q741700"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5568,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 27338,
+      "best": {
+        "name": "Visvesvaraya Industrial Trade Centre",
+        "full_text": "Kasturba Road, Bengaluru, KA, 560001, IN",
+        "city": "Bengaluru",
+        "state": "KA",
+        "postcode": "560001",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "party_and_event_planning",
+        "confidence": 0.6372254490852356,
+        "websites": null,
+        "phones": null,
+        "brand": null,
+        "lon": 77.59697472,
+        "lat": 12.97533638
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4842,
+      "distance_from_reference_m": null,
+      "download_meta": {
+        "center_lat": 12.9752028,
+        "center_lon": 77.5964268,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query (Bengaluru -- tests whether Overture also gets misled by the same ambiguous bare name Mappls itself got wrong)"
+      }
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "SRM": {
+    "mappls_selected": {
+      "placeName": "SRM Institute For Medical Science",
+      "placeAddress": "1, 100 Feet Road, Vadapalani, Chennai, Tamil Nadu, 600026",
+      "eLoc": "87DB21",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 3,
+      "best": {
+        "name": "SRM Institutes For Medical Science",
+        "full_text": "SRM Institutes For Medical Science, No. 1, Jawaharlal Nehru Road (100 Feet Road), Ward 130, Zone 10 Kodambakkam, Chennai Corporation, Chennai, Tamil Nadu, 600026, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600026",
+        "category_plausible": true,
+        "osm_id": 4488082604,
+        "osm_type": "node",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 13.0515961,
+        "lon": 80.2114304,
+        "display_name": "SRM Institutes For Medical Science, No. 1, Jawaharlal Nehru Road (100 Feet Road), Ward 130, Zone 10 Kodambakkam, Chennai Corporation, Chennai, Tamil Nadu, 600026, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "phone": "+91 44 2000 2001",
+          "website": "https://www.simshospitals.com/",
+          "healthcare": "hospital",
+          "description": "SIMS Hospital",
+          "opening_hours": "24/7"
+        },
+        "strategy": "freeform_address_only"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5653,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": true,
+      "status": "OK",
+      "candidate_count": 18020,
+      "best": {
+        "name": "Apollo White Dental Clinic",
+        "full_text": "No 47/1, 100 Feet Road Vadapalani, Chennai, 600026, IN",
+        "city": "Chennai",
+        "state": null,
+        "postcode": "600026",
+        "category_plausible": null,
+        "overture_id": null,
+        "overture_category": "general_dentistry",
+        "confidence": 0.7384980320930481,
+        "websites": [
+          "http://www.apollowhitedental.com"
+        ],
+        "phones": [
+          "+914424841112"
+        ],
+        "brand": null,
+        "lon": 80.21259077,
+        "lat": 13.04529593
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5236,
+      "distance_from_reference_m": null,
+      "download_meta": {
+        "center_lat": 13.0515961,
+        "center_lon": 80.2114304,
+        "radius_deg": 0.025,
+        "center_source": "OSM top result for this query"
+      }
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Apollo Hospital": {
+    "mappls_selected": {
+      "placeName": "Apollo Hospitals",
+      "placeAddress": "5th Main Road, CBI Colony, Kandanchavadi, Perungudi, Chennai, Tamil Nadu, 600096",
+      "eLoc": "HWTNC0",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 10,
+      "best": {
+        "name": "Apollo Hospital",
+        "full_text": "Apollo Hospital, Rajiv Gandhi Salai, Ward 185, Zone 14 Perungudi, Chennai Corporation, Sholinganallur, Chennai, Tamil Nadu, 600096, India, CMWSSB Division 185",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600096",
+        "category_plausible": true,
+        "osm_id": 132073184,
+        "osm_type": "way",
+        "osm_class": "amenity",
+        "osm_type_tag": "hospital",
+        "lat": 12.9630743,
+        "lon": 80.2457187,
+        "display_name": "Apollo Hospital, Rajiv Gandhi Salai, Ward 185, Zone 14 Perungudi, Chennai Corporation, Sholinganallur, Chennai, Tamil Nadu, 600096, India, CMWSSB Division 185",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "emergency": "yes",
+          "healthcare": "hospital"
+        },
+        "strategy": "name_plus_city"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5398,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Phoenix Mall": {
+    "mappls_selected": {
+      "placeName": "Phoenix Marketcity",
+      "placeAddress": "142, Velachery Main Road, Indira Gandhi Nagar, Velachery, Chennai, Tamil Nadu, 600042",
+      "eLoc": "2FGGV7",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 4,
+      "best": {
+        "name": "Phoenix Marketcity Chennai",
+        "full_text": "Phoenix Marketcity Chennai, Velachery Main Road, Ward 174, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600042, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600042",
+        "category_plausible": true,
+        "osm_id": 15321422,
+        "osm_type": "relation",
+        "osm_class": "shop",
+        "osm_type_tag": "mall",
+        "lat": 12.991551,
+        "lon": 80.2166235,
+        "display_name": "Phoenix Marketcity Chennai, Velachery Main Road, Ward 174, Zone 13 Adyar, Chennai Corporation, Chennai, Tamil Nadu, 600042, India",
+        "importance": 7.28046082245673e-05,
+        "extratags": {
+          "phone": "04461343008",
+          "website": "https://www.phoenixmarketcity.com/chennai",
+          "building": "yes",
+          "building:levels": "4"
+        },
+        "strategy": "name_plus_city"
+      },
+      "entity_verdict": "PROBABLE_ENTITY_MATCH",
+      "entity_label": "PROBABLE",
+      "raw_score": 0.5298,
+      "distance_from_reference_m": 41.18563587606044
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": 12.9915,
+      "lon": 80.217,
+      "confidence": "cross_source_agreement",
+      "note": "Prior Geoapify benchmark's building-level match and this session's OSM shop-level match both landed within meters of this point. Same reference applies to 'Phoenix Marketcity Chennai' (identical real-world entity)."
+    }
+  },
+  "Central Railway Station": {
+    "mappls_selected": {
+      "placeName": "Puratchi Thalaivar Dr MG Ramachandran Central Railway Station",
+      "placeAddress": "Kannappar Thidal, Periyamet, Chennai, Tamil Nadu, 600003",
+      "eLoc": "28D1FC",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "NO_CANDIDATES",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": null,
+      "lon": null,
+      "confidence": "unknown",
+      "note": "No reference entry -- UNKNOWN / NOT VERIFIED"
+    }
+  },
+  "Vellore Institute of Technology Chennai": {
+    "mappls_selected": {
+      "placeName": "VIT Chennai",
+      "placeAddress": "Vandalur Kelambakkam Road, SH 121, Kandigai, Chennai, Tamil Nadu, 600127",
+      "eLoc": "2NB2R6",
+      "type": "POI"
+    },
+    "osm": {
+      "status": "OK",
+      "candidate_count": 5,
+      "best": {
+        "name": "VIT Chennai library Block",
+        "full_text": "VIT Chennai library Block, Vandalur - Mambakkam - Kelambakkam Road, Keezhakottaiyur, Chennai Corporation, Tiruporur, Chengalpattu, Tamil Nadu, 600127, India",
+        "city": "Chennai Corporation",
+        "state": "Tamil Nadu",
+        "postcode": "600127",
+        "category_plausible": true,
+        "osm_id": 304851802,
+        "osm_type": "way",
+        "osm_class": "building",
+        "osm_type_tag": "university",
+        "lat": 12.8410462,
+        "lon": 80.1540384,
+        "display_name": "VIT Chennai library Block, Vandalur - Mambakkam - Kelambakkam Road, Keezhakottaiyur, Chennai Corporation, Tiruporur, Chengalpattu, Tamil Nadu, 600127, India",
+        "importance": 5.509498741126142e-05,
+        "extratags": {
+          "layer": "1",
+          "roof:shape": "flat",
+          "nohousenumber": "yes",
+          "building:colour": "white",
+          "building:levels": "4",
+          "building:material": "cement_block"
+        },
+        "strategy": "bare_name"
+      },
+      "entity_verdict": "UNCERTAIN",
+      "entity_label": "UNCERTAIN",
+      "raw_score": 0.4866,
+      "distance_from_reference_m": 55.94359465187393
+    },
+    "overture": {
+      "tested": false,
+      "status": "NOT_TESTED_IN_SUBSET",
+      "candidate_count": 0,
+      "best": null,
+      "entity_verdict": "N/A",
+      "entity_label": "N/A",
+      "raw_score": null,
+      "distance_from_reference_m": null,
+      "download_meta": null
+    },
+    "ground_truth": {
+      "lat": 12.8406,
+      "lon": 80.1538,
+      "confidence": "cross_source_agreement",
+      "note": "Converges across the prior Geoapify benchmark's Reverse Geocode test, OSM's multiple VIT-building matches (12.8403-12.8443 range), and Overture's own match (12.8444) -- all within ~450m of each other."
+    }
+  }
+}

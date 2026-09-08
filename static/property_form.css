@@ -7,14 +7,14 @@
 }
 
 .pf-flash-container {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
 .pf-flash {
-    padding: 10px 14px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 14px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 15.5px;
 }
 
 .pf-flash-success {

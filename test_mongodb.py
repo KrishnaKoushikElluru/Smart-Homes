@@ -40,7 +40,7 @@ mongo_service = MongoService(
 mongo_service.ping()
 
 print(
-    "✅ MongoDB connection successful!"
+    "[OK] MongoDB connection successful!"
 )
 
 
@@ -162,7 +162,7 @@ property_id = (
 )
 
 print(
-    "✅ Property inserted!"
+    "[OK] Property inserted!"
 )
 
 print(
@@ -182,7 +182,7 @@ property_document = (
 )
 
 print(
-    "✅ Property retrieved!"
+    "[OK] Property retrieved!"
 )
 
 print(
@@ -199,12 +199,12 @@ property_service.delete_property(
 )
 
 print(
-    "✅ Test property deleted."
+    "[OK] Test property deleted."
 )
 
 
 mongo_service.close()
 
 print(
-    "✅ MongoDB test completed successfully!"
+    "[OK] MongoDB test completed successfully!"
 )
