@@ -7,6 +7,8 @@ from flask import (
 
 from flask_login import login_required
 
+from services.nlp.parser import parse as parse_nlp_query
+
 
 search_bp = Blueprint(
     "search",
@@ -455,3 +457,35 @@ def search_rentals():
             results
 
     })
+
+
+# ============================================================
+# NLP QUERY PARSING (Phase 2 - standalone, testing only)
+#
+# Converts a natural-language search query into the structured
+# representation defined in services/nlp/schema.py. Deliberately NOT
+# connected to property retrieval yet - this endpoint exists so Phase 2
+# can be exercised and verified independently before any later
+# integration phase decides how (or whether) to feed its output into
+# ranked_search()/Phase 1's POI resolver. Calling this endpoint never
+# touches MongoDB, Mappls, or OSM - see services/nlp/parser.py's module
+# docstring and test_nlp_parser.py's boundary tests.
+# ============================================================
+
+@search_bp.route(
+    "/api/search/parse-query",
+    methods=["POST"]
+)
+@login_required
+def parse_query():
+
+    data = request.get_json(silent=True) or {}
+
+    query = (data.get("query") or "").strip()[:500]
+
+    if not query:
+        return jsonify({"error": "A 'query' field is required."}), 400
+
+    structured = parse_nlp_query(query)
+
+    return jsonify(structured.to_dict())

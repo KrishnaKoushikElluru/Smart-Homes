@@ -1,0 +1,365 @@
+{
+  "generated_at_utc": "20260908T184158Z",
+  "dataset_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\queries.json",
+  "dataset_size": 112,
+  "baseline": {
+    "n_queries": 112,
+    "intent_accuracy": 0.9732142857142857,
+    "exact_match_accuracy": 0.08035714285714286,
+    "slot_precision": 0.5598802395209581,
+    "slot_recall": 0.5582089552238806,
+    "slot_f1": 0.5590433482810164,
+    "per_field": {
+      "listing_type": {
+        "precision": 0.9743589743589743,
+        "recall": 0.95,
+        "f1": 0.9620253164556962,
+        "support": 40
+      },
+      "property_type": {
+        "precision": 0.9791666666666666,
+        "recall": 0.9690721649484536,
+        "f1": 0.9740932642487047,
+        "support": 97
+      },
+      "bedrooms": {
+        "precision": 0.9655172413793104,
+        "recall": 0.875,
+        "f1": 0.9180327868852458,
+        "support": 32
+      },
+      "furnishing": {
+        "precision": null,
+        "recall": 0.0,
+        "f1": null,
+        "support": 3
+      },
+      "price": {
+        "precision": 0.034482758620689655,
+        "recall": 0.06060606060606061,
+        "f1": 0.04395604395604396,
+        "support": 66
+      },
+      "area": {
+        "precision": null,
+        "recall": 0.0,
+        "f1": null,
+        "support": 9
+      },
+      "amenities": {
+        "precision": null,
+        "recall": 0.0,
+        "f1": null,
+        "support": 24
+      },
+      "location": {
+        "precision": 0.42592592592592593,
+        "recall": 0.359375,
+        "f1": 0.38983050847457623,
+        "support": 64
+      }
+    }
+  },
+  "proposed": {
+    "n_queries": 112,
+    "intent_accuracy": 1.0,
+    "exact_match_accuracy": 1.0,
+    "slot_precision": 1.0,
+    "slot_recall": 1.0,
+    "slot_f1": 1.0,
+    "per_field": {
+      "listing_type": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 40
+      },
+      "property_type": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 97
+      },
+      "bedrooms": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 32
+      },
+      "furnishing": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "price": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 66
+      },
+      "area": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 9
+      },
+      "amenities": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 24
+      },
+      "location": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 64
+      }
+    }
+  },
+  "proposed_category_breakdown": {
+    "ambiguous": {
+      "n": 4,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "amenities": {
+      "n": 4,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "area_variant": {
+      "n": 4,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "bhk_variant": {
+      "n": 7,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "casing_robustness": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_amenity": {
+      "n": 10,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_location": {
+      "n": 12,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_price": {
+      "n": 12,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_type_listing_bhk": {
+      "n": 11,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "indian_english": {
+      "n": 3,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "location_city": {
+      "n": 2,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "location_locality": {
+      "n": 2,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "location_poi": {
+      "n": 5,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "malformed_numeric": {
+      "n": 2,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "multi_constraint": {
+      "n": 5,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "price_variant": {
+      "n": 14,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_bhk": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_furnishing": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_listing_type": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_multi": {
+      "n": 2,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_property_type": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "sparse": {
+      "n": 3,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "unsupported": {
+      "n": 4,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "whitespace_robustness": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    }
+  },
+  "baseline_category_breakdown": {
+    "ambiguous": {
+      "n": 4,
+      "exact_match_accuracy": 0.25,
+      "intent_accuracy": 1.0
+    },
+    "amenities": {
+      "n": 4,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "area_variant": {
+      "n": 4,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "bhk_variant": {
+      "n": 7,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "casing_robustness": {
+      "n": 1,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_amenity": {
+      "n": 10,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_location": {
+      "n": 12,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_price": {
+      "n": 12,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "generated_grid_type_listing_bhk": {
+      "n": 11,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "indian_english": {
+      "n": 3,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "location_city": {
+      "n": 2,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "location_locality": {
+      "n": 2,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "location_poi": {
+      "n": 5,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "malformed_numeric": {
+      "n": 2,
+      "exact_match_accuracy": 0.5,
+      "intent_accuracy": 1.0
+    },
+    "multi_constraint": {
+      "n": 5,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "price_variant": {
+      "n": 14,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_bhk": {
+      "n": 1,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_furnishing": {
+      "n": 1,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "simple_listing_type": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "simple_multi": {
+      "n": 2,
+      "exact_match_accuracy": 0.5,
+      "intent_accuracy": 1.0
+    },
+    "simple_property_type": {
+      "n": 1,
+      "exact_match_accuracy": 1.0,
+      "intent_accuracy": 1.0
+    },
+    "sparse": {
+      "n": 3,
+      "exact_match_accuracy": 0.6666666666666666,
+      "intent_accuracy": 1.0
+    },
+    "unsupported": {
+      "n": 4,
+      "exact_match_accuracy": 0.5,
+      "intent_accuracy": 0.5
+    },
+    "whitespace_robustness": {
+      "n": 1,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 1.0
+    }
+  }
+}
