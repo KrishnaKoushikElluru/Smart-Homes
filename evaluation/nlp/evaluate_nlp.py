@@ -1,9 +1,9 @@
 """
-Phase 2 NLP evaluator.
+Phase 2 / Phase 2.5 NLP evaluator.
 
 Runs BOTH the baseline (services/nlp/baseline.py) and the proposed
-hybrid parser (services/nlp/parser.py) against evaluation/nlp/queries.json
-and reports, for each:
+hybrid parser (services/nlp/parser.py) against a dataset and reports,
+for each:
 
   - Intent accuracy
   - Slot precision / recall / F1 (micro-averaged over every extracted
@@ -12,14 +12,26 @@ and reports, for each:
   - Per-field F1 (listing_type, property_type, bedrooms, price, area,
     amenities, location, furnishing)
 
-Writes a machine-readable results file to
-evaluation/nlp/results/latest.json (also timestamped, so a run never
-silently overwrites the history of a prior run's numbers).
+Phase 2.5 (see docs/PHASE_2_5_NLP_EVALUATION.md) added a second,
+independent dataset - evaluation/nlp/data/test_queries.json, the
+HELD-OUT TEST SET - alongside the original development set
+(evaluation/nlp/data/development_queries.json, formerly the only
+dataset this script ran against, still readable at the original
+evaluation/nlp/queries.json path for backward compatibility). Running
+main() now evaluates BOTH datasets and writes separately labeled result
+files, so a development-set number is never confused with a held-out
+number:
+
+  results/development_latest.json  (+ results/development_run_<ts>.json)
+  results/test_latest.json         (+ results/test_run_<ts>.json)
+  results/latest.json              (kept, byte-for-byte the old
+                                     development-set-only format, for
+                                     any existing reader of that path)
 
 This script produces REAL numbers by actually running the parsers - it
 does not fabricate or hand-edit results. Every number in
-docs/PHASE_2_NLP_REPORT.md is copied from a results/*.json file this
-script wrote.
+docs/PHASE_2_NLP_REPORT.md and docs/PHASE_2_5_NLP_EVALUATION.md is
+copied from a results/*.json file this script wrote.
 """
 from __future__ import annotations
 
@@ -34,8 +46,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from services.nlp.parser import parse
 from services.nlp.baseline import parse_baseline
 
-DATASET_PATH = Path(__file__).resolve().parent / "queries.json"
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+HERE = Path(__file__).resolve().parent
+DATASET_PATH = HERE / "queries.json"  # kept for backward compatibility; identical content to DEV_DATASET_PATH
+DEV_DATASET_PATH = HERE / "data" / "development_queries.json"
+TEST_DATASET_PATH = HERE / "data" / "test_queries.json"
+RESULTS_DIR = HERE / "results"
 
 PRICE_TOLERANCE = 1.0    # rupees
 AREA_TOLERANCE = 0.5     # sqft
@@ -262,34 +277,41 @@ def category_breakdown(per_query_results: list) -> dict:
     }
 
 
-def main():
-    dataset = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
-    print(f"Loaded {len(dataset)} queries from {DATASET_PATH}")
+def summary(name, res):
+    print(f"\n=== {name} ===")
+    print(f"  Intent accuracy:       {res['intent_accuracy']:.3f}")
+    print(f"  Exact match accuracy:  {res['exact_match_accuracy']:.3f}")
+    print(f"  Slot precision:        {res['slot_precision']:.3f}")
+    print(f"  Slot recall:           {res['slot_recall']:.3f}")
+    print(f"  Slot F1:               {res['slot_f1']:.3f}")
+    print("  Per-field F1:")
+    for field, m in res["per_field"].items():
+        f1 = f"{m['f1']:.3f}" if m["f1"] is not None else "N/A"
+        print(f"    {field:15s} F1={f1:>6s}  support={m['support']}")
+
+
+def run_and_save(dataset_path: Path, out_prefix: str, label: str) -> dict:
+    """Evaluates baseline + proposed on the dataset at dataset_path and
+    writes results/{out_prefix}_latest.json (overwritten each run) plus
+    results/{out_prefix}_run_<ts>.json (full per-query detail, never
+    overwritten). Returns the summary dict (without per-query detail)
+    for the caller to print/aggregate further."""
+    dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
+    print(f"\n{'=' * 60}\n{label}: loaded {len(dataset)} queries from {dataset_path}\n{'=' * 60}")
 
     baseline_results = evaluate(parse_baseline, dataset)
     proposed_results = evaluate(parse, dataset)
 
-    def summary(name, res):
-        print(f"\n=== {name} ===")
-        print(f"  Intent accuracy:       {res['intent_accuracy']:.3f}")
-        print(f"  Exact match accuracy:  {res['exact_match_accuracy']:.3f}")
-        print(f"  Slot precision:        {res['slot_precision']:.3f}")
-        print(f"  Slot recall:           {res['slot_recall']:.3f}")
-        print(f"  Slot F1:               {res['slot_f1']:.3f}")
-        print("  Per-field F1:")
-        for field, m in res["per_field"].items():
-            f1 = f"{m['f1']:.3f}" if m["f1"] is not None else "N/A"
-            print(f"    {field:15s} F1={f1:>6s}  support={m['support']}")
-
-    summary("BASELINE (keyword/rule, no unit conversion, no operators)", baseline_results)
-    summary("PROPOSED (hybrid pipeline)", proposed_results)
+    summary(f"{label} - BASELINE (keyword/rule, no unit conversion, no operators)", baseline_results)
+    summary(f"{label} - PROPOSED (hybrid pipeline)", proposed_results)
 
     RESULTS_DIR.mkdir(exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
 
     output = {
+        "label": label,
         "generated_at_utc": timestamp,
-        "dataset_path": str(DATASET_PATH),
+        "dataset_path": str(dataset_path),
         "dataset_size": len(dataset),
         "baseline": {k: v for k, v in baseline_results.items() if k != "per_query"},
         "proposed": {k: v for k, v in proposed_results.items() if k != "per_query"},
@@ -301,11 +323,30 @@ def main():
     detailed_output["baseline_per_query"] = baseline_results["per_query"]
     detailed_output["proposed_per_query"] = proposed_results["per_query"]
 
-    (RESULTS_DIR / "latest.json").write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
-    (RESULTS_DIR / f"run_{timestamp}.json").write_text(json.dumps(detailed_output, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+    (RESULTS_DIR / f"{out_prefix}_latest.json").write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
+    (RESULTS_DIR / f"{out_prefix}_run_{timestamp}.json").write_text(json.dumps(detailed_output, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
 
-    print(f"\nSaved summary to {RESULTS_DIR / 'latest.json'}")
-    print(f"Saved detailed per-query results to {RESULTS_DIR / f'run_{timestamp}.json'}")
+    print(f"\nSaved summary to {RESULTS_DIR / f'{out_prefix}_latest.json'}")
+    print(f"Saved detailed per-query results to {RESULTS_DIR / f'{out_prefix}_run_{timestamp}.json'}")
+
+    return output
+
+
+def main():
+    dev_output = run_and_save(DEV_DATASET_PATH, "development", "DEVELOPMENT SET")
+
+    # Backward compatibility: results/latest.json keeps the exact old
+    # (pre-Phase-2.5, single-dataset) shape/content for anything already
+    # reading that path - it is always the development-set result.
+    legacy_output = {k: v for k, v in dev_output.items() if k != "label"}
+    legacy_output["dataset_path"] = str(DATASET_PATH)
+    (RESULTS_DIR / "latest.json").write_text(json.dumps(legacy_output, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    test_output = run_and_save(TEST_DATASET_PATH, "test", "HELD-OUT TEST SET")
+
+    print(f"\n{'=' * 60}\nSUMMARY: development set n={dev_output['dataset_size']}, "
+          f"held-out test set n={test_output['dataset_size']}, "
+          f"combined n={dev_output['dataset_size'] + test_output['dataset_size']}\n{'=' * 60}")
 
 
 if __name__ == "__main__":

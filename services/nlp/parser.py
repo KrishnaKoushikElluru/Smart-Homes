@@ -21,6 +21,13 @@ an ablation that skips location_extractor entirely, or one that runs
 numeric_parser directly on the RAW query instead of the normalized one
 - without touching this file. See docs/PHASE_2_NLP_REPORT.md section 12.
 
+parse() itself is a thin wrapper around _parse_configured() with every
+stage enabled - the production behavior. _parse_configured() exists so
+evaluation/nlp/ablation.py can selectively disable one stage at a time
+(normalization, location masking, numeric parsing) to measure its real
+contribution, without duplicating this pipeline. See Phase 2.5's report,
+docs/PHASE_2_5_NLP_EVALUATION.md, section 11 (ablation study).
+
 NEVER calls services/mappls_service.py or services/osm_location_service.py.
 NEVER produces latitude/longitude. This is enforced by never importing
 those modules here at all - see test_nlp_parser.py's boundary tests.
@@ -63,11 +70,25 @@ def _detect_unsupported(text: str) -> list:
 
 
 def parse(raw_query: str) -> StructuredQuery:
+    return _parse_configured(raw_query)
+
+
+def _parse_configured(
+    raw_query: str,
+    *,
+    use_normalization: bool = True,
+    use_location_masking: bool = True,
+    use_numeric: bool = True,
+) -> StructuredQuery:
+    """The actual pipeline, with each ablatable stage gated behind a
+    keyword-only flag that defaults to True (reproducing parse()'s exact
+    production behavior). Not part of the public API - external callers
+    should use parse(); this exists for evaluation/nlp/ablation.py."""
     if not raw_query or not raw_query.strip():
         return StructuredQuery(raw_query=raw_query or "", intent="unknown",
                                 warnings=["empty query"])
 
-    normalized = normalize_query(raw_query)
+    normalized = normalize_query(raw_query) if use_normalization else (raw_query or "").lower()
 
     # Location is extracted FIRST and its matched span is masked out
     # before every other extractor runs, so a place name that happens to
@@ -75,9 +96,11 @@ def parse(raw_query: str) -> StructuredQuery:
     # never also be picked up as an amenity/entity mention. A real
     # collision caught during evaluation: "villa beside Guindy National
     # Park" was extracting amenity="park" from inside the place name.
+    # (use_location_masking=False reproduces exactly this bug on purpose
+    # - see the "no location masking" ablation config.)
     location = extract_location(normalized, original_text=raw_query)
     working_text = normalized
-    if location and location.raw_text:
+    if use_location_masking and location and location.raw_text:
         working_text = normalized.replace(location.raw_text, " " * len(location.raw_text))
 
     listing_type = extract_listing_type(working_text)
@@ -85,8 +108,13 @@ def parse(raw_query: str) -> StructuredQuery:
     bedrooms = extract_bedrooms(working_text)
     furnishing = extract_furnishing(working_text)
     amenities = extract_amenities(working_text)
-    price = extract_price(working_text)
-    area = extract_area(working_text)
+
+    if use_numeric:
+        price = extract_price(working_text)
+        area = extract_area(working_text)
+    else:
+        price = None
+        area = None
 
     warnings = []
     if price and price.operator == "eq" and price.raw_text and not re.search(

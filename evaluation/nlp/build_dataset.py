@@ -27,6 +27,12 @@ import json
 from pathlib import Path
 
 OUT_PATH = Path(__file__).resolve().parent / "queries.json"
+# Phase 2.5 added a clearer name/location for this same dataset - it is
+# THE development set (as opposed to evaluation/nlp/data/test_queries.json,
+# the independent held-out set - see evaluation/nlp/README.md). queries.json
+# is kept, byte-identical, for backward compatibility with anything already
+# reading that path (evaluate_nlp.py's original entry point).
+DEV_OUT_PATH = Path(__file__).resolve().parent / "data" / "development_queries.json"
 
 
 def entry(query, expected, category, notes=""):
@@ -245,8 +251,12 @@ def main():
     for idx, item in enumerate(dataset):
         item["id"] = idx
 
-    OUT_PATH.write_text(json.dumps(dataset, indent=2, ensure_ascii=False), encoding="utf-8")
+    payload = json.dumps(dataset, indent=2, ensure_ascii=False)
+    OUT_PATH.write_text(payload, encoding="utf-8")
+    DEV_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DEV_OUT_PATH.write_text(payload, encoding="utf-8")
     print(f"Wrote {len(dataset)} queries to {OUT_PATH}")
+    print(f"Wrote {len(dataset)} queries to {DEV_OUT_PATH} (same content, canonical Phase 2.5 path)")
     print(f"  hand-crafted: {len(HAND_CRAFTED)}")
     print(f"  generated:    {len(dataset) - len(HAND_CRAFTED)}")
 

@@ -1,0 +1,298 @@
+{
+  "label": "HELD-OUT TEST SET",
+  "dataset_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\data\\test_queries.json",
+  "dataset_size": 132,
+  "configs": {
+    "baseline_rule_only": {
+      "n_queries": 132,
+      "intent_accuracy": 1.0,
+      "exact_match_accuracy": 0.03787878787878788,
+      "slot_precision": 0.572139303482587,
+      "slot_recall": 0.5,
+      "slot_f1": 0.5336426914153132,
+      "per_field": {
+        "listing_type": {
+          "precision": 1.0,
+          "recall": 0.9710144927536232,
+          "f1": 0.9852941176470589,
+          "support": 69
+        },
+        "property_type": {
+          "precision": 0.9203539823008849,
+          "recall": 0.832,
+          "f1": 0.8739495798319328,
+          "support": 125
+        },
+        "bedrooms": {
+          "precision": 0.9666666666666667,
+          "recall": 0.6904761904761905,
+          "f1": 0.8055555555555556,
+          "support": 42
+        },
+        "furnishing": {
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "support": 6
+        },
+        "price": {
+          "precision": 0.00847457627118644,
+          "recall": 0.01694915254237288,
+          "f1": 0.011299435028248588,
+          "support": 59
+        },
+        "area": {
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "support": 9
+        },
+        "amenities": {
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "support": 46
+        },
+        "location": {
+          "precision": 0.3918918918918919,
+          "recall": 0.27884615384615385,
+          "f1": 0.3258426966292135,
+          "support": 104
+        }
+      }
+    },
+    "no_normalization": {
+      "n_queries": 132,
+      "intent_accuracy": 1.0,
+      "exact_match_accuracy": 0.946969696969697,
+      "slot_precision": 0.9977876106194691,
+      "slot_recall": 0.9804347826086957,
+      "slot_f1": 0.9890350877192983,
+      "per_field": {
+        "listing_type": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 69
+        },
+        "property_type": {
+          "precision": 1.0,
+          "recall": 0.984,
+          "f1": 0.9919354838709677,
+          "support": 125
+        },
+        "bedrooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 42
+        },
+        "furnishing": {
+          "precision": 0.8,
+          "recall": 0.6666666666666666,
+          "f1": 0.7272727272727272,
+          "support": 6
+        },
+        "price": {
+          "precision": 1.0,
+          "recall": 0.9322033898305084,
+          "f1": 0.9649122807017544,
+          "support": 59
+        },
+        "area": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 9
+        },
+        "amenities": {
+          "precision": 1.0,
+          "recall": 0.9782608695652174,
+          "f1": 0.989010989010989,
+          "support": 46
+        },
+        "location": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 104
+        }
+      }
+    },
+    "no_location_masking": {
+      "n_queries": 132,
+      "intent_accuracy": 1.0,
+      "exact_match_accuracy": 0.9621212121212122,
+      "slot_precision": 0.9978118161925602,
+      "slot_recall": 0.991304347826087,
+      "slot_f1": 0.9945474372955289,
+      "per_field": {
+        "listing_type": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 69
+        },
+        "property_type": {
+          "precision": 1.0,
+          "recall": 0.984,
+          "f1": 0.9919354838709677,
+          "support": 125
+        },
+        "bedrooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 42
+        },
+        "furnishing": {
+          "precision": 1.0,
+          "recall": 0.8333333333333334,
+          "f1": 0.9090909090909091,
+          "support": 6
+        },
+        "price": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 59
+        },
+        "area": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 9
+        },
+        "amenities": {
+          "precision": 0.9782608695652174,
+          "recall": 0.9782608695652174,
+          "f1": 0.9782608695652174,
+          "support": 46
+        },
+        "location": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 104
+        }
+      }
+    },
+    "no_numeric_parser": {
+      "n_queries": 132,
+      "intent_accuracy": 1.0,
+      "exact_match_accuracy": 0.7196969696969697,
+      "slot_precision": 1.0,
+      "slot_recall": 0.8434782608695652,
+      "slot_f1": 0.9150943396226415,
+      "per_field": {
+        "listing_type": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 69
+        },
+        "property_type": {
+          "precision": 1.0,
+          "recall": 0.984,
+          "f1": 0.9919354838709677,
+          "support": 125
+        },
+        "bedrooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 42
+        },
+        "furnishing": {
+          "precision": 1.0,
+          "recall": 0.8333333333333334,
+          "f1": 0.9090909090909091,
+          "support": 6
+        },
+        "price": {
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "support": 59
+        },
+        "area": {
+          "precision": null,
+          "recall": 0.0,
+          "f1": null,
+          "support": 9
+        },
+        "amenities": {
+          "precision": 1.0,
+          "recall": 0.9782608695652174,
+          "f1": 0.989010989010989,
+          "support": 46
+        },
+        "location": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 104
+        }
+      }
+    },
+    "full_hybrid": {
+      "n_queries": 132,
+      "intent_accuracy": 1.0,
+      "exact_match_accuracy": 0.9696969696969697,
+      "slot_precision": 1.0,
+      "slot_recall": 0.991304347826087,
+      "slot_f1": 0.9956331877729258,
+      "per_field": {
+        "listing_type": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 69
+        },
+        "property_type": {
+          "precision": 1.0,
+          "recall": 0.984,
+          "f1": 0.9919354838709677,
+          "support": 125
+        },
+        "bedrooms": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 42
+        },
+        "furnishing": {
+          "precision": 1.0,
+          "recall": 0.8333333333333334,
+          "f1": 0.9090909090909091,
+          "support": 6
+        },
+        "price": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 59
+        },
+        "area": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 9
+        },
+        "amenities": {
+          "precision": 1.0,
+          "recall": 0.9782608695652174,
+          "f1": 0.989010989010989,
+          "support": 46
+        },
+        "location": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 104
+        }
+      }
+    }
+  },
+  "generated_at_utc": "20260909T063439Z"
+}

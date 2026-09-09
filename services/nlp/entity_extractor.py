@@ -134,7 +134,15 @@ _AMENITY_LEXICON = [
     (r"\bjogging track\b", "jogging_track"),
     (r"\bsports facilit", "sports_facilities"),
     (r"\bterrace garden\b", "terrace_garden"),
-    (r"\bgarden\b", "garden"),
+    # Negative lookbehind is required, not decorative: without it, "terrace
+    # garden" would ALSO match this bare pattern (\bgarden\b is satisfied by
+    # the "garden" substring inside "terrace garden" too), producing both
+    # "terrace_garden" AND "garden" from a single phrase - a real duplicate
+    # extraction caught by Phase 2.5's held-out test set (a query combining
+    # "terrace garden" with another amenity), since the development set
+    # never happened to test that specific amenity in a query at all. See
+    # docs/PHASE_2_5_NLP_EVALUATION.md section 12 (error analysis).
+    (r"(?<!terrace )\bgarden\b", "garden"),
     (r"\bpark\b", "park"),
     (r"\blawn\b", "lawn"),
     (r"\bmodular kitchen\b", "modular_kitchen"),

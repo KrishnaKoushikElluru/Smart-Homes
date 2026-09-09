@@ -1,6 +1,7 @@
 {
+  "label": "DEVELOPMENT SET",
   "generated_at_utc": "20260909T063401Z",
-  "dataset_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\queries.json",
+  "dataset_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\data\\development_queries.json",
   "dataset_size": 112,
   "baseline": {
     "n_queries": 112,

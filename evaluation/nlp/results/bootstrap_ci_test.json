@@ -1,0 +1,28 @@
+{
+  "method": "nonparametric percentile bootstrap, query-level resampling",
+  "n_resamples": 2000,
+  "random_seed": 20260909,
+  "dataset": "held-out test set",
+  "dataset_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\data\\test_queries.json",
+  "dataset_size": 132,
+  "metrics": {
+    "intent_accuracy": {
+      "point_estimate": 1.0,
+      "ci_lower_2.5": 1.0,
+      "ci_upper_97.5": 1.0,
+      "bootstrap_mean": 1.0
+    },
+    "slot_f1": {
+      "point_estimate": 0.9956331877729258,
+      "ci_lower_2.5": 0.9909481600859521,
+      "ci_upper_97.5": 0.9989529342896377,
+      "bootstrap_mean": 0.9956238322383251
+    },
+    "exact_match_accuracy": {
+      "point_estimate": 0.9696969696969697,
+      "ci_lower_2.5": 0.9393939393939394,
+      "ci_upper_97.5": 0.9924242424242424,
+      "bootstrap_mean": 0.9696818181818389
+    }
+  }
+}

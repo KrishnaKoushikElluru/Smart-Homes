@@ -103,6 +103,25 @@ class AmenityAndFurnishingTests(unittest.TestCase):
         values = {a.value for a in r.amenities}
         self.assertEqual(values, {"parking", "gym"})
 
+    def test_terrace_garden_does_not_also_produce_bare_garden(self):
+        # Regression test for a real bug found by Phase 2.5's held-out
+        # test set: "terrace garden" matched BOTH the specific
+        # terrace_garden pattern and the generic \bgarden\b pattern
+        # (satisfied by the "garden" substring inside "terrace garden"),
+        # producing a spurious duplicate "garden" amenity alongside the
+        # correct "terrace_garden" one.
+        r = parse("villa with home theatre and terrace garden")
+        values = {a.value for a in r.amenities}
+        self.assertEqual(values, {"home_theatre", "terrace_garden"})
+        self.assertNotIn("garden", values)
+
+    def test_bare_garden_still_extracted_on_its_own(self):
+        # The terrace-garden lookbehind fix must not break the ordinary
+        # bare "garden" case.
+        r = parse("villa with garden")
+        values = {a.value for a in r.amenities}
+        self.assertEqual(values, {"garden"})
+
     def test_furnishing_semi(self):
         r = parse("semi furnished 2 bhk")
         self.assertEqual(r.furnishing.value, "semi_furnished")
