@@ -385,6 +385,133 @@
 
 
         /* ====================================================
+           NATURAL-LANGUAGE SEARCH (Phase 3.1)
+
+           Reuses the existing .sub-form input/button styling (this
+           block lives inside the same #buyForm panel) so it inherits
+           the same glassmorphism look for free - only the elements
+           that need their own layout/emphasis get new rules here.
+        ==================================================== */
+
+        .nlp-search-panel {
+            margin-bottom: 6px;
+        }
+
+        .nlp-search-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .nlp-search-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .nlp-search-row input[type="text"] {
+            flex: 1 1 auto;
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+
+        .nlp-search-row button {
+            flex: 0 0 auto;
+            width: auto;
+            padding: 10px 26px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .nlp-search-row button:disabled {
+            background-color: rgba(0, 102, 204, 0.4);
+            cursor: not-allowed;
+        }
+
+        .nlp-validation-message {
+            color: #a10000;
+            font-size: 0.9rem;
+            margin: 6px 0 0 0;
+        }
+
+        .search-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #555;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin: 20px 0;
+        }
+
+        .search-divider::before,
+        .search-divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .search-divider span {
+            padding: 0 14px;
+        }
+
+        .nlp-feedback {
+            margin-top: 12px;
+        }
+
+        .nlp-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+
+        .nlp-message-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .nlp-message-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .nlp-message-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .nlp-understood {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .nlp-understood-label {
+            font-weight: 600;
+            color: #333;
+            margin-right: 4px;
+        }
+
+        .nlp-chip {
+            background-color: rgba(0, 102, 204, 0.12);
+            color: #004080;
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+
+        /* ====================================================
            LARGE DESKTOP
         ==================================================== */
 
@@ -452,6 +579,16 @@
 
 
             .results div {
+                width: 100%;
+            }
+
+
+            .nlp-search-row {
+                flex-direction: column;
+            }
+
+
+            .nlp-search-row button {
                 width: 100%;
             }
 
@@ -574,6 +711,75 @@
                 <h3>
                     Search Properties
                 </h3>
+
+
+                <!-- ==================================================
+                     NATURAL-LANGUAGE SEARCH (Phase 3.1)
+
+                     A distinct <form> (not nested inside #searchForm,
+                     for valid HTML) so pressing Enter here submits
+                     ONLY this search - it reads the SAME filter field
+                     values below (budget/city/locality/listing_type/
+                     property_type/bhk) via their existing element ids
+                     and sends them alongside "query", so an explicit
+                     filter the user has also set is still honored:
+                     the backend's existing precedence rule (explicit
+                     structured fields win over the equivalent parsed
+                     from the query - see services/search_orchestration.py)
+                     decides the merge, never this script.
+                ================================================== -->
+
+                <form
+                    id="nlpSearchForm"
+                    class="nlp-search-panel"
+                    onsubmit="searchNaturalLanguage(event)"
+                >
+
+                    <label
+                        for="nlpQuery"
+                        class="nlp-search-label"
+                    >
+                        Describe what you're looking for
+                    </label>
+
+                    <div class="nlp-search-row">
+
+                        <input
+                            type="text"
+                            id="nlpQuery"
+                            placeholder='e.g. "2 BHK furnished apartment near IIT Madras under 50 lakh"'
+                            maxlength="500"
+                        >
+
+                        <button
+                            type="submit"
+                            id="nlpSearchButton"
+                        >
+                            Search
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="nlpValidationMessage"
+                        class="nlp-validation-message"
+                        hidden
+                    >
+                        Please describe what you're looking for.
+                    </p>
+
+                </form>
+
+
+                <div
+                    id="nlpFeedback"
+                    class="nlp-feedback"
+                ></div>
+
+
+                <div class="search-divider">
+                    <span>OR USE FILTERS</span>
+                </div>
 
 
                 <form
@@ -1229,6 +1435,26 @@
             event.preventDefault();
 
 
+            /* Phase 3.1: clear any leftover NLP feedback (understood-
+               filters chips / location-resolution message) from a
+               previous natural-language search - a manual search
+               result set should never sit underneath a stale message
+               about a place the manual filters never mentioned. Does
+               not touch the payload below, which is unchanged. */
+
+            const nlpFeedback =
+                document.getElementById(
+                    'nlpFeedback'
+                );
+
+            if (nlpFeedback) {
+
+                nlpFeedback.innerHTML =
+                    '';
+
+            }
+
+
             const budget =
                 document.getElementById(
                     'budget'
@@ -1320,237 +1546,9 @@
             .then(
                 data => {
 
-                    const listingsContainer =
-                        document.getElementById(
-                            'listingsContainer'
-                        );
-
-
-                    listingsContainer.innerHTML =
-                        '';
-
-
-                    if (
-                        data.properties &&
-                        data.properties.length > 0
-                    ) {
-
-
-                        data.properties.forEach(
-                            property => {
-
-
-                                const listingElement =
-                                    document.createElement(
-                                        'div'
-                                    );
-
-
-                                /* PROPERTY IMAGE */
-
-                                let imageHTML =
-                                    '';
-
-
-                                if (
-                                    property.image_filename
-                                ) {
-
-                                    imageHTML = `
-
-                                        <img
-                                            class="property-image"
-                                            src="/static/images/properties/${property.image_filename}"
-                                            alt="Property Image"
-                                        >
-
-                                    `;
-
-                                }
-
-
-                                /* VIEW DETAILS URL */
-
-                                const detailsURL =
-                                    `/property/${property.id}`;
-
-
-                                /* RESULT CARD */
-
-                                listingElement.innerHTML = `
-
-                                    <h3>
-                                        ${
-                                            property.property_type
-                                            || 'Property'
-                                        }
-                                    </h3>
-
-
-                                    ${imageHTML}
-
-
-                                    <p>
-
-                                        <strong>
-                                            Listing Type:
-                                        </strong>
-
-                                        ${
-                                            property.listing_type
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Price:
-                                        </strong>
-
-                                        ₹${
-                                            property.price
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            BHK:
-                                        </strong>
-
-                                        ${
-                                            property.bhk
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Area:
-                                        </strong>
-
-                                        ${
-                                            property.area
-                                            || 'N/A'
-                                        }
-
-                                        sq.ft
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            City:
-                                        </strong>
-
-                                        ${
-                                            property.city
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Locality:
-                                        </strong>
-
-                                        ${
-                                            property.locality
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Address:
-                                        </strong>
-
-                                        ${
-                                            property.address
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Contact:
-                                        </strong>
-
-                                        ${
-                                            property.contact_name
-                                            || 'N/A'
-                                        }
-
-                                        -
-
-                                        ${
-                                            property.contact_phone
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <p>
-
-                                        <strong>
-                                            Description:
-                                        </strong>
-
-                                        ${
-                                            property.description
-                                            || 'N/A'
-                                        }
-
-                                    </p>
-
-
-                                    <a
-                                        href="${detailsURL}"
-                                        class="view-details-button"
-                                    >
-                                        View Details
-                                    </a>
-
-                                `;
-
-
-                                listingsContainer.appendChild(
-                                    listingElement
-                                );
-
-                            }
-                        );
-
-                    }
-
-
-                    else {
-
-                        listingsContainer.innerHTML =
-                            '<p>No properties found matching your criteria.</p>';
-
-                    }
+                    renderPropertyResults(
+                        data.properties
+                    );
 
                 }
             )
@@ -1576,6 +1574,804 @@
 
                 }
             );
+
+        }
+
+
+        /* ==================================================
+           SHARED RESULT RENDERING (Phase 3.1)
+
+           Used by BOTH searchRentals() (manual filters, above) and
+           searchNaturalLanguage() (below) - a property returned from
+           either search mode renders identically, per the same
+           #listingsContainer. Extracted verbatim from the original
+           inline rendering code that used to live inside
+           searchRentals()'s own .then() - no markup or behavior
+           change from before this extraction.
+        ================================================== */
+
+        function buildPropertyCardElement(property) {
+
+            const listingElement =
+                document.createElement(
+                    'div'
+                );
+
+
+            /* PROPERTY IMAGE */
+
+            let imageHTML =
+                '';
+
+
+            if (
+                property.image_filename
+            ) {
+
+                imageHTML = `
+
+                    <img
+                        class="property-image"
+                        src="/static/images/properties/${property.image_filename}"
+                        alt="Property Image"
+                    >
+
+                `;
+
+            }
+
+
+            /* VIEW DETAILS URL */
+
+            const detailsURL =
+                `/property/${property.id}`;
+
+
+            /* RESULT CARD */
+
+            listingElement.innerHTML = `
+
+                <h3>
+                    ${
+                        property.property_type
+                        || 'Property'
+                    }
+                </h3>
+
+
+                ${imageHTML}
+
+
+                <p>
+
+                    <strong>
+                        Listing Type:
+                    </strong>
+
+                    ${
+                        property.listing_type
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Price:
+                    </strong>
+
+                    ₹${
+                        property.price
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        BHK:
+                    </strong>
+
+                    ${
+                        property.bhk
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Area:
+                    </strong>
+
+                    ${
+                        property.area
+                        || 'N/A'
+                    }
+
+                    sq.ft
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        City:
+                    </strong>
+
+                    ${
+                        property.city
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Locality:
+                    </strong>
+
+                    ${
+                        property.locality
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Address:
+                    </strong>
+
+                    ${
+                        property.address
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Contact:
+                    </strong>
+
+                    ${
+                        property.contact_name
+                        || 'N/A'
+                    }
+
+                    -
+
+                    ${
+                        property.contact_phone
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Description:
+                    </strong>
+
+                    ${
+                        property.description
+                        || 'N/A'
+                    }
+
+                </p>
+
+
+                <a
+                    href="${detailsURL}"
+                    class="view-details-button"
+                >
+                    View Details
+                </a>
+
+            `;
+
+            return listingElement;
+
+        }
+
+
+        function renderPropertyResults(properties) {
+
+            const listingsContainer =
+                document.getElementById(
+                    'listingsContainer'
+                );
+
+
+            listingsContainer.innerHTML =
+                '';
+
+
+            if (
+                properties &&
+                properties.length > 0
+            ) {
+
+                properties.forEach(
+                    property => {
+
+                        listingsContainer.appendChild(
+                            buildPropertyCardElement(
+                                property
+                            )
+                        );
+
+                    }
+                );
+
+            }
+
+
+            else {
+
+                listingsContainer.innerHTML =
+                    '<p>No properties found matching your criteria.</p>';
+
+            }
+
+        }
+
+
+        /* ==================================================
+           NATURAL-LANGUAGE SEARCH (Phase 3.1)
+
+           Sends the same structured filter fields the manual form
+           uses (read directly by element id, unchanged ids/meaning)
+           ALONGSIDE the free-text "query" to the SAME /search_rentals
+           endpoint - no separate NLP endpoint, no client-side merging
+           of the two: the backend's existing precedence rule (see
+           services/search_orchestration.merge_structured_fields())
+           decides which value wins for any field mentioned both ways.
+        ================================================== */
+
+        let nlpSearchInFlight = false;
+
+
+        function searchNaturalLanguage(event) {
+
+            if (event) {
+                event.preventDefault();
+            }
+
+
+            const nlpInput =
+                document.getElementById(
+                    'nlpQuery'
+                );
+
+            const queryText =
+                nlpInput.value.trim();
+
+
+            const validationMessage =
+                document.getElementById(
+                    'nlpValidationMessage'
+                );
+
+            const feedbackContainer =
+                document.getElementById(
+                    'nlpFeedback'
+                );
+
+
+            validationMessage.hidden =
+                true;
+
+
+            if (!queryText) {
+
+                validationMessage.hidden =
+                    false;
+
+                return;
+
+            }
+
+
+            if (nlpSearchInFlight) {
+                return;
+            }
+
+
+            const searchButton =
+                document.getElementById(
+                    'nlpSearchButton'
+                );
+
+            const originalButtonText =
+                searchButton.textContent;
+
+
+            nlpSearchInFlight =
+                true;
+
+            searchButton.disabled =
+                true;
+
+            searchButton.textContent =
+                'Searching...';
+
+            feedbackContainer.innerHTML =
+                '';
+
+
+            const budget =
+                document.getElementById(
+                    'budget'
+                ).value;
+
+            const city =
+                document.getElementById(
+                    'search_city'
+                ).value.trim();
+
+            const locality =
+                document.getElementById(
+                    'search_locality'
+                ).value.trim();
+
+            const listingType =
+                document.getElementById(
+                    'search_listing_type'
+                ).value;
+
+            const propertyType =
+                document.getElementById(
+                    'search_property_type'
+                ).value;
+
+            const bhk =
+                document.getElementById(
+                    'search_bhk'
+                ).value;
+
+
+            fetch(
+                '{{ url_for("search.search_rentals") }}',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body: JSON.stringify({
+
+                        budget:
+                            parseInt(budget) || 0,
+
+                        city:
+                            city,
+
+                        locality:
+                            locality,
+
+                        listing_type:
+                            listingType,
+
+                        property_type:
+                            propertyType,
+
+                        bhk:
+                            bhk,
+
+                        query:
+                            queryText
+
+                    })
+                }
+            )
+
+
+            .then(
+                response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            'Network response was not ok'
+                        );
+
+                    }
+
+                    return response.json();
+
+                }
+            )
+
+
+            .then(
+                data => {
+
+                    renderNlpFeedback(
+                        data
+                    );
+
+                    renderPropertyResults(
+                        data.properties
+                    );
+
+                }
+            )
+
+
+            .catch(
+                error => {
+
+                    console.error(
+                        'Error:',
+                        error
+                    );
+
+                    feedbackContainer.innerHTML =
+                        '<div class="nlp-message nlp-message-error">'
+                        + 'Something went wrong while searching. Please try again.'
+                        + '</div>';
+
+                    renderPropertyResults(
+                        []
+                    );
+
+                }
+            )
+
+
+            .finally(
+                () => {
+
+                    nlpSearchInFlight =
+                        false;
+
+                    searchButton.disabled =
+                        false;
+
+                    searchButton.textContent =
+                        originalButtonText;
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           "UNDERSTOOD FILTERS" / LOCATION-RESOLUTION FEEDBACK
+           (Phase 3.1)
+
+           Built entirely from fields the Phase 3 backend already
+           returns (parsed_query, location_resolution) - no backend
+           change was needed for this. Never renders anything from
+           Mappls/OSM's own internal fields (confidence scores, eLoc
+           ids, raw API bodies) - only the plain-language status.
+        ================================================== */
+
+        function renderNlpFeedback(data) {
+
+            const feedbackContainer =
+                document.getElementById(
+                    'nlpFeedback'
+                );
+
+            feedbackContainer.innerHTML =
+                '';
+
+
+            const locationResolution =
+                data.location_resolution;
+
+
+            if (
+                locationResolution &&
+                locationResolution.status !== 'matched'
+            ) {
+
+                const messages = {
+
+                    ambiguous:
+                        "We couldn't tell exactly which place you meant. "
+                        + 'Try adding more detail (e.g. a city or nearby landmark).',
+
+                    no_match:
+                        "We couldn't find that location. "
+                        + 'Try a different or more specific place name.',
+
+                    rejected:
+                        "We couldn't confidently confirm that location. "
+                        + 'Try rephrasing it.',
+
+                    error:
+                        'Something went wrong while looking up that location. '
+                        + 'Please try again.'
+
+                };
+
+                const text =
+                    messages[locationResolution.status]
+                    || "We couldn't resolve that location.";
+
+                const banner =
+                    document.createElement(
+                        'div'
+                    );
+
+                banner.className =
+                    'nlp-message nlp-message-warning';
+
+                banner.textContent =
+                    text;
+
+                feedbackContainer.appendChild(
+                    banner
+                );
+
+                return;
+
+            }
+
+
+            const chips =
+                buildUnderstoodFiltersChips(
+                    data.parsed_query
+                );
+
+
+            if (chips.length === 0) {
+                return;
+            }
+
+
+            const wrapper =
+                document.createElement(
+                    'div'
+                );
+
+            wrapper.className =
+                'nlp-understood';
+
+
+            const label =
+                document.createElement(
+                    'span'
+                );
+
+            label.className =
+                'nlp-understood-label';
+
+            label.textContent =
+                'You searched for:';
+
+            wrapper.appendChild(
+                label
+            );
+
+
+            chips.forEach(
+                chipText => {
+
+                    const chip =
+                        document.createElement(
+                            'span'
+                        );
+
+                    chip.className =
+                        'nlp-chip';
+
+                    chip.textContent =
+                        chipText;
+
+                    wrapper.appendChild(
+                        chip
+                    );
+
+                }
+            );
+
+
+            feedbackContainer.appendChild(
+                wrapper
+            );
+
+        }
+
+
+        function buildUnderstoodFiltersChips(parsedQuery) {
+
+            if (!parsedQuery) {
+                return [];
+            }
+
+
+            const chips = [];
+
+
+            if (
+                parsedQuery.bedrooms
+                && parsedQuery.bedrooms.value != null
+            ) {
+
+                chips.push(
+                    parsedQuery.bedrooms.value + ' BHK'
+                );
+
+            }
+
+
+            if (
+                parsedQuery.property_type
+                && parsedQuery.property_type.value
+            ) {
+
+                chips.push(
+                    formatLabel(
+                        parsedQuery.property_type.value
+                    )
+                );
+
+            }
+
+
+            if (
+                parsedQuery.listing_type
+                && parsedQuery.listing_type.value
+            ) {
+
+                chips.push(
+                    parsedQuery.listing_type.value === 'rent'
+                        ? 'For Rent'
+                        : 'For Sale'
+                );
+
+            }
+
+
+            if (
+                parsedQuery.furnishing
+                && parsedQuery.furnishing.value
+            ) {
+
+                chips.push(
+                    formatLabel(
+                        parsedQuery.furnishing.value
+                    )
+                );
+
+            }
+
+
+            if (parsedQuery.price) {
+
+                chips.push(
+                    formatRangeConstraint(
+                        parsedQuery.price,
+                        'price'
+                    )
+                );
+
+            }
+
+
+            if (parsedQuery.area) {
+
+                chips.push(
+                    formatRangeConstraint(
+                        parsedQuery.area,
+                        'area'
+                    )
+                );
+
+            }
+
+
+            if (
+                parsedQuery.amenities
+                && parsedQuery.amenities.length > 0
+            ) {
+
+                parsedQuery.amenities.forEach(
+                    amenity => {
+
+                        chips.push(
+                            formatLabel(
+                                amenity.value
+                            )
+                        );
+
+                    }
+                );
+
+            }
+
+
+            if (
+                parsedQuery.location
+                && parsedQuery.location.query
+            ) {
+
+                chips.push(
+                    '📍 ' + parsedQuery.location.query
+                );
+
+            }
+
+
+            return chips;
+
+        }
+
+
+        function formatRangeConstraint(constraint, kind) {
+
+            const formatValue = value => {
+
+                if (kind === 'price') {
+
+                    return '₹'
+                        + Math.round(value).toLocaleString('en-IN');
+
+                }
+
+                return Math.round(value) + ' sqft';
+
+            };
+
+
+            if (constraint.operator === 'between') {
+
+                return formatValue(constraint.value_min)
+                    + ' - '
+                    + formatValue(constraint.value_max);
+
+            }
+
+            if (constraint.operator === 'lte') {
+                return 'Under ' + formatValue(constraint.value);
+            }
+
+            if (constraint.operator === 'gte') {
+                return 'Above ' + formatValue(constraint.value);
+            }
+
+            if (constraint.operator === 'approx') {
+                return 'Around ' + formatValue(constraint.value);
+            }
+
+            return formatValue(constraint.value);
+
+        }
+
+
+        function formatLabel(rawValue) {
+
+            return String(rawValue)
+                .split('_')
+                .map(
+                    word =>
+                        word.charAt(0).toUpperCase()
+                        + word.slice(1)
+                )
+                .join(' ');
 
         }
 
