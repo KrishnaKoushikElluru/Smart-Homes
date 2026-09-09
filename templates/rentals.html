@@ -510,6 +510,57 @@
             font-weight: 500;
         }
 
+        .nlp-picker-hint {
+            font-weight: 600;
+            color: #333;
+            margin: 4px 0 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .nlp-location-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Scoped to .nlp-location-picker (two classes) rather than a
+           bare .nlp-location-option, specifically so this beats the
+           existing .sub-form button rule's specificity (class+element
+           = higher than a single class) - this panel lives inside
+           .sub-form, which would otherwise force every option back to
+           a solid blue full-width button and override the colors
+           below entirely. */
+        .nlp-location-picker .nlp-location-option {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 3px;
+            text-align: left;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .nlp-location-picker .nlp-location-option:hover {
+            background-color: rgba(0, 102, 204, 0.1);
+            border-color: rgba(0, 102, 204, 0.6);
+        }
+
+        .nlp-location-option-name {
+            font-weight: 600;
+            color: #004080;
+            font-size: 0.95rem;
+        }
+
+        .nlp-location-option-address {
+            font-size: 0.8rem;
+            color: #555;
+        }
+
 
         /* ====================================================
            LARGE DESKTOP
@@ -1869,11 +1920,6 @@
                     'nlpValidationMessage'
                 );
 
-            const feedbackContainer =
-                document.getElementById(
-                    'nlpFeedback'
-                );
-
 
             validationMessage.hidden =
                 true;
@@ -1889,10 +1935,38 @@
             }
 
 
+            performNlpSearch(
+                queryText,
+                null
+            );
+
+        }
+
+
+        /* ==================================================
+           performNlpSearch(queryText, explicitLocation)
+
+           Shared by both the normal NLP search submit (explicitLocation
+           = null, location comes from parsing/resolving queryText as
+           usual) AND the "pick one of these" alternates picker built
+           by renderNlpFeedback() below (explicitLocation =
+           {lat, lon, label} - the exact place the user just clicked,
+           sent straight through so the backend skips Mappls/OSM
+           entirely for this one request rather than re-resolving the
+           same query text, which would just be ambiguous again).
+        ================================================== */
+
+        function performNlpSearch(queryText, explicitLocation) {
+
             if (nlpSearchInFlight) {
                 return;
             }
 
+
+            const feedbackContainer =
+                document.getElementById(
+                    'nlpFeedback'
+                );
 
             const searchButton =
                 document.getElementById(
@@ -1947,6 +2021,43 @@
                 ).value;
 
 
+            const payload = {
+
+                budget:
+                    parseInt(budget) || 0,
+
+                city:
+                    city,
+
+                locality:
+                    locality,
+
+                listing_type:
+                    listingType,
+
+                property_type:
+                    propertyType,
+
+                bhk:
+                    bhk,
+
+                query:
+                    queryText
+
+            };
+
+
+            if (explicitLocation) {
+
+                payload.location_lat =
+                    explicitLocation.lat;
+
+                payload.location_lon =
+                    explicitLocation.lon;
+
+            }
+
+
             fetch(
                 '{{ url_for("search.search_rentals") }}',
                 {
@@ -1957,30 +2068,9 @@
                             'application/json'
                     },
 
-                    body: JSON.stringify({
-
-                        budget:
-                            parseInt(budget) || 0,
-
-                        city:
-                            city,
-
-                        locality:
-                            locality,
-
-                        listing_type:
-                            listingType,
-
-                        property_type:
-                            propertyType,
-
-                        bhk:
-                            bhk,
-
-                        query:
-                            queryText
-
-                    })
+                    body: JSON.stringify(
+                        payload
+                    )
                 }
             )
 
@@ -2006,7 +2096,11 @@
                 data => {
 
                     renderNlpFeedback(
-                        data
+                        data,
+                        queryText,
+                        explicitLocation
+                            ? explicitLocation.label
+                            : null
                     );
 
                     renderPropertyResults(
@@ -2067,7 +2161,7 @@
            ids, raw API bodies) - only the plain-language status.
         ================================================== */
 
-        function renderNlpFeedback(data) {
+        function renderNlpFeedback(data, queryText, pickedLabel) {
 
             const feedbackContainer =
                 document.getElementById(
@@ -2084,14 +2178,26 @@
 
             if (
                 locationResolution &&
+                locationResolution.status === 'ambiguous'
+            ) {
+
+                renderAmbiguousLocationPicker(
+                    feedbackContainer,
+                    locationResolution,
+                    queryText
+                );
+
+                return;
+
+            }
+
+
+            if (
+                locationResolution &&
                 locationResolution.status !== 'matched'
             ) {
 
                 const messages = {
-
-                    ambiguous:
-                        "We couldn't tell exactly which place you meant. "
-                        + 'Try adding more detail (e.g. a city or nearby landmark).',
 
                     no_match:
                         "We couldn't find that location. "
@@ -2127,6 +2233,26 @@
                 );
 
                 return;
+
+            }
+
+
+            if (pickedLabel) {
+
+                const confirmation =
+                    document.createElement(
+                        'div'
+                    );
+
+                confirmation.className =
+                    'nlp-message nlp-message-info';
+
+                confirmation.textContent =
+                    '📍 Showing results near ' + pickedLabel;
+
+                feedbackContainer.appendChild(
+                    confirmation
+                );
 
             }
 
@@ -2191,6 +2317,177 @@
 
             feedbackContainer.appendChild(
                 wrapper
+            );
+
+        }
+
+
+        /* ==================================================
+           AMBIGUOUS-LOCATION "DID YOU MEAN ONE OF THESE?" PICKER
+
+           Renders location_resolution.alternates (an OSM candidate
+           list - see services/osm_location_service.py) as clickable
+           options. Picking one re-runs the exact same search with
+           that option's coordinates sent explicitly, so the backend
+           skips Mappls/OSM entirely for the follow-up request (see
+           performNlpSearch()'s "explicitLocation" parameter) rather
+           than re-resolving the same query text, which would just be
+           ambiguous again. Only matched_name/matched_address/
+           latitude/longitude are used - never the internal "score"
+           field also present in each alternate.
+        ================================================== */
+
+        function renderAmbiguousLocationPicker(feedbackContainer, locationResolution, queryText) {
+
+            const banner =
+                document.createElement(
+                    'div'
+                );
+
+            banner.className =
+                'nlp-message nlp-message-warning';
+
+            banner.textContent =
+                "We couldn't tell exactly which place you meant.";
+
+            feedbackContainer.appendChild(
+                banner
+            );
+
+
+            const alternates =
+                (locationResolution.alternates || []).filter(
+                    alt =>
+                        alt.latitude != null
+                        && alt.longitude != null
+                );
+
+
+            if (alternates.length === 0) {
+
+                const hint =
+                    document.createElement(
+                        'div'
+                    );
+
+                hint.className =
+                    'nlp-validation-message';
+
+                hint.textContent =
+                    'Try adding more detail (e.g. a city or nearby landmark).';
+
+                feedbackContainer.appendChild(
+                    hint
+                );
+
+                return;
+
+            }
+
+
+            const hint =
+                document.createElement(
+                    'div'
+                );
+
+            hint.className =
+                'nlp-picker-hint';
+
+            hint.textContent =
+                'Did you mean one of these?';
+
+            feedbackContainer.appendChild(
+                hint
+            );
+
+
+            const picker =
+                document.createElement(
+                    'div'
+                );
+
+            picker.className =
+                'nlp-location-picker';
+
+
+            alternates.forEach(
+                alternate => {
+
+                    const optionButton =
+                        document.createElement(
+                            'button'
+                        );
+
+                    optionButton.type =
+                        'button';
+
+                    optionButton.className =
+                        'nlp-location-option';
+
+
+                    const nameEl =
+                        document.createElement(
+                            'span'
+                        );
+
+                    nameEl.className =
+                        'nlp-location-option-name';
+
+                    nameEl.textContent =
+                        alternate.matched_name || 'Unnamed location';
+
+                    optionButton.appendChild(
+                        nameEl
+                    );
+
+
+                    if (alternate.matched_address) {
+
+                        const addressEl =
+                            document.createElement(
+                                'span'
+                            );
+
+                        addressEl.className =
+                            'nlp-location-option-address';
+
+                        addressEl.textContent =
+                            alternate.matched_address;
+
+                        optionButton.appendChild(
+                            addressEl
+                        );
+
+                    }
+
+
+                    optionButton.addEventListener(
+                        'click',
+                        () => {
+
+                            performNlpSearch(
+                                queryText,
+                                {
+                                    lat: alternate.latitude,
+                                    lon: alternate.longitude,
+                                    label: alternate.matched_name || 'this location'
+                                }
+                            );
+
+                        }
+                    );
+
+
+                    picker.appendChild(
+                        optionButton
+                    );
+
+                }
+            );
+
+
+            feedbackContainer.appendChild(
+                picker
             );
 
         }

@@ -479,6 +479,52 @@ def search_rentals():
             data.get("location_bias") or ""
         ).strip() or None
 
+
+        # ====================================================
+        # EXPLICIT COORDINATES (optional - "pick one of these"
+        # follow-up after an earlier AMBIGUOUS result)
+        #
+        # When the frontend already knows exactly which place the user
+        # meant (they clicked one of location_resolution.alternates
+        # from a PREVIOUS ambiguous response), it sends that option's
+        # coordinates directly instead of the free-text POI mention
+        # being re-resolved - which would just be ambiguous again,
+        # since the query text itself hasn't changed. Both fields must
+        # be present and valid together, or neither is used; a lone/
+        # malformed value is a client bug, not a search input, so it
+        # is rejected rather than silently ignored.
+        # ====================================================
+
+        explicit_coordinates = None
+
+        location_lat_raw = data.get("location_lat")
+        location_lon_raw = data.get("location_lon")
+
+        if location_lat_raw is not None or location_lon_raw is not None:
+
+            try:
+
+                explicit_latitude = float(location_lat_raw)
+                explicit_longitude = float(location_lon_raw)
+
+                if not -90 <= explicit_latitude <= 90:
+                    raise ValueError
+
+                if not -180 <= explicit_longitude <= 180:
+                    raise ValueError
+
+            except (TypeError, ValueError):
+
+                return jsonify({
+                    "error": "location_lat/location_lon must both be valid coordinates."
+                }), 400
+
+            explicit_coordinates = (
+                explicit_latitude,
+                explicit_longitude
+            )
+
+
         overrides = {
             "listing_type": listing_type,
             "property_type": property_type,
@@ -496,6 +542,7 @@ def search_rentals():
             property_service,
             poi_radius_km=poi_radius_km,
             location_bias=location_bias,
+            explicit_coordinates=explicit_coordinates,
         )
 
         results = [

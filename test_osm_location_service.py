@@ -309,6 +309,51 @@ class ResolveCoordinatesTests(unittest.TestCase):
                 self.assertIsNone(result["latitude"])
                 self.assertTrue(len(result["alternates"]) >= 1)
 
+    def test_ambiguous_alternates_include_the_top_ranked_candidate(self):
+        # Regression test: alternates used to be built from scored[1:4]
+        # unconditionally, which meant the TOP-ranked candidate (the one
+        # that made this "ambiguous" rather than "no_match" in the first
+        # place) was never exposed to a caller - only ranks 2-4 were. A
+        # caller trying to offer the user a "did you mean one of these?"
+        # picker for an ambiguous result would then be missing the single
+        # most likely option. Deterministic via a patched score_candidate
+        # so this doesn't depend on real text-similarity scoring.
+        response = mock_response([
+            nominatim_result("VIT Chennai Administrative Block", 12.84, 80.15, osm_id=1),
+            nominatim_result("VIT Academic Block 1", 12.8436, 80.1534, osm_id=2),
+            nominatim_result("VIT Academic Block 3", 12.8438, 80.1548, osm_id=3),
+        ])
+
+        scores_by_name = {
+            "VIT Chennai Administrative Block": osm.MatchScore(raw_score=0.4866),
+            "VIT Academic Block 1": osm.MatchScore(raw_score=0.4647),
+            "VIT Academic Block 3": osm.MatchScore(raw_score=0.4479),
+        }
+
+        def fake_score_candidate(mappls, candidate):
+            return scores_by_name[candidate["name"]]
+
+        with patch("services.osm_location_service.requests.get", return_value=response), \
+             patch("services.osm_location_service.score_candidate", side_effect=fake_score_candidate):
+
+            result = self.service.resolve_coordinates({
+                "place_name": "VIT Chennai",
+                "address": "Vandalur Kelambakkam Road, Chennai, Tamil Nadu, 600127",
+            })
+
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertIsNone(result["latitude"])  # still never a silently-picked coordinate
+
+        alternate_names = {a["matched_name"] for a in result["alternates"]}
+        self.assertIn("VIT Chennai Administrative Block", alternate_names)  # the top-ranked one
+        self.assertIn("VIT Academic Block 1", alternate_names)
+        self.assertIn("VIT Academic Block 3", alternate_names)
+        self.assertEqual(len(result["alternates"]), 3)
+
+        for alternate in result["alternates"]:
+            self.assertIsNotNone(alternate["latitude"])
+            self.assertIsNotNone(alternate["longitude"])
+
     def test_empty_input_returns_error(self):
         result = self.service.resolve_coordinates({"place_name": "", "address": ""})
         self.assertEqual(result["status"], "error")

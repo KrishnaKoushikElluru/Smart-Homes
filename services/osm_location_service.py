@@ -705,6 +705,29 @@ class OSMLocationService:
                 f"Top candidates are too close to distinguish confidently "
                 f"(margin={round(margin, 3)})."
             )
+            # Ambiguous is the one status where a caller may want to offer
+            # ALL of the tied-or-close candidates to a human to choose
+            # between (e.g. a "did you mean one of these?" picker) - the
+            # top-ranked candidate is deliberately included here too
+            # (scored[:4] instead of the scored[1:4] used by every other
+            # branch), since the whole reason this is "ambiguous" rather
+            # than "matched" is that it couldn't be confidently
+            # distinguished from the next one(s) down. This does NOT
+            # touch latitude/longitude/matched_name/etc above - those
+            # stay None, so "ambiguous never implies a resolved
+            # coordinate" still holds exactly as before; this is a
+            # separate, explicit list of un-chosen options for a caller
+            # to present, not a silent pick.
+            base_result["alternates"] = [
+                {
+                    "matched_name": c.get("name"),
+                    "matched_address": c.get("display_name"),
+                    "latitude": c.get("latitude"),
+                    "longitude": c.get("longitude"),
+                    "score": s.raw_score,
+                }
+                for c, s in scored[:4]
+            ]
 
         else:
             base_result["status"] = "matched"

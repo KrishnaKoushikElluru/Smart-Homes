@@ -276,6 +276,36 @@ class ResolvePoiLocationTests(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIsNone(result["latitude"])
 
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_ambiguous_alternates_are_passed_through_for_a_picker(self, mock_resolve_place):
+        mock_resolve_place.return_value = mappls_matched()
+        osm = FakeOSMService()
+        alternates = [
+            {"matched_name": "VIT Chennai Administrative Block", "matched_address": "...",
+             "latitude": 12.8406, "longitude": 80.1539, "score": 0.4866},
+            {"matched_name": "VIT Academic Block 1", "matched_address": "...",
+             "latitude": 12.8436, "longitude": 80.1534, "score": 0.4647},
+        ]
+        osm.next_result = {**osm_status("ambiguous"), "alternates": alternates}
+
+        result = orch.resolve_poi_location("VIT Chennai", "key", osm)
+
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertEqual(result["alternates"], alternates)
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_matched_with_no_alternates_key_defaults_to_empty_list(self, mock_resolve_place):
+        # osm_matched() (the shared fixture) doesn't include an
+        # "alternates" key at all - resolve_poi_location() must not
+        # crash on a missing key, just default to [].
+        mock_resolve_place.return_value = mappls_matched()
+        osm = FakeOSMService()
+        osm.next_result = osm_matched()
+
+        result = orch.resolve_poi_location("VIT Chennai", "key", osm)
+
+        self.assertEqual(result["alternates"], [])
+
 
 # ============================================================
 # FULL ORCHESTRATION
@@ -371,6 +401,51 @@ class OrchestrateSearchTests(unittest.TestCase):
         self.assertEqual(result["location_resolution"]["status"], "rejected")
         self.assertEqual(result["properties"], [])
         self.assertEqual(prop_service.calls, [])
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_explicit_coordinates_bypass_poi_resolution_entirely(self, mock_resolve_place):
+        # Simulates a user picking one option from a previous "ambiguous"
+        # result's alternates - re-resolving the same POI text via
+        # Mappls/OSM would just be ambiguous again, so it must not be
+        # attempted at all.
+        prop_service = FakePropertyService(results=[{"_id": "p1"}])
+        osm = FakeOSMService()
+
+        result = orch.orchestrate_search(
+            "2 bhk flat near VIT Chennai", NO_OVERRIDES, "key", osm, prop_service,
+            explicit_coordinates=(12.8406, 80.1539),
+        )
+
+        mock_resolve_place.assert_not_called()
+        self.assertEqual(osm.calls, [])
+        self.assertEqual(result["location_resolution"]["status"], "matched")
+        self.assertEqual(result["location_resolution"]["latitude"], 12.8406)
+        self.assertEqual(result["location_resolution"]["longitude"], 80.1539)
+        self.assertEqual(result["location_resolution"]["alternates"], [])
+        self.assertEqual(result["properties"], [{"_id": "p1"}])
+
+        mongo_filter = prop_service.calls[0]
+        near = mongo_filter["location.coordinates"]["$near"]
+        self.assertEqual(near["$geometry"]["coordinates"], [80.1539, 12.8406])
+        self.assertEqual(near["$maxDistance"], orch.DEFAULT_POI_RADIUS_KM * 1000.0)
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_explicit_coordinates_still_applies_other_parsed_filters(self, mock_resolve_place):
+        prop_service = FakePropertyService(results=[])
+
+        result = orch.orchestrate_search(
+            "2 bhk furnished apartment for rent near VIT Chennai under 25000 with gym",
+            NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+            explicit_coordinates=(12.8406, 80.1539),
+        )
+
+        mock_resolve_place.assert_not_called()
+        mongo_filter = prop_service.calls[0]
+        self.assertEqual(mongo_filter["property.bhk"], 2.0)
+        self.assertEqual(mongo_filter["property.type"], "apartment")
+        self.assertEqual(mongo_filter["listing.type"], "rent")
+        self.assertEqual(mongo_filter["listing.price"], {"$lte": 25000.0})
+        self.assertIn({"features": "gym"}, mongo_filter["$and"])
 
     def test_malformed_unsupported_query_does_not_crash(self):
         prop_service = FakePropertyService(results=[])

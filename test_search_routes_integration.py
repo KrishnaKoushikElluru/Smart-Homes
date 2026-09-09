@@ -281,6 +281,101 @@ class NaturalLanguageSearchTests(unittest.TestCase):
         body_text = resp.get_data(as_text=True)
         self.assertNotIn("dummy-key", body_text)
 
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_ambiguous_response_includes_alternates_for_a_picker(self, mock_resolve_place):
+        mock_resolve_place.return_value = mappls_matched()
+        self.osm_service.next_result = {
+            **osm_status("ambiguous"),
+            "alternates": [
+                {"matched_name": "VIT Chennai Administrative Block", "matched_address": "...",
+                 "latitude": 12.8406, "longitude": 80.1539, "score": 0.4866},
+                {"matched_name": "VIT Academic Block 1", "matched_address": "...",
+                 "latitude": 12.8436, "longitude": 80.1534, "score": 0.4647},
+            ],
+        }
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near VIT Chennai"
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        body = resp.get_json()
+        self.assertEqual(body["location_resolution"]["status"], "ambiguous")
+        self.assertEqual(len(body["location_resolution"]["alternates"]), 2)
+        self.assertEqual(
+            body["location_resolution"]["alternates"][0]["matched_name"],
+            "VIT Chennai Administrative Block",
+        )
+
+
+class ExplicitCoordinatesTests(unittest.TestCase):
+    """Covers "pick one of these" follow-up searches: the frontend
+    already knows exactly which place the user meant (from a previous
+    ambiguous result's alternates) and sends coordinates directly,
+    bypassing Mappls/OSM entirely for this request."""
+
+    def setUp(self):
+        self.property_service = FakePropertyService()
+        self.osm_service = FakeOSMService()
+        self.app = make_test_app(self.property_service, self.osm_service)
+        self.client = logged_in_client(self.app)
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_explicit_coordinates_skip_poi_resolution(self, mock_resolve_place):
+        self.property_service.filtered_search_results = [sample_property()]
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near VIT Chennai",
+            "location_lat": 12.8406, "location_lon": 80.1539,
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        body = resp.get_json()
+        mock_resolve_place.assert_not_called()
+        self.assertEqual(body["location_resolution"]["status"], "matched")
+        self.assertEqual(body["location_resolution"]["latitude"], 12.8406)
+        self.assertEqual(len(body["properties"]), 1)
+        mongo_filter = self.property_service.filtered_search_calls[0]
+        self.assertEqual(
+            mongo_filter["location.coordinates"]["$near"]["$geometry"]["coordinates"],
+            [80.1539, 12.8406],
+        )
+
+    def test_malformed_coordinates_rejected_with_400(self):
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near VIT Chennai",
+            "location_lat": "not-a-number", "location_lon": 80.1539,
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(self.property_service.filtered_search_calls, [])
+
+    def test_out_of_range_coordinates_rejected_with_400(self):
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near VIT Chennai",
+            "location_lat": 999, "location_lon": 80.1539,
+        })
+        self.assertEqual(resp.status_code, 400)
+
+    def test_lone_latitude_without_longitude_rejected_with_400(self):
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near VIT Chennai",
+            "location_lat": 12.8406,
+        })
+        self.assertEqual(resp.status_code, 400)
+
+    def test_no_coordinates_falls_back_to_normal_poi_resolution(self):
+        # Absence of location_lat/location_lon must not change anything
+        # about the existing flow - a request with neither key behaves
+        # exactly as it did before this feature existed.
+        self.property_service.filtered_search_results = []
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "2 bhk apartment for rent"
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsNone(resp.get_json()["location_resolution"])
+
 
 if __name__ == "__main__":
     unittest.main()

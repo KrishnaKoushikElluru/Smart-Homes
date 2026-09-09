@@ -212,7 +212,15 @@ def resolve_poi_location(
             "mappls_place_name": str | None,
             "confidence": float | None,
             "error": str | None,
+            "alternates": [{matched_name, matched_address, latitude,
+                             longitude, score}, ...],
         }
+
+    "alternates" is passed straight through from OSM's own result (see
+    services/osm_location_service.py's resolve_coordinates() docstring)
+    - for an "ambiguous" status specifically, it includes the top-ranked
+    candidate too (not just runners-up), so a caller can offer the user
+    a "did you mean one of these?" picker without a second lookup.
     """
 
     result = {
@@ -222,6 +230,7 @@ def resolve_poi_location(
         "mappls_place_name": None,
         "confidence": None,
         "error": None,
+        "alternates": [],
     }
 
     mappls_result = mappls_service.resolve_place(
@@ -250,6 +259,7 @@ def resolve_poi_location(
     result["status"] = osm_result["status"]
     result["confidence"] = osm_result["confidence"]
     result["error"] = osm_result["error"]
+    result["alternates"] = osm_result.get("alternates", [])
 
     if osm_result["status"] == "matched":
         result["latitude"] = osm_result["latitude"]
@@ -386,12 +396,23 @@ def orchestrate_search(
     property_service,
     poi_radius_km: float = DEFAULT_POI_RADIUS_KM,
     location_bias: Optional[str] = None,
+    explicit_coordinates: Optional[tuple] = None,
 ) -> dict:
     """
     Full Phase 3 pipeline for one search request. Never raises for a
     malformed/unknown query - services.nlp.parser.parse() itself never
     raises (see test_nlp_parser.py), and every failure mode below
     resolves to an explicit result rather than an exception.
+
+    explicit_coordinates: optional (latitude, longitude) tuple. When
+    given, POI resolution (Mappls/OSM) is skipped ENTIRELY for this
+    call - used when a caller already knows exactly where to search,
+    e.g. the user picked one specific option from a previous
+    "ambiguous" result's alternates (see resolve_poi_location()'s
+    docstring) rather than the free-text POI mention being re-resolved
+    (which would just be ambiguous again, since nothing about the query
+    text changed). Every other parsed/explicit field is still applied
+    normally - only the location step is replaced.
 
     Returns:
         {
@@ -408,6 +429,35 @@ def orchestrate_search(
     merged = merge_structured_fields(structured_dict, overrides)
 
     poi_query = merged.pop("poi_query", None)
+
+    if explicit_coordinates is not None:
+        latitude, longitude = explicit_coordinates
+
+        mongo_filter, applied_filters = build_mongo_filter(merged)
+        mongo_filter["location.coordinates"] = {
+            "$near": {
+                "$geometry": {"type": "Point", "coordinates": [longitude, latitude]},
+                "$maxDistance": poi_radius_km * 1000.0,
+            }
+        }
+        applied_filters["poi_radius_km"] = poi_radius_km
+
+        properties = property_service.filtered_search(mongo_filter)
+
+        return {
+            "parsed_query": structured_dict,
+            "location_resolution": {
+                "status": "matched",
+                "latitude": latitude,
+                "longitude": longitude,
+                "mappls_place_name": None,
+                "confidence": None,
+                "error": None,
+                "alternates": [],
+            },
+            "applied_filters": applied_filters,
+            "properties": properties,
+        }
 
     if poi_query:
         location_resolution = resolve_poi_location(
