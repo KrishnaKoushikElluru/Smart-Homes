@@ -536,6 +536,34 @@ class PropertyService:
 
 
     # ========================================================
+    # FILTERED SEARCH (Phase 3 - real MongoDB filter query)
+    #
+    # Distinct from ranked_search() above: this issues a genuine
+    # MongoDB find() with real operators ($gte/$lte/$near/etc, built by
+    # services/search_orchestration.py from a parsed natural-language
+    # query) instead of fetching every active property and scoring it
+    # in Python. Kept as its own thin method - not a replacement for
+    # ranked_search() and not used by the existing structured search
+    # path - so the existing behavior stays completely unaffected.
+    # Deliberately thin/unopinionated: the caller (see
+    # services/search_orchestration.build_mongo_filter()) is
+    # responsible for including "listing.status": "active" in the
+    # filter it passes in - this method does not add it implicitly.
+    # ========================================================
+
+    def filtered_search(
+        self,
+        mongo_filter
+    ):
+
+        return list(
+            self.collection.find(
+                mongo_filter
+            )
+        )
+
+
+    # ========================================================
     # UPDATE
     # ========================================================
 

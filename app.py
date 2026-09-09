@@ -117,6 +117,21 @@ app.config["OSM_MATCH_MIN_MARGIN"] = float(os.getenv(
     "0.05"
 ))
 
+# ============================================================
+# PHASE 3 SEARCH ORCHESTRATION CONFIGURATION
+#
+# How far (in km) a POI-anchored natural-language search
+# (routes/search_routes.py's /search_rentals with a "query" field)
+# looks for properties around a resolved POI's coordinates, via
+# MongoDB's $near on the existing location.coordinates 2dsphere index.
+# See services/search_orchestration.py's module docstring.
+# ============================================================
+
+app.config["SEARCH_POI_RADIUS_KM"] = float(os.getenv(
+    "SEARCH_POI_RADIUS_KM",
+    "5.0"
+))
+
 
 # ============================================================
 # EXTENSIONS
