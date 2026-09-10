@@ -36,6 +36,8 @@ class FakePropertyService:
         self.filtered_search_calls = []
         self.ranked_search_results = []
         self.filtered_search_results = []
+        self.count_result = 0
+        self.count_calls = []
 
     def ranked_search(self, preferences):
         self.ranked_search_calls.append(preferences)
@@ -44,6 +46,10 @@ class FakePropertyService:
     def filtered_search(self, mongo_filter):
         self.filtered_search_calls.append(mongo_filter)
         return self.filtered_search_results
+
+    def count(self, mongo_filter):
+        self.count_calls.append(mongo_filter)
+        return self.count_result
 
 
 class FakeOSMService:
@@ -280,6 +286,55 @@ class NaturalLanguageSearchTests(unittest.TestCase):
         })
         body_text = resp.get_data(as_text=True)
         self.assertNotIn("dummy-key", body_text)
+
+    def test_nearby_gym_query_response_shape(self):
+        # Stage 2: "flat near a gym" is a NEARBY facility, distinct from
+        # a property amenity - the response must reflect that via the
+        # dedicated nearby_facilities field, never via "amenities".
+        self.property_service.filtered_search_results = [sample_property()]
+        self.property_service.count_result = 2
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near a gym"
+        })
+
+        self.assertEqual(resp.status_code, 200)
+        body = resp.get_json()
+        self.assertEqual(len(body["properties"]), 1)
+        self.assertEqual(body["parsed_query"]["nearby_facilities"][0]["category"], "gym")
+        self.assertEqual(body["parsed_query"]["amenities"], [])
+        self.assertIn("nearby_facilities", body["applied_filters"])
+        self.assertEqual(body["nearby_facility_enrichment_caveat"]["unenriched_active_listings"], 2)
+
+    def test_property_amenity_gym_produces_no_caveat(self):
+        self.property_service.filtered_search_results = []
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat with a gym"
+        })
+
+        body = resp.get_json()
+        self.assertIsNone(body["nearby_facility_enrichment_caveat"])
+        self.assertEqual(self.property_service.count_calls, [])
+
+    def test_result_includes_trimmed_nearby_facilities_for_explanation_ui(self):
+        prop = sample_property()
+        prop["nearby_facilities"] = [
+            {"category": "gym", "name": "Test Gym", "distance_m": 650.0,
+             "provider_id": "SECRET_ID", "coordinates": {"type": "Point", "coordinates": [1, 2]}},
+        ]
+        self.property_service.filtered_search_results = [prop]
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near a gym"
+        })
+
+        body = resp.get_json()
+        facilities = body["properties"][0]["nearby_facilities"]
+        self.assertEqual(facilities, [{"category": "gym", "name": "Test Gym", "distance_m": 650.0}])
+        # Internal fields must never leak through.
+        self.assertNotIn("provider_id", str(facilities))
+        self.assertNotIn("coordinates", str(facilities))
 
     @patch("services.search_orchestration.mappls_service.resolve_place")
     def test_ambiguous_response_includes_alternates_for_a_picker(self, mock_resolve_place):

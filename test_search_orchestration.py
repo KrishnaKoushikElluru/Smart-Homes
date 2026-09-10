@@ -34,15 +34,22 @@ class FakeOSMService:
 
 class FakePropertyService:
     """Records every filter passed to filtered_search() and returns a
-    scripted list."""
+    scripted list. count() (Stage 2) is scripted separately via
+    .count_result and records its own filter calls."""
 
-    def __init__(self, results=None):
+    def __init__(self, results=None, count_result=0):
         self.results = results if results is not None else []
         self.calls = []
+        self.count_result = count_result
+        self.count_calls = []
 
     def filtered_search(self, mongo_filter):
         self.calls.append(mongo_filter)
         return self.results
+
+    def count(self, mongo_filter):
+        self.count_calls.append(mongo_filter)
+        return self.count_result
 
 
 def osm_matched(lat=12.99, lon=80.23, confidence=0.8):
@@ -483,6 +490,223 @@ class NoFabricatedCoordinatesTests(unittest.TestCase):
                 result = orch.resolve_poi_location("X", "key", osm)
                 self.assertIsNone(result["latitude"])
                 self.assertIsNone(result["longitude"])
+
+
+# ============================================================
+# STAGE 2: NEARBY-FACILITY SEARCH
+# ============================================================
+
+class MergeNearbyFacilitiesTests(unittest.TestCase):
+
+    def test_nearby_facility_requirement_is_threaded_through(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None,
+                      "nearby_facilities": [{"category": "gym", "radius_m": None, "raw_text": "near a gym", "confidence": 0.8}]}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertEqual(merged["nearby_facility_requirements"], [{"category": "gym", "radius_m": None}])
+
+    def test_multiple_nearby_facilities_are_all_threaded_through(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None,
+                      "nearby_facilities": [
+                          {"category": "gym", "radius_m": None, "raw_text": "x", "confidence": 0.8},
+                          {"category": "hospital", "radius_m": 1000.0, "raw_text": "y", "confidence": 0.85},
+                      ]}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertEqual(len(merged["nearby_facility_requirements"]), 2)
+
+    def test_no_nearby_facility_mention_produces_no_key(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None,
+                      "nearby_facilities": []}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertNotIn("nearby_facility_requirements", merged)
+
+    def test_nearby_facility_coexists_with_property_amenity(self):
+        # "flat with a gym, near a hospital" - the property HAS a gym
+        # (amenity) AND wants to be near a hospital (nearby facility) -
+        # these must never collide or overwrite each other.
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None,
+                      "amenities": [{"value": "gym", "confidence": 0.9, "source": "x"}],
+                      "location": None,
+                      "nearby_facilities": [{"category": "hospital", "radius_m": None, "raw_text": "x", "confidence": 0.8}]}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertEqual(merged["amenities"], ["gym"])
+        self.assertEqual(merged["nearby_facility_requirements"], [{"category": "hospital", "radius_m": None}])
+
+
+class BuildMongoFilterNearbyFacilitiesTests(unittest.TestCase):
+
+    def test_no_radius_matches_category_only(self):
+        merged = {"nearby_facility_requirements": [{"category": "gym", "radius_m": None}]}
+        mongo_filter, applied = orch.build_mongo_filter(merged)
+        self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+        self.assertEqual(applied["nearby_facilities"], [{"category": "gym", "radius_m": None}])
+
+    def test_radius_adds_lte_distance_constraint(self):
+        merged = {"nearby_facility_requirements": [{"category": "hospital", "radius_m": 1000.0}]}
+        mongo_filter, _ = orch.build_mongo_filter(merged)
+        self.assertIn(
+            {"nearby_facilities": {"$elemMatch": {"category": "hospital", "distance_m": {"$lte": 1000.0}}}},
+            mongo_filter["$and"],
+        )
+
+    def test_multiple_categories_produce_separate_elem_match_clauses(self):
+        # A single $elemMatch cannot require two different array
+        # elements to both exist - this must be two AND'd clauses, not
+        # one $elemMatch with both categories (which would require ONE
+        # facility to somehow be both categories at once).
+        merged = {"nearby_facility_requirements": [
+            {"category": "gym", "radius_m": None},
+            {"category": "hospital", "radius_m": 1000.0},
+        ]}
+        mongo_filter, _ = orch.build_mongo_filter(merged)
+        self.assertEqual(len(mongo_filter["$and"]), 2)
+        gym_clause = {"nearby_facilities": {"$elemMatch": {"category": "gym"}}}
+        hospital_clause = {"nearby_facilities": {"$elemMatch": {"category": "hospital", "distance_m": {"$lte": 1000.0}}}}
+        self.assertIn(gym_clause, mongo_filter["$and"])
+        self.assertIn(hospital_clause, mongo_filter["$and"])
+
+    def test_nearby_facility_combines_with_price_and_furnishing(self):
+        merged = {
+            "nearby_facility_requirements": [{"category": "gym", "radius_m": None}],
+            "price": {"operator": "lte", "value": 30000.0},
+            "furnishing": "semi_furnished",
+        }
+        mongo_filter, _ = orch.build_mongo_filter(merged)
+        self.assertEqual(mongo_filter["listing.price"], {"$lte": 30000.0})
+        self.assertEqual(mongo_filter["property.furnishing"], "semi_furnished")
+        self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+
+    def test_no_nearby_facility_requirement_adds_no_and_clause_for_it(self):
+        mongo_filter, applied = orch.build_mongo_filter({})
+        self.assertNotIn("nearby_facilities", applied)
+
+
+class NearbyFacilityEnrichmentCaveatTests(unittest.TestCase):
+
+    def test_no_requirements_skips_the_count_call_entirely(self):
+        prop_service = FakePropertyService(count_result=5)
+        caveat = orch._nearby_facility_enrichment_caveat(prop_service, [])
+        self.assertIsNone(caveat)
+        self.assertEqual(prop_service.count_calls, [])
+
+    def test_requirements_trigger_a_count_and_report_it(self):
+        prop_service = FakePropertyService(count_result=3)
+        caveat = orch._nearby_facility_enrichment_caveat(prop_service, [{"category": "gym", "radius_m": None}])
+        self.assertEqual(caveat["unenriched_active_listings"], 3)
+        self.assertIsNotNone(caveat["note"])
+        self.assertEqual(len(prop_service.count_calls), 1)
+
+    def test_zero_unenriched_produces_no_note(self):
+        prop_service = FakePropertyService(count_result=0)
+        caveat = orch._nearby_facility_enrichment_caveat(prop_service, [{"category": "gym", "radius_m": None}])
+        self.assertEqual(caveat["unenriched_active_listings"], 0)
+        self.assertIsNone(caveat["note"])
+
+
+class OrchestrateSearchNearbyFacilityTests(unittest.TestCase):
+
+    def test_nearby_gym_no_location_filters_by_category(self):
+        prop_service = FakePropertyService(results=[{"_id": "p1"}], count_result=0)
+
+        result = orch.orchestrate_search(
+            "flat near a gym", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        self.assertEqual(result["properties"], [{"_id": "p1"}])
+        mongo_filter = prop_service.calls[0]
+        self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+        self.assertIsNotNone(result["nearby_facility_enrichment_caveat"])
+
+    def test_nearby_hospital_with_radius(self):
+        prop_service = FakePropertyService(results=[], count_result=0)
+
+        result = orch.orchestrate_search(
+            "2 BHK near hospital within 1 km", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        self.assertIn(
+            {"nearby_facilities": {"$elemMatch": {"category": "hospital", "distance_m": {"$lte": 1000.0}}}},
+            mongo_filter["$and"],
+        )
+        self.assertEqual(mongo_filter["property.bhk"], 2.0)
+
+    def test_property_amenity_gym_is_not_treated_as_nearby_facility(self):
+        prop_service = FakePropertyService(results=[], count_result=0)
+
+        result = orch.orchestrate_search(
+            "flat with a gym", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        self.assertIn({"features": "gym"}, mongo_filter.get("$and", []))
+        self.assertNotIn(
+            {"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter.get("$and", [])
+        )
+        self.assertIsNone(result["nearby_facility_enrichment_caveat"])
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_vit_chennai_matched_plus_nearby_gym_together(self, mock_resolve_place):
+        # This phase's own worked example: primary POI = VIT Chennai,
+        # nearby facility = gym - both must reach the final Mongo filter.
+        mock_resolve_place.return_value = mappls_matched(name="VIT Chennai")
+        osm = FakeOSMService()
+        osm.next_result = osm_matched(lat=12.84, lon=80.15)
+        prop_service = FakePropertyService(results=[{"_id": "p1"}], count_result=0)
+
+        result = orch.orchestrate_search(
+            "flat near VIT Chennai with a gym nearby", NO_OVERRIDES, "key", osm, prop_service,
+        )
+
+        self.assertEqual(result["location_resolution"]["status"], "matched")
+        mongo_filter = prop_service.calls[0]
+        self.assertIn("$near", mongo_filter["location.coordinates"])
+        self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_ambiguous_poi_does_not_discard_the_nearby_facility_requirement(self, mock_resolve_place):
+        # The gym requirement must still be visible in applied_filters
+        # even when the POI itself couldn't be resolved - so that once
+        # the user picks an alternate (a SEPARATE, later request - see
+        # test_explicit_coordinates_still_applies_other_parsed_filters
+        # for that mechanism, which re-parses the same raw_query text
+        # and therefore re-extracts the same gym requirement
+        # automatically), nothing about the gym constraint was ever lost.
+        mock_resolve_place.return_value = mappls_matched(name="VIT Chennai")
+        osm = FakeOSMService()
+        osm.next_result = osm_status("ambiguous")
+        prop_service = FakePropertyService(results=[{"_id": "should_not_appear"}], count_result=0)
+
+        result = orch.orchestrate_search(
+            "flat near VIT Chennai with a gym nearby", NO_OVERRIDES, "key", osm, prop_service,
+        )
+
+        self.assertEqual(result["location_resolution"]["status"], "ambiguous")
+        self.assertEqual(result["properties"], [])  # no silent fallback
+        self.assertEqual(result["applied_filters"]["nearby_facilities"], [{"category": "gym", "radius_m": None}])
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_picking_an_alternate_after_ambiguous_preserves_the_gym_requirement(self, mock_resolve_place):
+        # Simulates the full two-request picker flow end to end: the
+        # SAME raw_query is re-sent with explicit_coordinates (exactly
+        # what routes/search_routes.py does when the frontend sends
+        # location_lat/location_lon - see test_search_routes_integration.py) -
+        # the gym requirement must reappear because it's re-parsed from
+        # the same text, never carried over as hidden state.
+        prop_service = FakePropertyService(results=[{"_id": "p1"}], count_result=0)
+
+        result = orch.orchestrate_search(
+            "flat near VIT Chennai with a gym nearby", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+            explicit_coordinates=(12.8406, 80.1539),
+        )
+
+        mock_resolve_place.assert_not_called()  # no re-resolution attempted
+        mongo_filter = prop_service.calls[0]
+        self.assertIn("$near", mongo_filter["location.coordinates"])
+        self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
 
 
 if __name__ == "__main__":

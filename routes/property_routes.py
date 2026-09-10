@@ -1015,21 +1015,23 @@ def submit_listing():
 
 
     # ========================================================
-    # NEARBY FACILITY ENRICHMENT (Phase 4.0 - best-effort)
+    # NEARBY FACILITY ENRICHMENT (Phase 4.0 - best-effort, Stage 1:
+    # runs in the background - see services/nearby_facility_service.py)
     #
-    # Property creation above is the operation that matters - this call
-    # never raises (see services/nearby_facility_service.py's module
-    # docstring) and its own success/failure is recorded on the
-    # property document (nearby_facilities_metadata), never allowed to
-    # affect the redirect/flash below. Coordinates are guaranteed valid
-    # at this point (parse_latitude_longitude() already required them
-    # earlier in this function), so this always attempts enrichment for
-    # a listing created through this route - it is the service's own
-    # job to skip gracefully if that ever isn't true for some other
-    # caller (e.g. a future bulk-import path).
+    # Property creation above is the operation that matters. This call
+    # returns IMMEDIATELY - it only (a) atomically marks the property
+    # "pending" and (b) starts a background thread; it never waits for
+    # Mappls/OSM/MongoDB itself. Everything the background thread needs
+    # (property_service, the Mappls key, the OSM service) is passed in
+    # explicitly here, while a real Flask request context still exists
+    # - the thread itself never touches current_app/request/g (see
+    # start_background_enrichment()'s own docstring for why that
+    # matters). Coordinates are guaranteed valid at this point
+    # (parse_latitude_longitude() already required them earlier in this
+    # function).
     # ========================================================
 
-    nearby_facility_service.enrich_property_nearby_facilities(
+    nearby_facility_service.start_background_enrichment(
         property_id,
         property_service,
         current_app.config.get("MAPPLS_API_KEY"),

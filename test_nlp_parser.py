@@ -292,6 +292,27 @@ class NoCoordinatesOrPhase1CallsTests(unittest.TestCase):
         self.assertIsInstance(r.location.query, str)
         self.assertNotIsInstance(r.location.query, (tuple, list))
 
+    def test_nearby_facility_output_never_contains_coordinates_either(self):
+        # Stage 2 (Phase 4): nearby_facilities is a NEW output field -
+        # the existing recursive coordinate check above was written
+        # before it existed, so it's re-run here against a query that
+        # actually populates it, rather than assuming the old test's
+        # query happens to exercise the new field too.
+        r = parse("2 bhk flat near VIT Chennai with a gym nearby under 25000").to_dict()
+
+        def walk(obj):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    self.assertNotIn(k.lower(), ("latitude", "longitude", "lat", "lon", "lng", "coordinates"),
+                                      f"NLP output must never contain coordinates, found key {k!r}")
+                    walk(v)
+            elif isinstance(obj, list):
+                for item in obj:
+                    walk(item)
+
+        walk(r)
+        self.assertTrue(len(r["nearby_facilities"]) >= 1)  # sanity: the field was actually exercised
+
     def test_services_nlp_package_never_imports_phase_1_modules(self):
         """Static check: services.nlp.* must not import
         services.mappls_service or services.osm_location_service. This
@@ -329,11 +350,13 @@ class NoCoordinatesOrPhase1CallsTests(unittest.TestCase):
         import services.nlp.entity_extractor
         import services.nlp.baseline
         import services.nlp.schema
+        import services.nlp.nearby_facility_extractor
 
         for module in (
             parser_mod, services.nlp.normalization, services.nlp.numeric_parser,
             services.nlp.location_extractor, services.nlp.entity_extractor,
             services.nlp.baseline, services.nlp.schema,
+            services.nlp.nearby_facility_extractor,
         ):
             source = inspect.getsource(module)
             tree = ast.parse(source)

@@ -9,10 +9,18 @@ from anywhere in the request-handling path.
 Safe / restartable by design:
   - Only processes properties with no nearby_facilities_metadata at all
     (i.e. genuinely never enriched) unless --retry-failed is passed, in
-    which case properties whose last attempt ended in "failed" are
-    included too. "completed"/"partial" properties are always skipped -
-    re-enriching those is a deliberate, separate re-run (see
-    --force), not something a routine backfill should silently repeat.
+    which case properties whose last attempt ended in "failed", AND
+    "pending" properties stuck for more than --stale-pending-minutes
+    (default 10 - a Stage 1 background worker that started but never
+    finished, e.g. the process restarted mid-run), are included too.
+    A "pending" entry younger than that is deliberately left alone -
+    it might be a real, currently-running registration-time worker,
+    and touching it here would race that worker and defeat the whole
+    point of the atomic per-property claim (see
+    services/property_services.py's claim_nearby_facilities_enrichment()).
+    "completed"/"partial" properties are always skipped - re-enriching
+    those is a deliberate, separate re-run (see --force), not something
+    a routine backfill should silently repeat.
   - Processes properties ONE AT A TIME, committing each property's
     result to MongoDB immediately (via the same
     enrich_property_nearby_facilities() the live registration flow
@@ -40,6 +48,7 @@ live app uses, nothing reimplemented here).
 import argparse
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -48,16 +57,50 @@ import app as app_module  # noqa: E402
 from services import nearby_facility_service  # noqa: E402
 
 
-def _select_properties(collection, retry_failed: bool, force: bool, limit) -> list:
+# A property whose background worker (Stage 1 -
+# services/nearby_facility_service.start_background_enrichment())
+# started less than this long ago might still be legitimately running
+# right now - re-running it here too would race the live worker and
+# defeat the whole point of the atomic claim guard. Only a "pending"
+# entry OLDER than this is treated as abandoned/stuck (e.g. the process
+# restarted mid-run) and eligible for --retry-failed. Real enrichment
+# has been observed to finish in well under a minute even for all 17
+# categories (see docs/PHASE_4_0_NEARBY_FACILITY_ENRICHMENT.md) - 10
+# minutes is a generous, deliberately conservative margin, not a tuned
+# value.
+STALE_PENDING_THRESHOLD_MINUTES = 10
+
+
+def _select_properties(collection, retry_failed: bool, force: bool, limit, stale_pending_minutes: int) -> list:
 
     if force:
         query = {}
 
     elif retry_failed:
+        # Also picks up "pending" entries (Stage 1) - but ONLY ones
+        # older than stale_pending_minutes, so this can never collide
+        # with a background worker that is genuinely still running
+        # right now (that would recreate exactly the duplicate-worker
+        # race the atomic claim in
+        # PropertyService.claim_nearby_facilities_enrichment() exists
+        # to prevent). A "pending" property with no queued_at at all
+        # (shouldn't happen via the real registration flow, but
+        # defensively handled) is treated as stale too - there's no
+        # way to tell how old it is, so it's safer to assume abandoned
+        # than to leave it stuck forever.
+        stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=stale_pending_minutes)
+
         query = {
             "$or": [
                 {"nearby_facilities_metadata": {"$exists": False}},
                 {"nearby_facilities_metadata.status": "failed"},
+                {
+                    "nearby_facilities_metadata.status": "pending",
+                    "$or": [
+                        {"nearby_facilities_metadata.queued_at": {"$lt": stale_cutoff}},
+                        {"nearby_facilities_metadata.queued_at": {"$exists": False}},
+                    ],
+                },
             ]
         }
 
@@ -83,7 +126,15 @@ def main():
     )
     parser.add_argument(
         "--retry-failed", action="store_true",
-        help="Also include properties whose last enrichment attempt failed.",
+        help=(
+            "Also include properties whose last enrichment attempt failed, "
+            "plus any 'pending' properties stuck for more than "
+            "--stale-pending-minutes (a background worker that never finished)."
+        ),
+    )
+    parser.add_argument(
+        "--stale-pending-minutes", type=int, default=STALE_PENDING_THRESHOLD_MINUTES,
+        help=f"How old a 'pending' entry must be before --retry-failed treats it as abandoned (default: {STALE_PENDING_THRESHOLD_MINUTES}).",
     )
     parser.add_argument(
         "--force", action="store_true",
@@ -102,7 +153,8 @@ def main():
     radius_km = flask_app.config.get("NEARBY_FACILITY_RADIUS_KM")
 
     property_ids = _select_properties(
-        property_service.collection, args.retry_failed, args.force, args.limit
+        property_service.collection, args.retry_failed, args.force,
+        args.limit, args.stale_pending_minutes,
     )
 
     print(f"Found {len(property_ids)} propert{'y' if len(property_ids) == 1 else 'ies'} to process.")

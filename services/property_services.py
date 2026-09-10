@@ -577,6 +577,23 @@ class PropertyService:
 
 
     # ========================================================
+    # COUNT (Stage 2 - services/search_orchestration.py uses this to
+    # report an honest "how many active listings aren't enriched yet"
+    # caveat when a nearby-facility search runs, rather than silently
+    # implying a complete answer)
+    # ========================================================
+
+    def count(
+        self,
+        mongo_filter
+    ):
+
+        return self.collection.count_documents(
+            mongo_filter
+        )
+
+
+    # ========================================================
     # UPDATE
     # ========================================================
 
@@ -598,6 +615,57 @@ class PropertyService:
 
             {
                 "$set": updates
+            }
+        )
+
+        return (
+            result.modified_count > 0
+        )
+
+
+    # ========================================================
+    # CLAIM NEARBY-FACILITY ENRICHMENT (Stage 1 - thread safety)
+    #
+    # An atomic, single-document conditional update: sets
+    # nearby_facilities_metadata to `pending_metadata` ONLY IF the
+    # property is not ALREADY marked "pending" - guaranteeing at most
+    # one enrichment worker is ever started for a given property, even
+    # under concurrent/duplicate calls (e.g. a duplicate registration
+    # request, or - in a future multi-process deployment - two
+    # different worker processes racing). This guarantee comes from
+    # MongoDB's own atomic single-document update, not from an
+    # in-process lock, so it holds even across multiple app processes,
+    # not just multiple threads within one.
+    #
+    # {"nearby_facilities_metadata.status": {"$ne": "pending"}} also
+    # correctly matches a brand-new property with no
+    # nearby_facilities_metadata field at all yet - a missing field is
+    # never equal to "pending", so the very first claim always
+    # succeeds.
+    # ========================================================
+
+    def claim_nearby_facilities_enrichment(
+        self,
+        property_id,
+        pending_metadata
+    ):
+        """Returns True if this call successfully claimed enrichment for
+        property_id (the caller should proceed to start a worker), False
+        if another call already has it pending (the caller should skip
+        starting a second one)."""
+
+        result = self.collection.update_one(
+
+            {
+                "_id": ObjectId(property_id),
+                "nearby_facilities_metadata.status": {"$ne": "pending"}
+            },
+
+            {
+                "$set": {
+                    "nearby_facilities_metadata": pending_metadata,
+                    "updated_at": datetime.utcnow()
+                }
             }
         )
 

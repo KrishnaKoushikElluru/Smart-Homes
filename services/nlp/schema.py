@@ -75,6 +75,19 @@ LOCATION_TYPES = {"poi", "area_or_city", "unknown"}
 PRICE_OPERATORS = {"lte", "gte", "eq", "approx", "between"}
 AREA_OPERATORS = PRICE_OPERATORS
 
+# Stage 2 (Phase 4): pinned to services/nearby_facility_service.py's
+# FACILITY_CATEGORIES keys, the same way AMENITY_VALUES above is pinned
+# to (not imported from) services/property_fields.py - see that
+# module's own docstring for the identical rationale, and
+# services/nlp/nearby_facility_extractor.py's module docstring for why
+# this is never a real import here.
+NEARBY_FACILITY_CATEGORIES = {
+    "gym", "hospital", "school", "college", "supermarket", "pharmacy",
+    "restaurant", "bank", "atm", "metro_station", "railway_station",
+    "bus_stop", "shopping_mall", "park", "police_station", "fire_station",
+    "petrol_station",
+}
+
 
 # ============================================================
 # SLOT: value + confidence + provenance, for ANY extracted field
@@ -126,12 +139,41 @@ class LocationMention:
 
 
 @dataclass
+class NearbyFacilityRequirement:
+    """Stage 2 (Phase 4): "flat near a gym" / "hospital within 1 km" -
+    NOT a property amenity (see schema.py's module docstring and
+    services/nlp/nearby_facility_extractor.py's for the full
+    distinction). category is one of NEARBY_FACILITY_CATEGORIES.
+    radius_m is the user's own explicitly requested search radius in
+    meters if they gave one ("within 1 km"), else None - meaning "no
+    specific distance was requested", NOT "search everywhere"; see
+    services/search_orchestration.py for how a None radius is actually
+    handled against the property's stored, ALREADY-BOUNDED enrichment
+    data (services/nearby_facility_service.py)."""
+    category: str
+    radius_m: Optional[float]
+    raw_text: str
+    confidence: float
+
+    def to_dict(self):
+        return {
+            "category": self.category,
+            "radius_m": self.radius_m,
+            "raw_text": self.raw_text,
+            "confidence": round(self.confidence, 3),
+        }
+
+
+@dataclass
 class StructuredQuery:
     """
     The full Phase 2 output. Every optional field is EXPLICITLY None
     when not found - nothing is silently omitted or invented. Amenities
     is a list of Slots (each amenity mention gets its own confidence,
     since "with parking and a gym" has two independent extractions).
+    nearby_facilities (Stage 2) is a separate list - see
+    NearbyFacilityRequirement and this module's docstring for why it is
+    never merged with amenities.
     """
     raw_query: str
     intent: str  # "property_search" | "unknown"
@@ -143,6 +185,7 @@ class StructuredQuery:
     area: Optional[RangeConstraint] = None
     amenities: list = field(default_factory=list)   # list[Slot]
     location: Optional[LocationMention] = None
+    nearby_facilities: list = field(default_factory=list)  # list[NearbyFacilityRequirement]
     unsupported_phrases: list = field(default_factory=list)  # list[str]
     warnings: list = field(default_factory=list)              # list[str]
 
@@ -158,6 +201,7 @@ class StructuredQuery:
             "area": self.area.to_dict() if self.area else None,
             "amenities": [a.to_dict() for a in self.amenities],
             "location": self.location.to_dict() if self.location else None,
+            "nearby_facilities": [f.to_dict() for f in self.nearby_facilities],
             "unsupported_phrases": list(self.unsupported_phrases),
             "warnings": list(self.warnings),
         }
@@ -196,6 +240,12 @@ def validate_structured_query(sq: StructuredQuery) -> list:
     for a in sq.amenities:
         if a.value not in AMENITY_VALUES:
             problems.append(f"invalid amenity: {a.value!r}")
+
+    for nf in sq.nearby_facilities:
+        if nf.category not in NEARBY_FACILITY_CATEGORIES:
+            problems.append(f"invalid nearby facility category: {nf.category!r}")
+        if nf.radius_m is not None and nf.radius_m <= 0:
+            problems.append(f"invalid nearby facility radius_m: {nf.radius_m!r}")
 
     for slot_name in ("listing_type", "property_type", "bedrooms", "furnishing"):
         slot = getattr(sq, slot_name)

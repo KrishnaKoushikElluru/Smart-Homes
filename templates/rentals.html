@@ -561,6 +561,31 @@
             color: #555;
         }
 
+        /* Stage 2 (Phase 4): nearby-facility chips reuse .nlp-chip's
+           shape but a distinct (green, vs. .nlp-chip's blue) color so
+           they read as visually different from property-amenity/
+           filter chips, on top of already being worded differently
+           ("Gym Nearby" vs "Gym"). */
+        .nlp-chip-facility {
+            background-color: rgba(40, 167, 69, 0.12);
+            color: #1e7e34;
+            border-color: rgba(40, 167, 69, 0.35);
+        }
+
+        .nlp-match-explanation {
+            margin: 8px 0;
+            padding: 8px 12px;
+            background-color: rgba(40, 167, 69, 0.08);
+            border-left: 3px solid rgba(40, 167, 69, 0.5);
+            border-radius: 4px;
+        }
+
+        .nlp-match-line {
+            margin: 2px 0;
+            font-size: 0.85rem;
+            color: #1e7e34;
+        }
+
 
         /* ====================================================
            LARGE DESKTOP
@@ -1641,11 +1666,81 @@
            change from before this extraction.
         ================================================== */
 
-        function buildPropertyCardElement(property) {
+        /* ==================================================
+           RESULT EXPLANATION (Stage 2, Phase 4)
+
+           Only rendered when the search actually used a nearby-
+           facility constraint (nearbyFacilityCategories is empty for
+           every manual-filter search and for any NLP search that
+           didn't mention one - see renderPropertyResults()). Uses
+           ONLY property.nearby_facilities, the trimmed, real, stored
+           data routes/search_routes.py's _serialize_property() now
+           includes - never a fabricated or estimated distance. If a
+           requested category has no matching entry on THIS property
+           (should not happen for a property that matched the search
+           filter at all, but handled defensively), it is simply
+           omitted rather than guessed at.
+        ================================================== */
+
+        function buildNearbyFacilityExplanationHTML(property, nearbyFacilityCategories) {
+
+            if (!nearbyFacilityCategories || nearbyFacilityCategories.length === 0) {
+                return '';
+            }
+
+            const propertyFacilities =
+                property.nearby_facilities || [];
+
+            const lines = [];
+
+            nearbyFacilityCategories.forEach(
+                category => {
+
+                    const match =
+                        propertyFacilities.find(
+                            f => f.category === category
+                        );
+
+                    if (!match) {
+                        return;
+                    }
+
+                    const distanceText =
+                        match.distance_m != null
+                            ? formatDistance(match.distance_m) + ' away'
+                            : 'nearby';
+
+                    lines.push(
+                        '✓ ' + formatLabel(category) + ' ' + distanceText
+                    );
+
+                }
+            );
+
+            if (lines.length === 0) {
+                return '';
+            }
+
+            return `
+                <div class="nlp-match-explanation">
+                    ${lines.map(line => `<p class="nlp-match-line">${line}</p>`).join('')}
+                </div>
+            `;
+
+        }
+
+
+        function buildPropertyCardElement(property, nearbyFacilityCategories) {
 
             const listingElement =
                 document.createElement(
                     'div'
+                );
+
+            const matchExplanationHTML =
+                buildNearbyFacilityExplanationHTML(
+                    property,
+                    nearbyFacilityCategories
                 );
 
 
@@ -1828,6 +1923,9 @@
                 </p>
 
 
+                ${matchExplanationHTML}
+
+
                 <a
                     href="${detailsURL}"
                     class="view-details-button"
@@ -1842,7 +1940,10 @@
         }
 
 
-        function renderPropertyResults(properties) {
+        function renderPropertyResults(properties, nearbyFacilityCategories) {
+
+            const requestedCategories =
+                nearbyFacilityCategories || [];
 
             const listingsContainer =
                 document.getElementById(
@@ -1864,7 +1965,8 @@
 
                         listingsContainer.appendChild(
                             buildPropertyCardElement(
-                                property
+                                property,
+                                requestedCategories
                             )
                         );
 
@@ -2103,8 +2205,18 @@
                             : null
                     );
 
+                    const requestedNearbyCategories =
+                        (
+                            (data.parsed_query
+                                && data.parsed_query.nearby_facilities)
+                            || []
+                        ).map(
+                            facility => facility.category
+                        );
+
                     renderPropertyResults(
-                        data.properties
+                        data.properties,
+                        requestedNearbyCategories
                     );
 
                 }
@@ -2257,6 +2369,38 @@
             }
 
 
+            // Stage 2 (Phase 4): tells the user when some active
+            // listings couldn't be checked against a nearby-facility
+            // requirement yet because their enrichment (see
+            // services/nearby_facility_service.py) hasn't completed -
+            // NEVER silently presented as "no gym exists" for those
+            // properties, per the task's own explicit instruction.
+            // Only rendered when the backend actually found unenriched
+            // listings for THIS query - see
+            // search_orchestration._nearby_facility_enrichment_caveat().
+            if (
+                data.nearby_facility_enrichment_caveat
+                && data.nearby_facility_enrichment_caveat.note
+            ) {
+
+                const caveatBanner =
+                    document.createElement(
+                        'div'
+                    );
+
+                caveatBanner.className =
+                    'nlp-message nlp-message-info';
+
+                caveatBanner.textContent =
+                    'ℹ️ ' + data.nearby_facility_enrichment_caveat.note;
+
+                feedbackContainer.appendChild(
+                    caveatBanner
+                );
+
+            }
+
+
             const chips =
                 buildUnderstoodFiltersChips(
                     data.parsed_query
@@ -2294,7 +2438,22 @@
 
 
             chips.forEach(
-                chipText => {
+                chipEntry => {
+
+                    // Stage 2 (Phase 4): a chip is either a plain
+                    // string (existing property-filter chips,
+                    // unchanged) or a {text, variant} object (nearby-
+                    // facility chips, which get an extra CSS class so
+                    // they also read as visually distinct, not just
+                    // differently worded).
+                    const isFacilityChip =
+                        typeof chipEntry === 'object'
+                        && chipEntry !== null;
+
+                    const chipText =
+                        isFacilityChip
+                            ? chipEntry.text
+                            : chipEntry;
 
                     const chip =
                         document.createElement(
@@ -2302,7 +2461,9 @@
                         );
 
                     chip.className =
-                        'nlp-chip';
+                        isFacilityChip && chipEntry.variant === 'facility'
+                            ? 'nlp-chip nlp-chip-facility'
+                            : 'nlp-chip';
 
                     chip.textContent =
                         chipText;
@@ -2613,7 +2774,100 @@
             }
 
 
+            // Stage 2 (Phase 4): NEARBY-FACILITY chips - deliberately
+            // worded differently from a property-amenity chip above
+            // (e.g. "Gym" from parsedQuery.amenities means the
+            // property itself has a gym; "🏋 Gym Nearby" here means a
+            // gym was found near the property - see
+            // services/nlp/nearby_facility_extractor.py's module
+            // docstring for the full amenity-vs-facility distinction).
+            // Marked with variant: 'facility' so the chip also renders
+            // in a visually distinct color, not just different text.
+            if (
+                parsedQuery.nearby_facilities
+                && parsedQuery.nearby_facilities.length > 0
+            ) {
+
+                parsedQuery.nearby_facilities.forEach(
+                    facility => {
+
+                        const radiusText =
+                            facility.radius_m != null
+                                ? 'within ' + formatDistance(facility.radius_m)
+                                : 'Nearby';
+
+                        chips.push({
+                            text:
+                                facilityIcon(facility.category)
+                                + ' '
+                                + formatLabel(facility.category)
+                                + ' '
+                                + radiusText,
+                            variant: 'facility'
+                        });
+
+                    }
+                );
+
+            }
+
+
             return chips;
+
+        }
+
+
+        /* ==================================================
+           NEARBY-FACILITY DISPLAY HELPERS (Stage 2, Phase 4)
+        ================================================== */
+
+        const NEARBY_FACILITY_ICONS = {
+            gym: '🏋',
+            hospital: '🏥',
+            school: '🏫',
+            college: '🎓',
+            supermarket: '🛒',
+            pharmacy: '💊',
+            restaurant: '🍽',
+            bank: '🏦',
+            atm: '🏧',
+            metro_station: '🚇',
+            railway_station: '🚉',
+            bus_stop: '🚌',
+            shopping_mall: '🛍',
+            park: '🌳',
+            police_station: '👮',
+            fire_station: '🚒',
+            petrol_station: '⛽'
+        };
+
+        function facilityIcon(category) {
+            return NEARBY_FACILITY_ICONS[category] || '📍';
+        }
+
+        // Only ever called with a real, stored distance_m value (from
+        // property.nearby_facilities or a parsed nearby_facilities
+        // requirement's radius_m) - never a fabricated/estimated one.
+        function formatDistance(meters) {
+
+            if (meters == null) {
+                return null;
+            }
+
+            if (meters >= 1000) {
+
+                const kilometers =
+                    meters / 1000;
+
+                return (
+                    Number.isInteger(kilometers)
+                        ? kilometers
+                        : kilometers.toFixed(1)
+                ) + ' km';
+
+            }
+
+            return Math.round(meters) + ' m';
 
         }
 

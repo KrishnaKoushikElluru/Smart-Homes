@@ -157,6 +157,20 @@ def merge_structured_fields(structured_dict: dict, overrides: dict) -> dict:
     if amenities:
         merged["amenities"] = amenities
 
+    # Stage 2 (Phase 4): NEARBY facilities, never confused with the
+    # PROPERTY amenities list just above - see
+    # services/nlp/schema.py's and nearby_facility_extractor.py's
+    # module docstrings for the full distinction. No explicit-form
+    # override exists for this today (there is no manual "nearby
+    # facility" filter in the UI), so this is always exactly what the
+    # query parsed to - nothing to merge/override here.
+    nearby_facility_requirements = [
+        {"category": f["category"], "radius_m": f["radius_m"]}
+        for f in (structured_dict.get("nearby_facilities") or [])
+    ]
+    if nearby_facility_requirements:
+        merged["nearby_facility_requirements"] = nearby_facility_requirements
+
     override_city = overrides.get("city") or ""
     override_locality = overrides.get("locality") or ""
 
@@ -367,6 +381,36 @@ def build_mongo_filter(merged: dict) -> tuple:
                 applied_amenities.append(code)
         applied["amenities"] = applied_amenities
 
+    nearby_facility_requirements = merged.get("nearby_facility_requirements") or []
+    if nearby_facility_requirements:
+        # Stage 2: uses services/nearby_facility_service.py's ALREADY-
+        # STORED nearby_facilities[] data (see that module - Mappls is
+        # NEVER called per search here, only once, at registration
+        # time). One $elemMatch per requested category - a single
+        # $elemMatch cannot require two DIFFERENT array elements to
+        # both exist, so multiple categories become multiple $and
+        # clauses (the existing $and mechanism, same as amenities
+        # above). No radius given -> match on category alone (whatever
+        # distance was actually stored at enrichment time - see
+        # NearbyFacilityRequirement's own docstring for why that's
+        # never silently treated as "any distance at all"). A radius
+        # narrower than what's actually STORED for a genuinely-close
+        # facility cannot incorrectly exclude it - $lte only ever
+        # narrows the match, never widens it past what was discovered.
+        applied_nearby = []
+        for requirement in nearby_facility_requirements:
+            category = requirement.get("category")
+            if not category:
+                continue
+            elem_match: dict = {"category": category}
+            radius_m = requirement.get("radius_m")
+            if radius_m is not None:
+                elem_match["distance_m"] = {"$lte": radius_m}
+            and_clauses.append({"nearby_facilities": {"$elemMatch": elem_match}})
+            applied_nearby.append({"category": category, "radius_m": radius_m})
+        if applied_nearby:
+            applied["nearby_facilities"] = applied_nearby
+
     city = merged.get("city")
     locality = merged.get("locality")
     if city or locality:
@@ -382,6 +426,43 @@ def build_mongo_filter(merged: dict) -> tuple:
         mongo_filter["$and"] = and_clauses
 
     return mongo_filter, applied
+
+
+def _nearby_facility_enrichment_caveat(property_service, nearby_facility_requirements: list) -> Optional[dict]:
+    """Stage 2: when a search used a nearby-facility constraint, this
+    reports how many OTHER active listings simply haven't finished
+    background enrichment yet (services/nearby_facility_service.py,
+    Stage 1) - status missing/"pending"/"failed"/"skipped". Those
+    properties are silently absent from the result set (a MongoDB
+    filter can only return matches, never explain a non-match), which
+    would otherwise look identical to "these listings genuinely have no
+    gym nearby". This turns that into an honest, visible caveat instead
+    - never claims enrichment failure means "no facility exists" (the
+    explicit requirement this exists to satisfy).
+
+    One extra, cheap count_documents() call - only made when a
+    nearby-facility constraint is actually present in the query, never
+    on every search."""
+
+    if not nearby_facility_requirements:
+        return None
+
+    unenriched_count = property_service.count({
+        "listing.status": "active",
+        "$or": [
+            {"nearby_facilities_metadata": {"$exists": False}},
+            {"nearby_facilities_metadata.status": {"$in": ["pending", "failed", "skipped"]}},
+        ],
+    })
+
+    return {
+        "unenriched_active_listings": unenriched_count,
+        "note": (
+            "Some active listings have not finished nearby-facility enrichment yet "
+            "and could not be checked for this search - this is not the same as "
+            "confirming they have no nearby match."
+        ) if unenriched_count else None,
+    }
 
 
 # ============================================================
@@ -430,6 +511,15 @@ def orchestrate_search(
 
     poi_query = merged.pop("poi_query", None)
 
+    # Stage 2: computed once, attached to every return path below (see
+    # _nearby_facility_enrichment_caveat()'s own docstring) - None when
+    # this search used no nearby-facility constraint at all, so callers
+    # never have to distinguish "no caveat" from "zero unenriched
+    # listings" via a falsy count.
+    nearby_facility_enrichment_caveat = _nearby_facility_enrichment_caveat(
+        property_service, merged.get("nearby_facility_requirements") or []
+    )
+
     if explicit_coordinates is not None:
         latitude, longitude = explicit_coordinates
 
@@ -457,6 +547,7 @@ def orchestrate_search(
             },
             "applied_filters": applied_filters,
             "properties": properties,
+            "nearby_facility_enrichment_caveat": nearby_facility_enrichment_caveat,
         }
 
     if poi_query:
@@ -476,6 +567,7 @@ def orchestrate_search(
                 "location_resolution": location_resolution,
                 "applied_filters": applied_filters,
                 "properties": [],
+                "nearby_facility_enrichment_caveat": nearby_facility_enrichment_caveat,
             }
 
         mongo_filter, applied_filters = build_mongo_filter(merged)
@@ -497,6 +589,7 @@ def orchestrate_search(
             "location_resolution": location_resolution,
             "applied_filters": applied_filters,
             "properties": properties,
+            "nearby_facility_enrichment_caveat": nearby_facility_enrichment_caveat,
         }
 
     # No POI to resolve - a plain filtered search (possibly with a
@@ -509,4 +602,5 @@ def orchestrate_search(
         "location_resolution": None,
         "applied_filters": applied_filters,
         "properties": properties,
+        "nearby_facility_enrichment_caveat": nearby_facility_enrichment_caveat,
     }

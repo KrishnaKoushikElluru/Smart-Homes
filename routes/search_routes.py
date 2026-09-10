@@ -223,6 +223,24 @@ def _serialize_property(property_item):
                 []
             ),
 
+        # Stage 2 (Phase 4): a trimmed view of the property's stored
+        # nearby_facilities (services/nearby_facility_service.py) - only
+        # the fields a result-explanation UI actually needs
+        # (category/name/distance_m), never internal fields like
+        # provider_id/coordinates/fetched_at. Used to show e.g. "Gym
+        # 650m away" using the REAL stored distance for THIS property,
+        # never a fabricated one - see templates/rentals.html's
+        # result-explanation rendering.
+        "nearby_facilities":
+            [
+                {
+                    "category": facility.get("category"),
+                    "name": facility.get("name"),
+                    "distance_m": facility.get("distance_m"),
+                }
+                for facility in property_item.get("nearby_facilities", []) or []
+            ],
+
         "image_filename":
             image_filename,
 
@@ -562,7 +580,10 @@ def search_rentals():
                 orchestration_result["location_resolution"],
 
             "applied_filters":
-                orchestration_result["applied_filters"]
+                orchestration_result["applied_filters"],
+
+            "nearby_facility_enrichment_caveat":
+                orchestration_result.get("nearby_facility_enrichment_caveat")
 
         })
 

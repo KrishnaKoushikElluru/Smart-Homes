@@ -48,16 +48,47 @@ NOT implemented here (deliberately, per this phase's scope): natural-
 language "gym nearby" search, ranking/recommendation, road/walking/
 driving distance, a scheduled refresh job. This module only builds and
 maintains the data those future phases would read.
+
+STAGE 1 ADDITION - BACKGROUND EXECUTION
+----------------------------------------
+enrich_property_nearby_facilities() itself is unchanged (still fully
+synchronous, still fully testable/callable directly - e.g. by
+scripts/backfill_nearby_facilities.py). What's new is
+start_background_enrichment(), which runs it on a plain
+threading.Thread rather than blocking the caller - see that function's
+own docstring for the full design (why a bare thread rather than
+Celery/RQ/etc, how "at most one worker per property" is guaranteed,
+why no Flask request/app context is needed or used inside the thread).
+No Celery/Redis/RabbitMQ/task-queue dependency was introduced - Python
+stdlib threading only.
 """
 
 from __future__ import annotations
 
 import re
+import threading
 import unicodedata
 from datetime import datetime, timezone
 from typing import Optional
 
 from services import mappls_service
+
+
+# ============================================================
+# ENRICHMENT STATUS VALUES
+#
+# Named here so both the synchronous core (below) and the Stage 1
+# background-worker orchestration (further below) refer to the exact
+# same literal values - "pending" specifically means "a worker has
+# been started/claimed for this property but hasn't finished yet",
+# never "no facilities were found" (see build_pending_metadata()).
+# ============================================================
+
+STATUS_PENDING = "pending"
+STATUS_COMPLETED = "completed"
+STATUS_PARTIAL = "partial"
+STATUS_FAILED = "failed"
+STATUS_SKIPPED = "skipped"
 
 # ============================================================
 # FACILITY TAXONOMY
@@ -462,3 +493,206 @@ def enrich_property_nearby_facilities(
         metadata["error"] = f"Enrichment data could not be saved: {exc}"
 
     return metadata
+
+
+# ============================================================
+# STAGE 1: BACKGROUND EXECUTION
+#
+# Everything below runs the exact same enrich_property_nearby_facilities()
+# above, just off of the HTTP request thread. Nothing about the
+# discovery/normalize/dedupe/persist logic changes - this is purely an
+# execution-model addition.
+# ============================================================
+
+def build_pending_metadata(categories: Optional[dict] = None, radius_km: Optional[float] = None) -> dict:
+    """Builds the "pending" nearby_facilities_metadata dict written
+    immediately after property creation, before any external API call
+    is made - so a property is NEVER left with no
+    nearby_facilities_metadata field at all while enrichment is in
+    flight (that would be indistinguishable from "never enriched" -
+    see enrich_property_nearby_facilities()'s own "skipped" vs "failed"
+    distinction for the same reasoning applied to a different case).
+
+    "queued_at" (when the worker was started) is kept separate from
+    "enriched_at" (when it actually finished - left None while
+    pending) specifically so a stuck/crashed pending entry can be told
+    apart from a normal in-progress one later (e.g. by a future
+    monitoring/retry pass)."""
+
+    categories = categories or FACILITY_CATEGORIES
+    radius_km = radius_km if radius_km is not None else DEFAULT_RADIUS_KM
+
+    return {
+        "status": STATUS_PENDING,
+        "source": "mappls",
+        "radius_m": radius_km * 1000.0,
+        "enriched_at": None,
+        "queued_at": datetime.now(timezone.utc),
+        "facility_count": 0,
+        "categories_requested": sorted(categories.keys()),
+        "categories_failed": {},
+        "error": None,
+    }
+
+
+def _run_enrichment_in_background(
+    property_id,
+    property_service,
+    mappls_api_key,
+    osm_service,
+    categories,
+    radius_km,
+    max_results_per_category,
+    coordinate_resolution_limit_per_category,
+) -> None:
+    """The actual thread target. enrich_property_nearby_facilities() is
+    already documented never to raise - this try/except is an
+    intentional LAST-RESORT safety net for the one execution context
+    where an uncaught exception truly has nowhere sane to go: by the
+    time this runs, the HTTP request that triggered it has already
+    returned its response, so there is no Flask request context, no
+    caller waiting, and no framework-level error handler that could
+    ever see it. An uncaught exception on a background thread does not
+    crash the Flask process (Python just logs it and the thread dies),
+    but it WOULD leave the property stuck at status="pending" forever
+    with no explanation - this converts that into an honest "failed"
+    with a reason instead."""
+
+    try:
+
+        enrich_property_nearby_facilities(
+            property_id,
+            property_service,
+            mappls_api_key,
+            osm_service,
+            categories=categories,
+            radius_km=radius_km,
+            max_results_per_category=max_results_per_category,
+            coordinate_resolution_limit_per_category=coordinate_resolution_limit_per_category,
+        )
+
+    except Exception as exc:
+
+        try:
+
+            property_service.update_property(property_id, {
+                "nearby_facilities": [],
+                "nearby_facilities_metadata": {
+                    "status": STATUS_FAILED,
+                    "source": "mappls",
+                    "radius_m": (radius_km if radius_km is not None else DEFAULT_RADIUS_KM) * 1000.0,
+                    "enriched_at": datetime.now(timezone.utc),
+                    "facility_count": 0,
+                    "categories_requested": sorted((categories or FACILITY_CATEGORIES).keys()),
+                    "categories_failed": {},
+                    "error": f"Background enrichment worker crashed: {exc}",
+                },
+            })
+
+        except Exception:
+            # Genuinely nothing more this can safely do - even the
+            # attempt to record the failure itself failed (e.g. Mongo
+            # is down). Silently giving up here is correct: there is
+            # no request/caller left to report to, and raising would
+            # only produce the exact unhandled-background-thread
+            # exception this function exists to prevent.
+            pass
+
+
+def start_background_enrichment(
+    property_id,
+    property_service,
+    mappls_api_key,
+    osm_service,
+    categories: Optional[dict] = None,
+    radius_km: Optional[float] = None,
+    max_results_per_category: Optional[int] = None,
+    coordinate_resolution_limit_per_category: Optional[int] = None,
+):
+    """
+    Stage 1 entry point: starts nearby-facility enrichment for
+    property_id on a plain daemon thread and returns IMMEDIATELY,
+    without waiting for Mappls/OSM/MongoDB. The caller (typically
+    routes/property_routes.py, right after create_property()) should
+    call this and then proceed straight to its own response - it never
+    needs to await anything here.
+
+    WHY A BARE THREAD, NOT CELERY/RQ/A TASK QUEUE: this project has no
+    message-broker/worker infrastructure today, and introducing one is
+    explicitly out of scope for this stage. A single background
+    thread per registration is proportionate to the actual workload
+    (one property, a bounded number of external calls, finishing in
+    well under a minute - see docs/PHASE_4_0_NEARBY_FACILITY_ENRICHMENT.md
+    for measured timings) and needs zero new infrastructure. The
+    tradeoff, disclosed rather than hidden: if the whole process
+    restarts while a thread is mid-run, that one enrichment is
+    abandoned (left at "pending") rather than resumed - acceptable for
+    a best-effort enrichment layer, and recoverable later (a future
+    pass can look for stuck "pending" entries older than some
+    threshold and re-run them; not built in this stage).
+
+    EXPLICIT DEPENDENCY INJECTION, NOT FLASK CONTEXT: property_service,
+    mappls_api_key, and osm_service are passed in as plain arguments
+    (matching enrich_property_nearby_facilities()'s own existing
+    convention) and are the ONLY things the spawned thread touches -
+    it never reads current_app, request, g, or any other
+    request-scoped Flask object, which would not exist by the time a
+    background thread actually runs its work (the request that spawned
+    it may well have already finished and its context been torn down).
+    property_service wraps a single shared pymongo Collection/MongoClient
+    that the whole app (across concurrent requests) already relies on
+    being safe to use concurrently - pymongo's MongoClient is documented
+    thread-safe, so no new thread-safety assumption is introduced here.
+
+    AT-MOST-ONE-WORKER-PER-PROPERTY: before starting the thread, this
+    function atomically claims the property via
+    PropertyService.claim_nearby_facilities_enrichment() - a single
+    conditional MongoDB update that only succeeds if the property isn't
+    ALREADY marked "pending". If the claim fails (someone/something
+    else already has it pending), NO thread is started - this holds
+    even across multiple app processes, not just multiple threads
+    within one, since the guarantee comes from MongoDB's own atomic
+    single-document update rather than an in-process lock.
+
+    Returns the started threading.Thread, or None if the claim failed
+    (enrichment was already pending for this property) or if the claim
+    write itself failed (treated the same as "don't start a worker" -
+    the property's metadata is left however claim_nearby_facilities_enrichment()
+    left it, and the caller's registration response is completely
+    unaffected either way).
+    """
+
+    pending_metadata = build_pending_metadata(categories, radius_km)
+
+    try:
+        claimed = property_service.claim_nearby_facilities_enrichment(
+            property_id, pending_metadata
+        )
+    except Exception:
+        # Marking "pending" is itself best-effort - if even this fails
+        # (e.g. a transient Mongo error), do not start a worker with no
+        # claim recorded (that would defeat the whole point of this
+        # guard) and do not let it affect the caller's response either.
+        return None
+
+    if not claimed:
+        return None
+
+    thread = threading.Thread(
+        target=_run_enrichment_in_background,
+        args=(
+            property_id,
+            property_service,
+            mappls_api_key,
+            osm_service,
+            categories,
+            radius_km,
+            max_results_per_category,
+            coordinate_resolution_limit_per_category,
+        ),
+        daemon=True,
+        name=f"nearby-facility-enrichment-{property_id}",
+    )
+    thread.start()
+
+    return thread

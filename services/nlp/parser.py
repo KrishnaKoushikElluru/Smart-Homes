@@ -3,9 +3,11 @@ Phase 2 NLP pipeline orchestrator.
 
     normalize
         |
-    numeric extraction (price, area)
+    nearby-facility mention detection (Stage 2)  -- mask its spans
         |
-    location mention detection
+    location mention detection                    -- mask its span
+        |
+    numeric extraction (price, area)
         |
     domain entity extraction (listing_type, property_type, bedrooms,
                                furnishing, amenities)
@@ -28,6 +30,18 @@ evaluation/nlp/ablation.py can selectively disable one stage at a time
 contribution, without duplicating this pipeline. See Phase 2.5's report,
 docs/PHASE_2_5_NLP_EVALUATION.md, section 11 (ablation study).
 
+STAGE 2 (Phase 4) ADDITION: nearby-facility mentions ("flat near a gym")
+are extracted and masked FIRST, before location extraction runs - "near
+a gym" would otherwise be misread by extract_location() as a POI
+mention (treating "gym" as a place name), and a bare "gym nearby" could
+make extract_location() try to capture unrelated TRAILING text as a
+place name (its own POI-preposition pattern matches the bare substring
+"nearby" too, not just "near"). See
+services/nlp/nearby_facility_extractor.py's module docstring for the
+full collision analysis. This is a NEW stage, not a rewrite of any
+existing one - normalization/location_extractor/entity_extractor/
+numeric_parser are all completely unmodified.
+
 NEVER calls services/mappls_service.py or services/osm_location_service.py.
 NEVER produces latitude/longitude. This is enforced by never importing
 those modules here at all - see test_nlp_parser.py's boundary tests.
@@ -40,6 +54,7 @@ import re
 from services.nlp.normalization import normalize_query
 from services.nlp.numeric_parser import extract_price, extract_area
 from services.nlp.location_extractor import extract_location
+from services.nlp.nearby_facility_extractor import extract_nearby_facilities
 from services.nlp.entity_extractor import (
     extract_listing_type, extract_property_type, extract_bedrooms,
     extract_furnishing, extract_amenities,
@@ -90,7 +105,20 @@ def _parse_configured(
 
     normalized = normalize_query(raw_query) if use_normalization else (raw_query or "").lower()
 
-    # Location is extracted FIRST and its matched span is masked out
+    # Nearby-facility mentions (Stage 2) are extracted and masked BEFORE
+    # location extraction even runs - see this file's module docstring
+    # and nearby_facility_extractor.py's for why ("near a gym" / "gym
+    # nearby" would otherwise confuse extract_location()'s own
+    # POI-preposition matching).
+    nearby_facilities = extract_nearby_facilities(normalized)
+    text_for_location = normalized
+    for requirement in nearby_facilities:
+        if requirement.raw_text:
+            text_for_location = text_for_location.replace(
+                requirement.raw_text, " " * len(requirement.raw_text)
+            )
+
+    # Location is extracted next and its matched span is masked out
     # before every other extractor runs, so a place name that happens to
     # contain an ordinary English word ("Guindy National PARK") can
     # never also be picked up as an amenity/entity mention. A real
@@ -98,10 +126,10 @@ def _parse_configured(
     # Park" was extracting amenity="park" from inside the place name.
     # (use_location_masking=False reproduces exactly this bug on purpose
     # - see the "no location masking" ablation config.)
-    location = extract_location(normalized, original_text=raw_query)
-    working_text = normalized
+    location = extract_location(text_for_location, original_text=raw_query)
+    working_text = text_for_location
     if use_location_masking and location and location.raw_text:
-        working_text = normalized.replace(location.raw_text, " " * len(location.raw_text))
+        working_text = text_for_location.replace(location.raw_text, " " * len(location.raw_text))
 
     listing_type = extract_listing_type(working_text)
     property_type = extract_property_type(working_text)
@@ -126,7 +154,7 @@ def _parse_configured(
 
     has_any_signal = any([
         listing_type, property_type, bedrooms, furnishing, price, area,
-        amenities, location,
+        amenities, location, nearby_facilities,
     ])
     # A query can be unmistakably real-estate-related even when nothing
     # maps to a known slot ("gated community with vastu compliance") -
@@ -150,6 +178,7 @@ def _parse_configured(
         area=area,
         amenities=amenities,
         location=location,
+        nearby_facilities=nearby_facilities,
         unsupported_phrases=unsupported,
         warnings=warnings,
     )

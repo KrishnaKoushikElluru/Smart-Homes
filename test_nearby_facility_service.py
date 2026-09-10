@@ -22,15 +22,17 @@ from services import nearby_facility_service as nfs
 
 class FakePropertyService:
     """In-memory stand-in for services.property_services.PropertyService -
-    only the two methods enrich_property_nearby_facilities() actually
-    calls."""
+    only the methods enrich_property_nearby_facilities() and (Stage 1)
+    start_background_enrichment() actually call."""
 
     def __init__(self, properties=None):
         self.properties = properties or {}
         self.update_calls = []
         self.get_calls = []
+        self.claim_calls = []
         self.raise_on_get = None
         self.raise_on_update = None
+        self.raise_on_claim = None
 
     def get_property(self, property_id):
         self.get_calls.append(property_id)
@@ -43,6 +45,20 @@ class FakePropertyService:
         if self.raise_on_update:
             raise self.raise_on_update
         self.properties.setdefault(property_id, {}).update(updates)
+        return True
+
+    def claim_nearby_facilities_enrichment(self, property_id, pending_metadata):
+        """Mirrors the real atomic-claim semantics: succeeds unless the
+        property is already marked "pending"."""
+        self.claim_calls.append((property_id, pending_metadata))
+        if self.raise_on_claim:
+            raise self.raise_on_claim
+        existing = self.properties.get(property_id, {})
+        current_status = (existing.get("nearby_facilities_metadata") or {}).get("status")
+        if current_status == "pending":
+            return False
+        self.properties.setdefault(property_id, {})["nearby_facilities_metadata"] = pending_metadata
+        return True
         return True
 
 
@@ -595,6 +611,178 @@ class ProviderIdentityTests(unittest.TestCase):
         self.assertEqual(result["facility_count"], 1)
         stored = prop_service.properties["p1"]["nearby_facilities"][0]
         self.assertIsNone(stored["provider_id"])
+
+
+# ============================================================
+# STAGE 1: BACKGROUND EXECUTION
+# ============================================================
+
+class BuildPendingMetadataTests(unittest.TestCase):
+
+    def test_pending_metadata_has_pending_status_and_null_enriched_at(self):
+        metadata = nfs.build_pending_metadata()
+        self.assertEqual(metadata["status"], "pending")
+        self.assertIsNone(metadata["enriched_at"])
+        self.assertIsNotNone(metadata["queued_at"])
+        self.assertEqual(metadata["facility_count"], 0)
+
+    def test_pending_metadata_reflects_requested_categories_and_radius(self):
+        metadata = nfs.build_pending_metadata(categories={"gym": "gym"}, radius_km=1.5)
+        self.assertEqual(metadata["categories_requested"], ["gym"])
+        self.assertEqual(metadata["radius_m"], 1500.0)
+
+
+class StartBackgroundEnrichmentTests(unittest.TestCase):
+
+    def test_registration_does_not_wait_for_the_full_enrichment(self):
+        # The core proof that this is non-blocking: enrich_property_nearby_facilities
+        # is made to block on an Event that the test itself controls: if
+        # start_background_enrichment() returned only after that
+        # function finished, this test would hang and time out.
+        import threading as threading_module
+
+        release_worker = threading_module.Event()
+        worker_started = threading_module.Event()
+
+        def slow_enrichment(*args, **kwargs):
+            worker_started.set()
+            release_worker.wait(timeout=5)
+            return {"status": "completed"}
+
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        with patch("services.nearby_facility_service.enrich_property_nearby_facilities", side_effect=slow_enrichment):
+
+            thread = nfs.start_background_enrichment(
+                "p1", prop_service, "key", FakeOSMService(),
+            )
+
+            # start_background_enrichment() must already have returned here,
+            # BEFORE the worker function has been allowed to finish.
+            self.assertIsNotNone(thread)
+            worker_started.wait(timeout=2)  # give the thread a moment to actually start
+            self.assertTrue(worker_started.is_set())
+
+            release_worker.set()
+            thread.join(timeout=5)
+
+    def test_property_is_marked_pending_synchronously_before_thread_finishes(self):
+        import threading as threading_module
+
+        release_worker = threading_module.Event()
+
+        def slow_enrichment(*args, **kwargs):
+            release_worker.wait(timeout=5)
+            return {"status": "completed"}
+
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        with patch("services.nearby_facility_service.enrich_property_nearby_facilities", side_effect=slow_enrichment):
+
+            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+
+            # Pending must already be visible - written by
+            # start_background_enrichment() itself, synchronously,
+            # before the thread was even started.
+            self.assertEqual(
+                prop_service.properties["p1"]["nearby_facilities_metadata"]["status"], "pending"
+            )
+
+            release_worker.set()
+            thread.join(timeout=5)
+
+    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
+    def test_worker_receives_the_required_dependencies_and_transitions_pending_to_completed(self, mock_find_nearby):
+        mock_find_nearby.return_value = mappls_matched([raw_place(name="Test Gym", eloc="G1")])
+        osm = FakeOSMService()
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        thread = nfs.start_background_enrichment(
+            "p1", prop_service, "real-key", osm, categories={"gym": "gym"},
+        )
+        thread.join(timeout=5)
+
+        final_metadata = prop_service.properties["p1"]["nearby_facilities_metadata"]
+        self.assertEqual(final_metadata["status"], "completed")
+        self.assertEqual(final_metadata["facility_count"], 1)
+        # Confirms the real Mappls call actually received the key passed
+        # into start_background_enrichment (i.e. the dependency really
+        # reached the worker, not just a fake/default).
+        mock_find_nearby.assert_called_with("gym", "12.8406,80.1538", 2000.0, "real-key")
+
+    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
+    def test_worker_transitions_pending_to_partial_on_partial_failure(self, mock_find_nearby):
+        def side_effect(keyword, ref_location, radius_m, api_key):
+            if keyword == "gym":
+                return mappls_matched([raw_place(name="Test Gym", eloc="G1")])
+            return mappls_error("boom")
+
+        mock_find_nearby.side_effect = side_effect
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        thread = nfs.start_background_enrichment(
+            "p1", prop_service, "key", FakeOSMService(),
+            categories={"gym": "gym", "hospital": "hospital"},
+        )
+        thread.join(timeout=5)
+
+        final_metadata = prop_service.properties["p1"]["nearby_facilities_metadata"]
+        self.assertEqual(final_metadata["status"], "partial")
+
+    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
+    def test_worker_transitions_pending_to_failed_when_all_categories_fail(self, mock_find_nearby):
+        mock_find_nearby.return_value = mappls_error("boom")
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        thread = nfs.start_background_enrichment(
+            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+        )
+        thread.join(timeout=5)
+
+        final_metadata = prop_service.properties["p1"]["nearby_facilities_metadata"]
+        self.assertEqual(final_metadata["status"], "failed")
+
+    def test_worker_exception_is_contained_and_recorded_as_failed(self):
+        # A raw, unexpected exception from inside enrich_property_nearby_facilities
+        # itself (which is documented never to raise, but this proves the
+        # background thread's own last-resort safety net works even if
+        # that contract is ever violated).
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+
+        with patch(
+            "services.nearby_facility_service.enrich_property_nearby_facilities",
+            side_effect=RuntimeError("boom - totally unexpected crash"),
+        ):
+            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+            # The exception must not propagate out of thread.join() / crash the test process.
+            thread.join(timeout=5)
+
+        final_metadata = prop_service.properties["p1"]["nearby_facilities_metadata"]
+        self.assertEqual(final_metadata["status"], "failed")
+        self.assertIn("boom - totally unexpected crash", final_metadata["error"])
+
+    def test_second_call_for_an_already_pending_property_does_not_start_a_second_worker(self):
+        prop = property_with_coordinates()
+        prop["nearby_facilities_metadata"] = {"status": "pending"}
+        prop_service = FakePropertyService({"p1": prop})
+
+        with patch("services.nearby_facility_service.enrich_property_nearby_facilities") as mock_enrich:
+
+            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+
+            self.assertIsNone(thread)
+            mock_enrich.assert_not_called()
+
+    def test_claim_failure_due_to_exception_does_not_start_a_worker_or_raise(self):
+        prop_service = FakePropertyService({"p1": property_with_coordinates()})
+        prop_service.raise_on_claim = RuntimeError("mongo down")
+
+        with patch("services.nearby_facility_service.enrich_property_nearby_facilities") as mock_enrich:
+
+            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+
+            self.assertIsNone(thread)
+            mock_enrich.assert_not_called()
 
 
 if __name__ == "__main__":
