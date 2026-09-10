@@ -10,7 +10,8 @@ services/nlp/*'s test conventions (see test_nlp_parser.py).
 import unittest
 
 from services.nlp.nearby_facility_extractor import (
-    extract_nearby_facilities, NEARBY_FACILITY_CATEGORIES, _FACILITY_NOUNS,
+    extract_nearby_facilities, extract_unsupported_nearby_mentions,
+    NEARBY_FACILITY_CATEGORIES, _FACILITY_NOUNS,
 )
 from services.nlp.schema import NEARBY_FACILITY_CATEGORIES as SCHEMA_CATEGORIES
 
@@ -178,6 +179,125 @@ class NoMatchTests(unittest.TestCase):
         # Chennai" entirely for location_extractor.py (unmodified) to
         # handle as a POI mention.
         self.assertEqual(extract_nearby_facilities("flat near vit chennai"), [])
+
+
+class ShouldBeNearbyTests(unittest.TestCase):
+    """"<facility> should be nearby" - a copula between the facility and
+    "nearby" - is recognized the same as the bare "<facility> nearby"
+    postfix form."""
+
+    def test_gym_should_be_nearby(self):
+        result = extract_nearby_facilities("gym should be nearby")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].category, "gym")
+        self.assertIsNone(result[0].radius_m)
+
+    def test_hospital_should_be_nearby(self):
+        result = extract_nearby_facilities("hospital should be nearby")
+        self.assertEqual(result[0].category, "hospital")
+
+    def test_bus_stop_nearby_bare(self):
+        result = extract_nearby_facilities("bus stop nearby")
+        self.assertEqual(result[0].category, "bus_stop")
+
+
+class WalkableDistanceTests(unittest.TestCase):
+    """"walkable"/"walking distance" is QUALITATIVE - the facility
+    requirement must be kept, but radius_m must stay None (never a
+    fabricated number) - see this module's docstring."""
+
+    def test_bus_stop_should_be_in_walkable_distance(self):
+        result = extract_nearby_facilities("bus stop should be in walkable distance")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].category, "bus_stop")
+        self.assertIsNone(result[0].radius_m)
+        self.assertIn("walkable distance", result[0].raw_text)
+
+    def test_gym_walking_distance_synonym(self):
+        result = extract_nearby_facilities("gym in walking distance")
+        self.assertEqual(result[0].category, "gym")
+        self.assertIsNone(result[0].radius_m)
+
+    def test_walkable_distance_never_produces_a_radius(self):
+        result = extract_nearby_facilities("hospital should be in walkable distance")
+        for r in result:
+            self.assertIsNone(r.radius_m)
+
+
+class CoordinatedGroupTests(unittest.TestCase):
+    """A coordinated list of facilities sharing one trailing "nearby" /
+    "should be nearby" - generic list-of-known-nouns handling, not a
+    hardcoded pairing of any two specific words (see this module's
+    docstring)."""
+
+    def test_gym_and_pool_should_be_nearby_extracts_gym(self):
+        # "pool" is intentionally NOT a supported category (see
+        # UnsupportedPoolTests below) - only "gym" should come back here.
+        result = extract_nearby_facilities("gym and pool should be nearby")
+        categories = {r.category for r in result}
+        self.assertEqual(categories, {"gym"})
+
+    def test_three_way_coordination(self):
+        result = extract_nearby_facilities("gym, hospital and bank should be nearby")
+        categories = {r.category for r in result}
+        self.assertEqual(categories, {"gym", "hospital", "bank"})
+
+    def test_coordination_does_not_duplicate_a_category_already_found_directly(self):
+        # "near a gym" is already caught by the single-noun preposition
+        # pattern; the coordinated-group pass must not add a second gym
+        # entry for the same category.
+        result = extract_nearby_facilities("near a gym and pool should be nearby")
+        gym_entries = [r for r in result if r.category == "gym"]
+        self.assertEqual(len(gym_entries), 1)
+
+    def test_pool_first_in_list_still_lets_hospital_be_found(self):
+        # Regression test for a real masking-order bug found while
+        # building this fix: when the UNSUPPORTED noun appears FIRST in
+        # the coordinated list ("pool and hospital..."), hospital's own
+        # single-noun match ("hospital should be nearby") got masked
+        # first, and the leftover "pool and" then leaked through to
+        # entity_extractor's property-amenity lexicon because the
+        # unsupported-mention masking (computed against the ORIGINAL
+        # text) could no longer find its now-partially-masked span. The
+        # fix masks all nearby-facility spans longest-first (see
+        # services/nlp/parser.py) - this test simply checks the
+        # extractor's own output stays correct regardless of masking.
+        result = extract_nearby_facilities("pool and hospital should be nearby")
+        categories = {r.category for r in result}
+        self.assertEqual(categories, {"hospital"})
+
+
+class UnsupportedPoolTests(unittest.TestCase):
+    """swimming_pool is NOT in NEARBY_FACILITY_CATEGORIES (the real
+    Phase 4 Mappls taxonomy has no verified "swimming pool" category) -
+    a proximity-wrapped pool mention must be reported as an explicitly
+    UNSUPPORTED nearby-facility mention, never as a
+    NearbyFacilityRequirement and never silently left for
+    entity_extractor.py to reinterpret as a property amenity."""
+
+    def test_pool_nearby_is_not_a_nearby_facility_requirement(self):
+        self.assertEqual(extract_nearby_facilities("pool nearby"), [])
+
+    def test_pool_nearby_is_reported_as_unsupported(self):
+        result = extract_unsupported_nearby_mentions("pool nearby")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["category"], "swimming_pool")
+
+    def test_swimming_pool_should_be_nearby_is_unsupported(self):
+        result = extract_unsupported_nearby_mentions("swimming pool should be nearby")
+        categories = {r["category"] for r in result}
+        self.assertEqual(categories, {"swimming_pool"})
+
+    def test_bare_pool_with_no_proximity_wrapper_is_not_flagged(self):
+        # "flat with a pool" is a property AMENITY, not a nearby-facility
+        # mention at all - this module must stay silent so
+        # entity_extractor.py's existing amenity lexicon handles it,
+        # exactly like the gym/park amenity-vs-nearby distinction.
+        self.assertEqual(extract_unsupported_nearby_mentions("flat with a pool"), [])
+        self.assertEqual(extract_nearby_facilities("flat with a pool"), [])
+
+    def test_swimming_pool_not_in_supported_taxonomy(self):
+        self.assertNotIn("swimming_pool", NEARBY_FACILITY_CATEGORIES)
 
 
 if __name__ == "__main__":

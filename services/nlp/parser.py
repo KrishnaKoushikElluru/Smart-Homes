@@ -54,7 +54,9 @@ import re
 from services.nlp.normalization import normalize_query
 from services.nlp.numeric_parser import extract_price, extract_area
 from services.nlp.location_extractor import extract_location
-from services.nlp.nearby_facility_extractor import extract_nearby_facilities
+from services.nlp.nearby_facility_extractor import (
+    extract_nearby_facilities, extract_unsupported_nearby_mentions,
+)
 from services.nlp.entity_extractor import (
     extract_listing_type, extract_property_type, extract_bedrooms,
     extract_furnishing, extract_amenities,
@@ -111,12 +113,40 @@ def _parse_configured(
     # nearby" would otherwise confuse extract_location()'s own
     # POI-preposition matching).
     nearby_facilities = extract_nearby_facilities(normalized)
+
+    # A recognized-but-UNSUPPORTED nearby-facility mention ("pool nearby"
+    # - see nearby_facility_extractor.py's docstring, "POOL / SWIMMING
+    # POOL") must be masked out too, for the same reason a supported one
+    # is: left unmasked, entity_extractor.py's property-amenity lexicon
+    # would pick up the bare "pool" and silently misreport it as the
+    # property's OWN amenity, when the user actually asked for a nearby
+    # one - exactly the amenity/nearby-facility confusion this whole
+    # layer exists to prevent. Surfaced explicitly via unsupported_phrases
+    # instead (the same mechanism already used for other recognized-but-
+    # unmapped domain language below), never silently dropped and never
+    # silently reinterpreted.
+    unsupported_nearby = extract_unsupported_nearby_mentions(normalized)
+
+    # Both extractors above run independently against the SAME original
+    # `normalized` text, so their raw_text spans can overlap or nest (a
+    # coordinated-group match like "pool and hospital should be nearby"
+    # fully contains the shorter single-noun match "hospital should be
+    # nearby" found for a different category). Masking shorter-first
+    # would blank part of a longer span before it's masked, so the
+    # longer .replace() call then can't find its own text anymore and
+    # silently becomes a no-op - a real bug caught while testing this
+    # fix ("pool and hospital should be nearby" leaving "pool" unmasked
+    # and mis-picked-up as a property amenity). Masking LONGEST-first
+    # guarantees every span is still intact when it's its turn; a
+    # shorter span fully inside an already-masked region then correctly
+    # no-ops instead of corrupting anything.
+    all_raw_spans = [r.raw_text for r in nearby_facilities if r.raw_text]
+    all_raw_spans.extend(m["raw_text"] for m in unsupported_nearby if m.get("raw_text"))
     text_for_location = normalized
-    for requirement in nearby_facilities:
-        if requirement.raw_text:
-            text_for_location = text_for_location.replace(
-                requirement.raw_text, " " * len(requirement.raw_text)
-            )
+    for raw_text in sorted(set(all_raw_spans), key=len, reverse=True):
+        text_for_location = text_for_location.replace(
+            raw_text, " " * len(raw_text)
+        )
 
     # Location is extracted next and its matched span is masked out
     # before every other extractor runs, so a place name that happens to
@@ -150,7 +180,26 @@ def _parse_configured(
     ):
         warnings.append("price constraint has no explicit operator keyword; interpreted as a target value, not a bound")
 
+    # "walkable"/"walking distance" is a QUALITATIVE phrase this phase's
+    # data model has no numeric radius for - the facility requirement is
+    # kept (radius_m=None, same as an unqualified "nearby"), never given
+    # a fabricated distance, but the query DID ask for something more
+    # specific than "no preference" - surfaced explicitly rather than
+    # silently collapsed into an ordinary unqualified requirement. See
+    # nearby_facility_extractor.py's docstring.
+    for requirement in nearby_facilities:
+        if requirement.raw_text and re.search(r"\bwalk(?:able|ing)\s+distance\b", requirement.raw_text):
+            warnings.append(
+                f"'{requirement.raw_text}' asks for {requirement.category} within walking distance, "
+                "which this system cannot resolve to a specific radius; kept as an unqualified "
+                "nearby-facility requirement instead of inventing a distance"
+            )
+
     unsupported = _detect_unsupported(working_text)
+    unsupported.extend(
+        f"{mention['category']} nearby (recognized but not a supported nearby-facility category)"
+        for mention in unsupported_nearby
+    )
 
     has_any_signal = any([
         listing_type, property_type, bedrooms, furnishing, price, area,

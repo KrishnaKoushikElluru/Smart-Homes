@@ -167,6 +167,17 @@ class LocationExtractionTests(unittest.TestCase):
         self.assertEqual(r.location.query, "Guindy National Park")
         self.assertEqual(r.amenities, [])
 
+    def test_comma_boundary_vit_chennai_with_gym_clause(self):
+        # Regression test for the documented Phase-4-Stage-2 bug: "near
+        # VIT Chennai, i need a gym nearby" was capturing the ENTIRE
+        # trailing clause as the location.
+        r = parse("i want a flat near VIT chennai, i need a gym nearby")
+        self.assertEqual(r.location.query, "VIT chennai")
+
+    def test_comma_boundary_apollo_hospital(self):
+        r = parse("looking near Apollo Hospital Chennai, close to a school")
+        self.assertEqual(r.location.query, "Apollo Hospital Chennai")
+
 
 class MultiConstraintTests(unittest.TestCase):
 
@@ -189,6 +200,62 @@ class MultiConstraintTests(unittest.TestCase):
         self.assertEqual(r.price.value, 15_000_000.0)
         self.assertEqual(r.location.query, "Chennai")
         self.assertEqual([a.value for a in r.amenities], ["swimming_pool"])
+
+
+class NearbyFacilityCorrectnessPassTests(unittest.TestCase):
+    """Integration-level regression tests for the specific queries
+    reported as broken during manual UI testing (comma-boundary
+    location over-capture, furnishing collapsing to "fully" whenever it
+    followed a masked span, and the nearby-facility relationship
+    extensions - "should be nearby", "walkable distance", coordinated
+    lists, and the unsupported "pool" mention)."""
+
+    def test_query_a_vit_gym_semi_furnished(self):
+        r = parse("i want a flat near VIT chennai, i need a gym nearby, it should be semi furnished")
+        self.assertEqual(r.location.type, "poi")
+        self.assertEqual(r.location.query, "VIT chennai")
+        self.assertEqual(r.furnishing.value, "semi_furnished")
+        categories = {f.category for f in r.nearby_facilities}
+        self.assertEqual(categories, {"gym"})
+
+    def test_query_b_semi_furnished_price_gym_amenity(self):
+        r = parse("semi furnished flat in Chennai under 30k with gym")
+        self.assertEqual(r.furnishing.value, "semi_furnished")
+        self.assertEqual(r.price.value, 30000.0)
+        self.assertEqual(r.location.query, "Chennai")
+        self.assertEqual([a.value for a in r.amenities], ["gym"])
+        self.assertEqual(r.nearby_facilities, [])
+
+    def test_query_c_vit_furnishing_coordinated_facilities_and_walkable(self):
+        r = parse(
+            "i want a flat near VIT chennai, flat should be semi furnished, "
+            "gym and pool should be nearby, bus stop should be in walkable distance"
+        )
+        self.assertEqual(r.location.query, "VIT chennai")
+        self.assertEqual(r.furnishing.value, "semi_furnished")
+        categories = {f.category for f in r.nearby_facilities}
+        self.assertEqual(categories, {"gym", "bus_stop"})
+        # swimming_pool is not a supported nearby-facility category -
+        # must be surfaced as unsupported, never as a property amenity.
+        self.assertEqual(r.amenities, [])
+        self.assertTrue(any("swimming_pool" in phrase for phrase in r.unsupported_phrases))
+        # "walkable distance" must never produce a fabricated radius.
+        bus_stop = next(f for f in r.nearby_facilities if f.category == "bus_stop")
+        self.assertIsNone(bus_stop.radius_m)
+        self.assertTrue(any("walking distance" in w for w in r.warnings))
+
+    def test_vit_chennai_and_gym_both_preserved_simultaneously(self):
+        # Neither extraction stage may mask away the other's signal.
+        r = parse("flat near VIT Chennai with a gym nearby")
+        self.assertEqual(r.location.query, "VIT Chennai")
+        self.assertEqual([f.category for f in r.nearby_facilities], ["gym"])
+
+    def test_existing_amenity_gym_behavior_unchanged(self):
+        # "with a gym" (property amenity) must still never become a
+        # nearby-facility requirement.
+        r = parse("flat with a gym")
+        self.assertEqual([a.value for a in r.amenities], ["gym"])
+        self.assertEqual(r.nearby_facilities, [])
 
 
 class AmbiguousAndUnsupportedTests(unittest.TestCase):

@@ -81,11 +81,31 @@ _KNOWN_CITIES = {
 }
 
 
+# A comma (or semicolon) ends a POI/area clause exactly like a stop word
+# does - "near VIT Chennai, i need a gym nearby" is two clauses, not one
+# place name that happens to contain "i need a gym nearby". This is
+# generic punctuation handling, not a per-place special case: it applies
+# identically regardless of which words appear on either side of the
+# comma - see test_location_extractor.py's CommaBoundaryTests, which
+# checks this against several different POI names precisely to prove
+# that. A real, pre-existing bug (documented in
+# docs/PHASE_4_STAGE_2_NEARBY_FACILITY_SEARCH.md's "known limitation"
+# section) before this fix: _capture_phrase only looked for the next
+# STOP_WORD, so a comma-separated trailing clause with no stop word of
+# its own (e.g. "i need a gym nearby") was captured as part of the place
+# name instead of ending it.
+_CLAUSE_BOUNDARY_PATTERN = r","
+
+
 def _capture_phrase(text: str, start: int) -> str:
-    """From `start`, capture tokens until a stop-word/end of string."""
+    """From `start`, capture tokens until a stop-word, a clause-boundary
+    comma, or end of string - whichever comes first."""
     remainder = text[start:]
-    m = re.search(_STOP_PATTERN, remainder)
-    phrase = remainder[: m.start()] if m else remainder
+    stop_match = re.search(_STOP_PATTERN, remainder)
+    comma_match = re.search(_CLAUSE_BOUNDARY_PATTERN, remainder)
+    end_positions = [m.start() for m in (stop_match, comma_match) if m]
+    end = min(end_positions) if end_positions else len(remainder)
+    phrase = remainder[:end]
     # Trim trailing connector words that shouldn't be part of the place name.
     phrase = re.sub(r"\s+(?:with|having|and)\s*$", "", phrase).strip()
     phrase = phrase.strip(" ,.")

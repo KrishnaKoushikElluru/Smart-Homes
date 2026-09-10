@@ -98,11 +98,20 @@ def extract_bedrooms(text: str) -> Optional[Slot]:
 # ============================================================
 
 def extract_furnishing(text: str) -> Optional[Slot]:
-    if re.search(r"\bsemi[\s]?furnished\b", text):
+    # `\s*` (zero-OR-MORE), not `[\s]?` (zero-or-ONE): upstream masking
+    # (nearby-facility / location span replacement - see
+    # services/nlp/parser.py) replaces a matched span with spaces equal
+    # to its own length, which can legitimately leave MULTIPLE spaces
+    # between "semi"/"fully"/"un" and "furnished" if something in
+    # between got masked. A real bug this fixes: `[\s]?` only tolerates
+    # at most one space, so "semi   furnished" (3 spaces) fell through
+    # all the way to the bare "furnished" pattern below and was
+    # misreported as fully_furnished instead of semi_furnished.
+    if re.search(r"\bsemi\s*furnished\b", text):
         return Slot(value="semi_furnished", confidence=0.95, source="lexicon_match:semi_furnished")
-    if re.search(r"\bun\s?furnished\b|\bnot furnished\b", text):
+    if re.search(r"\bun\s*furnished\b|\bnot\s+furnished\b", text):
         return Slot(value="unfurnished", confidence=0.95, source="lexicon_match:unfurnished")
-    if re.search(r"\bfully[\s]?furnished\b", text):
+    if re.search(r"\bfully\s*furnished\b", text):
         return Slot(value="fully_furnished", confidence=0.95, source="lexicon_match:fully_furnished")
     if re.search(r"\bfurnished\b", text):
         return Slot(value="fully_furnished", confidence=0.7, source="lexicon_match:furnished_bare")
