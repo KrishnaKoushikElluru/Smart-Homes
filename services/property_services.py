@@ -49,6 +49,19 @@ class PropertyService:
             [("location.coordinates", "2dsphere")]
         )
 
+        # Phase 4.0 (services/nearby_facility_service.py): a multikey
+        # 2dsphere index over each embedded nearby_facilities[] entry's
+        # "coordinates" field. Not queried by anything in this phase -
+        # added now purely so the data model is ready for a future
+        # "property within 1 km of a school" style search without a
+        # migration. A facility whose coordinates couldn't be resolved
+        # (coordinates: None - see nearby_facility_service.py) is
+        # simply not included in this index; that's normal, not an
+        # error, for a multikey geospatial index over an array.
+        self.collection.create_index(
+            [("nearby_facilities.coordinates", "2dsphere")]
+        )
+
 
     # ========================================================
     # CREATE

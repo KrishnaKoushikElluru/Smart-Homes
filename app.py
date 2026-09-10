@@ -20,6 +20,7 @@ from models import User
 from services.mongo_service import MongoService
 from services.property_services import PropertyService
 from services.osm_location_service import OSMLocationService
+from services import nearby_facility_service
 load_dotenv("secret.env")
 from routes.auth_routes import auth_bp
 from routes.property_routes import property_bp
@@ -130,6 +131,24 @@ app.config["OSM_MATCH_MIN_MARGIN"] = float(os.getenv(
 app.config["SEARCH_POI_RADIUS_KM"] = float(os.getenv(
     "SEARCH_POI_RADIUS_KM",
     "5.0"
+))
+
+
+# ============================================================
+# PHASE 4.0 NEARBY FACILITY ENRICHMENT CONFIGURATION
+#
+# The discovery radius (in km) used when a newly-registered property is
+# enriched with nearby facilities (gyms, hospitals, schools, etc - see
+# services/nearby_facility_service.py). Deliberately separate from
+# SEARCH_POI_RADIUS_KM above - that one governs how far a natural-
+# language property SEARCH looks around an ambiguous landmark; this one
+# governs what counts as a "nearby" AMENITY for a registered property,
+# a tighter, more real-estate-relevant distance.
+# ============================================================
+
+app.config["NEARBY_FACILITY_RADIUS_KM"] = float(os.getenv(
+    "NEARBY_FACILITY_RADIUS_KM",
+    str(nearby_facility_service.DEFAULT_RADIUS_KM)
 ))
 
 

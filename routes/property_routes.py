@@ -55,6 +55,7 @@ from services.media_service import (
 
 from services import geospatial_service
 from services import mappls_service
+from services import nearby_facility_service
 
 
 property_bp = Blueprint(
@@ -1008,8 +1009,32 @@ def submit_listing():
         get_property_service()
     )
 
-    property_service.create_property(
+    property_id = property_service.create_property(
         property_data
+    )
+
+
+    # ========================================================
+    # NEARBY FACILITY ENRICHMENT (Phase 4.0 - best-effort)
+    #
+    # Property creation above is the operation that matters - this call
+    # never raises (see services/nearby_facility_service.py's module
+    # docstring) and its own success/failure is recorded on the
+    # property document (nearby_facilities_metadata), never allowed to
+    # affect the redirect/flash below. Coordinates are guaranteed valid
+    # at this point (parse_latitude_longitude() already required them
+    # earlier in this function), so this always attempts enrichment for
+    # a listing created through this route - it is the service's own
+    # job to skip gracefully if that ever isn't true for some other
+    # caller (e.g. a future bulk-import path).
+    # ========================================================
+
+    nearby_facility_service.enrich_property_nearby_facilities(
+        property_id,
+        property_service,
+        current_app.config.get("MAPPLS_API_KEY"),
+        current_app.extensions.get("osm_location_service"),
+        radius_km=current_app.config.get("NEARBY_FACILITY_RADIUS_KM"),
     )
 
     flash(
