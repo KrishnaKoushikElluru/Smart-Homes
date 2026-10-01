@@ -1,0 +1,123 @@
+{
+  "manifest_size": 5,
+  "used_real_estate_manifest": false,
+  "siglip2": {
+    "model_name": "SigLIP2",
+    "checkpoint": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "load_seconds": 1.6697067000059178,
+    "n_images_embedded": 5,
+    "embedding_latency_seconds": {
+      "mean": 0.6306531800015364,
+      "min": 0.3720372999960091,
+      "max": 1.6423242000018945
+    },
+    "approx_memory_mb": {
+      "before_load": 20.85546875,
+      "after_embedding": 1071.02734375,
+      "delta": 1050.171875
+    },
+    "nearest_neighbor_examples": [
+      {
+        "query_id": "WIN_20241125_13_57_15_Pro.jpg",
+        "query_true_content": "dorm_room_photo",
+        "nearest_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.9715186473622162,
+        "same_true_content": true
+      },
+      {
+        "query_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "query_true_content": "dorm_room_photo",
+        "nearest_id": "WIN_20241125_13_57_15_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.9715186473622162,
+        "same_true_content": true
+      },
+      {
+        "query_id": "WIN_20231207_22_49_20_Pro.jpg",
+        "query_true_content": "personal_selfie_photo",
+        "nearest_id": "WIN_20240919_13_26_25_Pro.jpg",
+        "nearest_true_content": "personal_selfie_photo",
+        "cosine_similarity": 0.8386619691256015,
+        "same_true_content": true
+      },
+      {
+        "query_id": "WIN_20240919_13_26_25_Pro.jpg",
+        "query_true_content": "personal_selfie_photo",
+        "nearest_id": "WIN_20231207_22_49_20_Pro.jpg",
+        "nearest_true_content": "personal_selfie_photo",
+        "cosine_similarity": 0.8386619691256015,
+        "same_true_content": true
+      },
+      {
+        "query_id": "8918826087604660bd2ccfae7bca5230.jpg",
+        "query_true_content": "devotional_wallpaper",
+        "nearest_id": "WIN_20240919_13_26_25_Pro.jpg",
+        "nearest_true_content": "personal_selfie_photo",
+        "cosine_similarity": 0.573884073488978,
+        "same_true_content": false
+      }
+    ]
+  },
+  "dinov2": {
+    "model_name": "DINOv2",
+    "checkpoint": "facebook/dinov2-base",
+    "embedding_dim": 768,
+    "load_seconds": 240.17325540000456,
+    "n_images_embedded": 5,
+    "embedding_latency_seconds": {
+      "mean": 0.401608960001613,
+      "min": 0.3477586000080919,
+      "max": 0.48620990000199527
+    },
+    "approx_memory_mb": {
+      "before_load": 716.03125,
+      "after_embedding": 1055.3984375,
+      "delta": 339.3671875
+    },
+    "nearest_neighbor_examples": [
+      {
+        "query_id": "WIN_20241125_13_57_15_Pro.jpg",
+        "query_true_content": "dorm_room_photo",
+        "nearest_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.9133902575325084,
+        "same_true_content": true
+      },
+      {
+        "query_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "query_true_content": "dorm_room_photo",
+        "nearest_id": "WIN_20241125_13_57_15_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.9133902575325084,
+        "same_true_content": true
+      },
+      {
+        "query_id": "WIN_20231207_22_49_20_Pro.jpg",
+        "query_true_content": "personal_selfie_photo",
+        "nearest_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.3321338917222746,
+        "same_true_content": false
+      },
+      {
+        "query_id": "WIN_20240919_13_26_25_Pro.jpg",
+        "query_true_content": "personal_selfie_photo",
+        "nearest_id": "WIN_20241125_13_57_16_Pro.jpg",
+        "nearest_true_content": "dorm_room_photo",
+        "cosine_similarity": 0.3787577228022776,
+        "same_true_content": false
+      },
+      {
+        "query_id": "8918826087604660bd2ccfae7bca5230.jpg",
+        "query_true_content": "devotional_wallpaper",
+        "nearest_id": "WIN_20240919_13_26_25_Pro.jpg",
+        "nearest_true_content": "personal_selfie_photo",
+        "cosine_similarity": 0.10483619048555763,
+        "same_true_content": false
+      }
+    ]
+  },
+  "total_runtime_seconds": 311.2087637999939
+}

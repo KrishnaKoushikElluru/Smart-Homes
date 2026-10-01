@@ -14,6 +14,419 @@
         background-repeat: no-repeat;
         background-attachment: fixed;
     }
+
+    /* ============================================================
+       STEP 1 - source selection ("Generate an Image" vs "Upload an
+       Image"). Two keyboard-accessible <button> cards - native buttons
+       give focus/Enter/Space support for free. Selection state is
+       shown via aria-pressed AND a visible "Selected" badge (see
+       .design-mode-card-badge below), not color alone.
+    ============================================================ */
+    .design-mode-picker {
+        margin-bottom: 28px;
+    }
+
+    .design-mode-picker-label {
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-bottom: 14px;
+    }
+
+    .design-mode-cards {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Overrides the site-wide `button` rule (blue fill, white text,
+       translateY hover) - these cards use their own selected/unselected
+       look instead of the generic button style. */
+    .design-mode-card {
+        flex: 1 1 220px;
+        max-width: 260px;
+        background-color: #fff;
+        color: var(--secondary-color);
+        border: 2px solid #ddd;
+        border-radius: var(--border-radius);
+        padding: 16px;
+        margin: 0;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    }
+
+    .design-mode-card:hover {
+        border-color: var(--primary-color);
+        background-color: #fff;
+        transform: none;
+    }
+
+    .design-mode-card:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    .design-mode-card-icon {
+        font-size: 1.4rem;
+    }
+
+    .design-mode-card-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+    }
+
+    .design-mode-card-desc {
+        font-size: 0.85rem;
+        color: #555;
+        font-weight: normal;
+    }
+
+    .design-mode-card-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .design-mode-card-active {
+        border-color: var(--primary-color);
+        background-color: rgba(0, 123, 255, 0.08);
+        box-shadow: 0 0 0 1px var(--primary-color);
+    }
+
+    .design-mode-card-active:hover {
+        background-color: rgba(0, 123, 255, 0.08);
+    }
+
+    @media (max-width: 560px) {
+        .design-mode-cards {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .design-mode-card {
+            max-width: none;
+        }
+    }
+
+    /* Each STEP 2 workflow (generate / upload) - only one is ever
+       visible at a time (toggled via the `hidden` attribute in JS), so
+       there is no large blank gap left by the other. */
+    .design-workflow {
+        text-align: left;
+    }
+
+    /* Textarea + mic button row - same pattern as templates/rentals.html's
+       .nlp-search-row, adapted for a multi-line description box. */
+    .design-textarea-row {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .design-textarea-row textarea {
+        flex: 1 1 auto;
+        margin-bottom: 0;
+    }
+
+    /* Mic button - visual style matches templates/rentals.html's
+       .nlp-voice-button exactly (same isolated voice_search.js adapter,
+       same look, so voice input reads as one consistent feature across
+       the app). Hidden by default, only revealed by JS after
+       feature-detecting browser support - see the wiring script below. */
+    .design-voice-button {
+        flex: 0 0 auto;
+        width: 44px;
+        align-self: flex-start;
+        padding: 0;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        line-height: 1;
+        background-color: rgba(0, 102, 204, 0.1);
+        color: #004080;
+        border: 1px solid rgba(0, 102, 204, 0.35);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .design-voice-button:hover {
+        background-color: rgba(0, 102, 204, 0.2);
+    }
+
+    .design-voice-button:focus-visible {
+        outline: 2px solid #0066cc;
+        outline-offset: 2px;
+    }
+
+    .design-voice-button.listening {
+        background-color: #d32f2f;
+        border-color: #d32f2f;
+        color: white;
+        animation: design-voice-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes design-voice-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(211, 47, 47, 0); }
+    }
+
+    .design-voice-status {
+        font-size: 0.85rem;
+        margin: 6px 0 0 0;
+        color: #555;
+    }
+
+    .design-voice-status.listening {
+        color: #a10000;
+        font-weight: 600;
+    }
+
+    .design-voice-status.error {
+        color: #a10000;
+    }
+
+    /* Loading state shown inside #imagePreview while /generate_image is
+       in flight - image generation is a real, ~10-30 second model call
+       (Cloudflare Workers AI), not an instant response, so a visible
+       spinner replaces what would otherwise look like a frozen page. */
+    .design-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 40px 0;
+        color: #444;
+    }
+
+    .design-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 102, 204, 0.2);
+        border-top-color: #0066cc;
+        border-radius: 50%;
+        animation: design-spin 0.8s linear infinite;
+    }
+
+    @keyframes design-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .design-upload-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .design-upload-hint {
+        font-size: 0.85rem;
+        color: #555;
+        margin: 6px 0 0 0;
+    }
+
+    .design-upload-status {
+        font-size: 0.85rem;
+        margin: 6px 0 0 0;
+        color: #a10000;
+    }
+
+    .design-upload-preview {
+        margin-top: 14px;
+    }
+
+    .design-upload-preview img {
+        max-width: 260px;
+        max-height: 260px;
+        display: block;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    /* STEP 4 - similarity search. A single shared action, disabled
+       until a valid referenceImage (from either workflow) is ready. */
+    .design-similarity-section {
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        text-align: center;
+    }
+
+    .design-similarity-hint {
+        font-size: 0.85rem;
+        color: #555;
+        margin-top: 8px;
+    }
+
+    /* COMBINED NLP + IMAGE SEARCH (Version A): an OPTIONAL text box
+       next to "Find Similar Homes" - hard requirements (BHK, price,
+       furnishing, location, nearby facilities, ...) are parsed by the
+       EXISTING NLP pipeline and applied as MongoDB hard filters
+       BEFORE SigLIP2 ranks the candidates. Leaving this empty keeps
+       the original image-only behavior exactly as before. */
+    .design-query-row {
+        max-width: 480px;
+        margin: 0 auto 14px;
+        text-align: left;
+    }
+
+    .design-query-label {
+        display: block;
+        font-size: 0.85rem;
+        color: #444;
+        margin-bottom: 6px;
+    }
+
+    .design-query-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+    }
+
+    .design-query-hint {
+        font-size: 0.75rem;
+        color: #777;
+        margin-top: 4px;
+    }
+
+    .design-similarity-status {
+        font-size: 0.9rem;
+        color: #004080;
+        margin-top: 10px;
+    }
+
+    #findSimilarButton:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    /* Results of the production similarity search (real registered
+       properties, source="mongodb_production" - see
+       services/image_similarity/production_indexer.py), rendered as
+       real property cards - mirrors templates/rentals.html's existing
+       .results / .results div visual language (translucent card,
+       flex-wrap layout) rather than inventing a new design system.
+       Each card is a single clickable <a> to the EXISTING property-
+       details route (routes/property_routes.py's property_details) -
+       no second property-details implementation. */
+    .design-similarity-results {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 18px;
+        text-align: left;
+    }
+
+    .design-similarity-card {
+        display: block;
+        background-color: rgba(233, 236, 239, 0.5);
+        border-radius: 8px;
+        width: 240px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        color: inherit;
+        text-decoration: none;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .design-similarity-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .design-similarity-card-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+        background-color: #ddd;
+    }
+
+    .design-similarity-card-no-image {
+        width: 100%;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #eee;
+        color: #888;
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 10px;
+    }
+
+    .design-similarity-card-body {
+        padding: 12px 14px;
+    }
+
+    .design-similarity-card-title {
+        font-weight: 700;
+        color: #222;
+        margin: 0 0 6px;
+        text-transform: capitalize;
+    }
+
+    .design-similarity-badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #0056b3;
+        background-color: rgba(0, 102, 204, 0.1);
+        border: 1px solid rgba(0, 102, 204, 0.3);
+        border-radius: 4px;
+        padding: 2px 6px;
+        margin-bottom: 8px;
+    }
+
+    .design-similarity-card-facts {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #444;
+    }
+
+    .design-similarity-card-facts div {
+        margin-top: 3px;
+    }
+
+    .design-similarity-card-cta {
+        display: block;
+        margin-top: 10px;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: #0066cc;
+        border-radius: 6px;
+        padding: 7px 0;
+    }
+
+    .design-similarity-empty {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 14px;
+    }
+
+    .design-similarity-note {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 12px;
+        font-style: italic;
+    }
+
+    #findSimilarButton:disabled:hover {
+        background-color: #ccc;
+        transform: none;
+    }
 </style>
 <body>
     <!-- Header Section -->
@@ -31,59 +444,764 @@
         <p>Customize your dream home with our interactive design tools.</p>
 
         <div class="design-tools">
-            <label>Describe The Room Like You Want:</label>
-            <textarea id="houseDescription" placeholder="Enter description here..." rows="4"></textarea>
-            
-            <div>
-                <button onclick="generateImage()">Show Preview</button>
-                <button onclick="resetDesign()">Reset Design</button>
+
+            <!-- ================================================
+                 STEP 1: SOURCE SELECTION
+                 ================================================ -->
+            <div class="design-mode-picker">
+                <p class="design-mode-picker-label">How would you like to provide your reference image?</p>
+
+                <div class="design-mode-cards" role="group" aria-label="Choose how to provide your reference image">
+                    <button
+                        type="button"
+                        id="generateModeCard"
+                        class="design-mode-card design-mode-card-active"
+                        aria-pressed="true"
+                        aria-label="Generate an Image: describe the home or room you want and generate a reference image"
+                        onclick="selectMode('generate')"
+                    >
+                        <span class="design-mode-card-icon" aria-hidden="true">&#10024;</span>
+                        <span class="design-mode-card-title">Generate an Image</span>
+                        <span class="design-mode-card-desc">Describe the home or room you want and generate a reference image.</span>
+                        <span class="design-mode-card-badge" hidden>&#10003; Selected</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="uploadModeCard"
+                        class="design-mode-card"
+                        aria-pressed="false"
+                        aria-label="Upload an Image: upload an existing home or room image to use as reference"
+                        onclick="selectMode('upload')"
+                    >
+                        <span class="design-mode-card-icon" aria-hidden="true">&#128247;</span>
+                        <span class="design-mode-card-title">Upload an Image</span>
+                        <span class="design-mode-card-desc">Upload an existing home or room image you want to use as reference.</span>
+                        <span class="design-mode-card-badge" hidden>&#10003; Selected</span>
+                    </button>
+                </div>
             </div>
+
+            <!-- ================================================
+                 STEP 2a: GENERATE WORKFLOW - unchanged behavior from
+                 before this redesign, just grouped into its own
+                 container so it can be shown/hidden as a whole.
+                 ================================================ -->
+            <div id="generateWorkflow" class="design-workflow">
+                <label>Describe The Room Like You Want:</label>
+
+                <div class="design-textarea-row">
+                    <textarea id="houseDescription" placeholder="Enter description here..." rows="4"></textarea>
+
+                    <!-- Voice input for the SAME textarea above - same
+                         isolated static/voice_search.js adapter used on the
+                         rentals search box. type="button" so it can never
+                         submit anything; hidden until JS confirms browser
+                         support (see the wiring script below). -->
+                    <button
+                        type="button"
+                        id="designVoiceButton"
+                        class="design-voice-button"
+                        aria-label="Describe by voice"
+                        title="Describe by voice"
+                        hidden
+                    >🎙️</button>
+                </div>
+
+                <p
+                    id="designVoiceStatus"
+                    class="design-voice-status"
+                    aria-live="polite"
+                    hidden
+                ></p>
+
+                <div>
+                    <button onclick="generateImage()" id="generateButton">Show Preview</button>
+                    <button onclick="resetDesign()">Reset Design</button>
+                </div>
+
+                <div class="preview" id="preview">
+                    <h3>Preview of Your Dream House</h3>
+                    <div id="imagePreview"></div>
+                    <p id="descriptionPreview"></p>
+                </div>
+            </div>
+
+            <!-- ================================================
+                 STEP 2b: UPLOAD WORKFLOW - unchanged behavior from
+                 before this redesign, just grouped into its own
+                 container so it can be shown/hidden as a whole.
+                 ================================================ -->
+            <div id="uploadWorkflow" class="design-workflow" hidden>
+                <label for="referenceImageInput">Upload a Reference Image:</label>
+
+                <div class="design-upload-row">
+                    <input
+                        type="file"
+                        id="referenceImageInput"
+                        accept="image/jpeg,image/png,image/webp"
+                    >
+                    <button
+                        type="button"
+                        id="removeReferenceButton"
+                        onclick="removeReferenceImage()"
+                        hidden
+                    >Remove</button>
+                </div>
+
+                <p class="design-upload-hint">Accepted formats: JPG, PNG, WebP.</p>
+                <p id="referenceUploadStatus" class="design-upload-status" aria-live="polite" hidden></p>
+
+                <div id="referenceImagePreview" class="design-upload-preview"></div>
+            </div>
+
+            <!-- ================================================
+                 STEP 4: SIMILARITY SEARCH - a single shared action for
+                 whichever reference image (generated or uploaded) is
+                 currently ready, optionally narrowed by the text box
+                 below. Calls /design/find_similar (services/
+                 image_similarity/, SigLIP2, production index only -
+                 see docs/PHASE_6_SIGLIP2_MONGODB_INTEGRATION.md).
+                 Combined NLP + image search (Version A): any hard
+                 requirements typed below are parsed by the existing
+                 NLP pipeline and applied as MongoDB filters BEFORE
+                 similarity ranking - see findSimilarHomes() below.
+                 ================================================ -->
+            <div class="design-similarity-section">
+                <div class="design-query-row">
+                    <label for="findSimilarQuery" class="design-query-label">
+                        Optional: describe hard requirements (BHK, price, furnishing, location, nearby facilities...)
+                    </label>
+                    <input
+                        type="text"
+                        id="findSimilarQuery"
+                        class="design-query-input"
+                        maxlength="500"
+                        placeholder="e.g. 2 BHK semi furnished apartment near VIT Chennai under 30000 with a gym"
+                    >
+                    <p class="design-query-hint">Leave this blank to search by image alone.</p>
+                </div>
+                <button type="button" id="findSimilarButton" disabled onclick="findSimilarHomes()">Find Similar Homes</button>
+                <p id="findSimilarHint" class="design-similarity-hint">Generate or upload a reference image to continue.</p>
+                <p id="findSimilarStatus" class="design-similarity-status" aria-live="polite" hidden></p>
+                <div id="findSimilarResults" class="design-similarity-results"></div>
+            </div>
+
         </div>
-        <div class="preview" id="preview">
-            <h3>Preview of Your Dream House</h3>
-            <div id="imagePreview"></div>
-            <p id="descriptionPreview"></p>
-        </div>
-        
+
+        <!-- Voice input adapter - the SAME isolated module used by
+             templates/rentals.html's search box (window.VoiceSearch).
+             Loaded before the wiring script below so it's available
+             when that script runs. -->
+        <script src="{{ url_for('static', filename='voice_search.js') }}"></script>
+
+        <!-- Reference-image mode/state machine (source selection ->
+             reference image -> similarity search) - pure logic, unit
+             tested in isolation via test_design_reference_state.js.
+             Loaded before the wiring script below so it's available
+             when that script runs. -->
+        <script src="{{ url_for('static', filename='design_reference_state.js') }}"></script>
+
         <script>
 
-async function generateImage() {
-    const prompt = document.getElementById("houseDescription").value.trim();
-    const imagePreview = document.getElementById("imagePreview");
+        /* ==================================================
+           STEP 1/3 STATE - source selection + the normalized
+           referenceImage abstraction both workflows below feed into.
+           The actual state machine lives in the isolated, unit-tested
+           static/design_reference_state.js module (matching this
+           project's window.VoiceSearch convention above); everything
+           here just wires that module's decisions to the DOM.
+        ================================================== */
 
-    if (!prompt) {
-        alert("Please enter a description first!");
-        return;
-    }
+        const referenceState = window.DesignReferenceState.create("generate");
 
-    try {
-        const response = await fetch("/generate_image", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ prompt }),
-        });
+        // The HTML already marks the "Generate" card active/aria-pressed by
+        // default, but its "Selected" badge starts `hidden` like the other
+        // card's - reveal it once here so the very first render (not just
+        // subsequent selectMode() calls) shows a non-color selection cue.
+        document.getElementById("generateModeCard").querySelector(".design-mode-card-badge").hidden = false;
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Failed to generate image");
+        function setReferenceImage(source, url) {
+            referenceState.setReferenceImage(source, url);
+            updateFindSimilarButton();
         }
 
-        // Display the generated image
-        imagePreview.innerHTML = `<img src="${data.image_url}" alt="Generated Room" style="max-width: 100%; height: auto;">`;
-    } catch (error) {
-        console.error("Error:", error);
-        alert(error.message);
-    }
-}
+        function clearReferenceImage() {
+            referenceState.clearReferenceImage();
+            updateFindSimilarButton();
+        }
 
-        
+        function updateFindSimilarButton() {
+            const button = document.getElementById("findSimilarButton");
+            const hint = document.getElementById("findSimilarHint");
+            const ready = referenceState.isReady();
+
+            button.disabled = !ready;
+
+            if (ready) {
+                hint.textContent = referenceState.getReferenceImage().source === "generated"
+                    ? "Reference image ready (generated)."
+                    : "Reference image ready (uploaded).";
+            } else {
+                hint.textContent = "Generate or upload a reference image to continue.";
+            }
+        }
+
+        function selectMode(mode) {
+            // selectMode() returns false (no-op) if `mode` is already
+            // active - nothing to change, so bail out before touching
+            // the DOM at all.
+            if (!referenceState.selectMode(mode)) {
+                return;
+            }
+
+            const isGenerate = mode === "generate";
+
+            const generateWorkflow = document.getElementById("generateWorkflow");
+            const uploadWorkflow = document.getElementById("uploadWorkflow");
+            const generateCard = document.getElementById("generateModeCard");
+            const uploadCard = document.getElementById("uploadModeCard");
+
+            generateWorkflow.hidden = !isGenerate;
+            uploadWorkflow.hidden = isGenerate;
+
+            generateCard.setAttribute("aria-pressed", String(isGenerate));
+            uploadCard.setAttribute("aria-pressed", String(!isGenerate));
+            generateCard.classList.toggle("design-mode-card-active", isGenerate);
+            uploadCard.classList.toggle("design-mode-card-active", !isGenerate);
+            generateCard.querySelector(".design-mode-card-badge").hidden = !isGenerate;
+            uploadCard.querySelector(".design-mode-card-badge").hidden = isGenerate;
+
+            // Leaving a workflow clears whatever it had produced or
+            // selected, so it can never be mistaken for the active
+            // reference image once the other workflow (or this same
+            // one, revisited later) is in play. The newly selected
+            // mode must produce/select its own reference image before
+            // "Find Similar Homes" is enabled again.
+            document.getElementById("imagePreview").innerHTML = "";
+            const generateButton = document.getElementById("generateButton");
+            generateButton.disabled = false;
+            generateButton.textContent = "Show Preview";
+
+            removeReferenceImage();
+
+            clearReferenceImage();
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById("houseDescription").value.trim();
+            const imagePreview = document.getElementById("imagePreview");
+            const generateButton = document.getElementById("generateButton");
+
+            if (!prompt) {
+                alert("Please enter a description first!");
+                return;
+            }
+
+            const requestToken = referenceState.beginRequest();
+
+            // LOADING state: a spinner replaces the previous preview (if any)
+            // and the button is disabled for the duration of the request, since
+            // image generation is a real model call that can take up to
+            // 10-30 seconds - without this the page would otherwise look frozen.
+            generateButton.disabled = true;
+            generateButton.textContent = "Generating...";
+            clearReferenceImage();
+            imagePreview.innerHTML = `
+                <div class="design-loading">
+                    <div class="design-spinner"></div>
+                    <p>Generating your image... this can take up to 30 seconds.</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch("/generate_image", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to generate image");
+                }
+
+                if (!referenceState.isRequestCurrent(requestToken, "generate")) {
+                    // The user switched away from Generate mode while this
+                    // request was in flight - do not let a stale generated
+                    // image become the active reference image.
+                    return;
+                }
+
+                // Display the generated image
+                imagePreview.innerHTML = `<img src="${data.image_url}" alt="Generated Room" style="max-width: 100%; height: auto;">`;
+                setReferenceImage("generated", data.image_url);
+            } catch (error) {
+                console.error("Error:", error);
+                if (referenceState.isRequestCurrent(requestToken, "generate")) {
+                    imagePreview.innerHTML = "";
+                    alert(error.message);
+                }
+            } finally {
+                if (referenceState.isRequestCurrent(requestToken, "generate")) {
+                    generateButton.disabled = false;
+                    generateButton.textContent = "Show Preview";
+                }
+            }
+        }
+
+
         function resetDesign() {
             document.getElementById("houseDescription").value = "";
             document.getElementById("imagePreview").innerHTML = "";
+            if (referenceState.getMode() === "generate") {
+                clearReferenceImage();
+            }
+            clearSimilarityState();
         }
+
+        /* ==================================================
+           REFERENCE IMAGE UPLOAD - independent of generateImage()/
+           resetDesign() above. Uploads the file as-is to
+           /design/upload_reference (never Gemini/FLUX), previews the
+           returned static URL, and lets the user remove/replace their
+           selection. Nothing here touches #houseDescription or
+           #imagePreview.
+        ================================================== */
+
+        function setReferenceUploadStatus(text) {
+            const statusEl = document.getElementById("referenceUploadStatus");
+            if (!text) {
+                statusEl.hidden = true;
+                statusEl.textContent = "";
+                return;
+            }
+            statusEl.hidden = false;
+            statusEl.textContent = text;
+        }
+
+        function renderReferencePreview(imageUrl) {
+            const previewEl = document.getElementById("referenceImagePreview");
+            const removeButton = document.getElementById("removeReferenceButton");
+
+            if (!imageUrl) {
+                previewEl.innerHTML = "";
+                removeButton.hidden = true;
+                clearReferenceImage();
+                return;
+            }
+
+            previewEl.innerHTML = `<img src="${imageUrl}" alt="Uploaded reference image">`;
+            removeButton.hidden = false;
+            setReferenceImage("uploaded", imageUrl);
+        }
+
+        async function uploadReferenceImage(file) {
+            const fileInput = document.getElementById("referenceImageInput");
+            const requestToken = referenceState.beginRequest();
+
+            setReferenceUploadStatus("Uploading...");
+            clearReferenceImage();
+
+            const formData = new FormData();
+            formData.append("reference_image", file);
+
+            try {
+                const response = await fetch("/design/upload_reference", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to upload reference image");
+                }
+
+                if (!referenceState.isRequestCurrent(requestToken, "upload")) {
+                    // The user switched away from Upload mode while this
+                    // request was in flight - do not let a stale uploaded
+                    // image become the active reference image.
+                    return;
+                }
+
+                renderReferencePreview(data.reference_image_url);
+                setReferenceUploadStatus(null);
+            } catch (error) {
+                console.error("Error:", error);
+                if (referenceState.isRequestCurrent(requestToken, "upload")) {
+                    renderReferencePreview(null);
+                    fileInput.value = "";
+                    setReferenceUploadStatus(error.message);
+                }
+            }
+        }
+
+        function removeReferenceImage() {
+            document.getElementById("referenceImageInput").value = "";
+            renderReferencePreview(null);
+            setReferenceUploadStatus(null);
+            clearSimilarityState();
+        }
+
+        (function initReferenceImageUpload() {
+            const fileInput = document.getElementById("referenceImageInput");
+
+            if (!fileInput) {
+                return;
+            }
+
+            fileInput.addEventListener("change", function () {
+                // Selecting a new file (whether this is the first
+                // selection or a replacement of a previous one) simply
+                // re-runs the same upload - no separate "replace" code
+                // path is needed.
+                const file = fileInput.files && fileInput.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                uploadReferenceImage(file);
+            });
+        })();
+
+        /* ==================================================
+           STEP 4: SIMILARITY SEARCH - calls the real
+           /design/find_similar endpoint (services/image_similarity/,
+           SigLIP2). Candidates are REAL registered properties'
+           images (source="mongodb_production" - see
+           services/image_similarity/production_indexer.py), embedded
+           in the background as properties are registered. Visual
+           similarity QUALITY on real properties has not yet been
+           benchmarked (see docs/PHASE_6_SIGLIP2_MONGODB_INTEGRATION.md),
+           so results are still labeled with an honest
+           .design-similarity-badge + note (renderSimilarityResults()
+           below) rather than presented as a fully-vetted feature.
+        ================================================== */
+
+        async function findSimilarHomes() {
+            const referenceImageInfo = referenceState.getReferenceImage();
+            const button = document.getElementById("findSimilarButton");
+            const statusEl = document.getElementById("findSimilarStatus");
+            const resultsEl = document.getElementById("findSimilarResults");
+
+            if (!referenceImageInfo.url) {
+                // Defense in depth: the button is already disabled
+                // whenever no reference image is ready, but this
+                // guards against ever calling the backend without one.
+                statusEl.hidden = false;
+                statusEl.textContent = "Generate or upload a reference image first.";
+                resultsEl.innerHTML = "";
+                return;
+            }
+
+            // Captured ONCE, before the request starts - isRequestCurrent()
+            // below must compare against the mode active AT REQUEST TIME,
+            // not whatever the live mode happens to be when each check
+            // runs (which would trivially always match itself).
+            const requestMode = referenceState.getMode();
+            const requestToken = referenceState.beginRequest();
+
+            button.disabled = true;
+            button.textContent = "Searching...";
+            statusEl.hidden = false;
+            statusEl.textContent = "Searching for similar properties...";
+            resultsEl.innerHTML = "";
+
+            const queryText = document.getElementById("findSimilarQuery").value.trim();
+
+            try {
+                const response = await fetch("/design/find_similar", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        reference_image_url: referenceImageInfo.url,
+                        source: referenceImageInfo.source,
+                        query: queryText,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Similarity search failed.");
+                }
+
+                if (!referenceState.isRequestCurrent(requestToken, requestMode)) {
+                    // The user switched mode while this request was in
+                    // flight - do not render a stale result.
+                    return;
+                }
+
+                renderSimilarityResults(data.results);
+                statusEl.textContent = data.message
+                    ? data.message
+                    : data.results.length
+                        ? `Found ${data.results.length} similar propert${data.results.length === 1 ? "y" : "ies"}.`
+                        : "";
+                saveSimilarityState(requestMode, referenceImageInfo.url, data.results, queryText);
+            } catch (error) {
+                console.error("Error:", error);
+                if (referenceState.isRequestCurrent(requestToken, requestMode)) {
+                    statusEl.textContent = error.message;
+                    resultsEl.innerHTML = "";
+                }
+            } finally {
+                if (referenceState.isRequestCurrent(requestToken, requestMode)) {
+                    button.disabled = false;
+                    button.textContent = "Find Similar Homes";
+                }
+            }
+        }
+
+        function renderSimilarityResults(results) {
+            const resultsEl = document.getElementById("findSimilarResults");
+
+            if (!results.length) {
+                resultsEl.innerHTML = (
+                    '<p class="design-similarity-empty">' +
+                    'No similar properties found yet. Try a different reference image, ' +
+                    'or check back once more properties have been registered.' +
+                    '</p>'
+                );
+                return;
+            }
+
+            resultsEl.innerHTML = results.map(function (result) {
+                const scorePercent = (result.score * 100).toFixed(1);
+
+                const imageHTML = result.image_url
+                    ? '<img class="design-similarity-card-image" src="' + escapeHtml(result.image_url) + '" alt="Property photo">'
+                    : '<div class="design-similarity-card-no-image">No image available</div>';
+
+                const title = (result.property_type ? escapeHtml(result.property_type).replace(/_/g, " ") : "Property")
+                    + (result.bhk ? " - " + escapeHtml(result.bhk) + " BHK" : "");
+
+                const facts = [];
+                if (result.listing_type) facts.push("<div><strong>Listing:</strong> " + escapeHtml(result.listing_type) + "</div>");
+                if (result.price != null) facts.push("<div><strong>Price:</strong> ₹" + escapeHtml(result.price) + "</div>");
+                if (result.area != null) facts.push("<div><strong>Area:</strong> " + escapeHtml(result.area) + " sq.ft</div>");
+                if (result.furnishing) facts.push("<div><strong>Furnishing:</strong> " + escapeHtml(result.furnishing).replace(/_/g, " ") + "</div>");
+                const localityCity = [result.locality, result.city].filter(Boolean).map(escapeHtml).join(", ");
+                if (localityCity) facts.push("<div><strong>Location:</strong> " + localityCity + "</div>");
+
+                return (
+                    '<a class="design-similarity-card" href="' + escapeHtml(result.detail_url) + '">' +
+                    imageHTML +
+                    '<div class="design-similarity-card-body">' +
+                    '<span class="design-similarity-badge">' + scorePercent + '% match</span>' +
+                    '<h4 class="design-similarity-card-title">' + title + '</h4>' +
+                    '<div class="design-similarity-card-facts">' + facts.join("") + '</div>' +
+                    '<span class="design-similarity-card-cta">View Property</span>' +
+                    '</div>' +
+                    '</a>'
+                );
+            }).join("");
+
+            const note = document.createElement("p");
+            note.className = "design-similarity-note";
+            note.textContent = (
+                "Matches are based on registered properties' photos. Visual similarity " +
+                "quality has not yet been formally evaluated - use these results as a " +
+                "starting point, not a guarantee."
+            );
+            resultsEl.appendChild(note);
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement("div");
+            div.textContent = String(value == null ? "" : value);
+            return div.innerHTML;
+        }
+
+        /* ==================================================
+           VOICE INPUT for the description textarea - thin wiring only,
+           identical in shape to templates/rentals.html's own
+           initVoiceSearch() IIFE. All SpeechRecognition logic lives in
+           static/voice_search.js; this block just feature-detects,
+           creates one controller, and feeds transcripts into the
+           existing #houseDescription textarea - nothing here ever
+           calls generateImage() itself, so voice only ever fills the
+           box, exactly like typing would.
+        ================================================== */
+
+        (function initVoiceSearch() {
+
+            const micButton = document.getElementById('designVoiceButton');
+            const statusEl = document.getElementById('designVoiceStatus');
+            const textarea = document.getElementById('houseDescription');
+
+            if (!micButton || !statusEl || !textarea) {
+                return;
+            }
+
+            if (!window.VoiceSearch || !window.VoiceSearch.isSupported()) {
+                // NOT SUPPORTED: leave the button hidden (its default
+                // HTML state) - typing is completely unaffected.
+                return;
+            }
+
+            function setStatus(text, cssClass) {
+                if (!text) {
+                    statusEl.hidden = true;
+                    statusEl.textContent = '';
+                    statusEl.className = 'design-voice-status';
+                    return;
+                }
+                statusEl.hidden = false;
+                statusEl.textContent = text;
+                statusEl.className = 'design-voice-status' + (cssClass ? ' ' + cssClass : '');
+            }
+
+            function setListeningVisuals(isListening) {
+                micButton.classList.toggle('listening', isListening);
+                micButton.setAttribute(
+                    'aria-label',
+                    isListening ? 'Stop voice input' : 'Describe by voice'
+                );
+                micButton.title = isListening ? 'Stop voice input' : 'Describe by voice';
+            }
+
+            const controller = window.VoiceSearch.createController({
+
+                lang: 'en-IN',
+                interimResults: true,
+                continuous: false,
+
+                onStart: function () {
+                    setListeningVisuals(true);
+                    setStatus('Listening…', 'listening');
+                },
+
+                onInterimResult: function (transcript) {
+                    textarea.value = transcript;
+                    setStatus('Listening… "' + transcript + '"', 'listening');
+                },
+
+                onFinalResult: function (transcript) {
+                    // The user reviews/edits the textarea and clicks
+                    // "Show Preview" themselves - nothing here submits
+                    // or generates automatically.
+                    textarea.value = transcript;
+                },
+
+                onEnd: function () {
+                    setListeningVisuals(false);
+                    if (statusEl.classList.contains('listening')) {
+                        setStatus(null);
+                    }
+                },
+
+                onError: function (message) {
+                    setListeningVisuals(false);
+                    setStatus(message, 'error');
+                },
+            });
+
+            if (!controller) {
+                micButton.hidden = true;
+                return;
+            }
+
+            micButton.hidden = false;
+
+            micButton.addEventListener('click', function () {
+                if (controller.isListening()) {
+                    controller.stop();
+                } else {
+                    controller.start();
+                }
+            });
+
+        })();
+
+        /* ==================================================
+           SIMILARITY RESULTS PERSISTENCE (sessionStorage) - lets
+           someone open a result's existing property-details page,
+           click Back, and land on THIS page still showing their
+           reference image and the full results list - so they can
+           check several matches one after another without re-running
+           the search each time. Scoped to sessionStorage (this tab
+           only, cleared when the tab closes) - never sent to the
+           server, never shared across users/devices/tabs.
+        ================================================== */
+
+        const SIMILARITY_STATE_KEY = "designFindSimilarState";
+
+        function saveSimilarityState(mode, referenceImageUrl, results, queryText) {
+            try {
+                sessionStorage.setItem(SIMILARITY_STATE_KEY, JSON.stringify({
+                    mode: mode,
+                    referenceImageUrl: referenceImageUrl,
+                    results: results,
+                    queryText: queryText || "",
+                }));
+            } catch (error) {
+                // sessionStorage unavailable/full/private-mode - losing
+                // the "restore on back" convenience is fine, never fatal.
+            }
+        }
+
+        function clearSimilarityState() {
+            try {
+                sessionStorage.removeItem(SIMILARITY_STATE_KEY);
+            } catch (error) {
+                // see saveSimilarityState() above
+            }
+        }
+
+        (function restorePreviousSimilarityResults() {
+            let saved;
+            try {
+                const raw = sessionStorage.getItem(SIMILARITY_STATE_KEY);
+                if (!raw) {
+                    return;
+                }
+                saved = JSON.parse(raw);
+            } catch (error) {
+                return;
+            }
+
+            if (!saved || !Array.isArray(saved.results) || !saved.referenceImageUrl) {
+                return;
+            }
+
+            if (saved.mode === "upload") {
+                selectMode("upload");
+                renderReferencePreview(saved.referenceImageUrl);
+            } else {
+                selectMode("generate");
+                document.getElementById("imagePreview").innerHTML =
+                    '<img src="' + escapeHtml(saved.referenceImageUrl) + '" alt="Generated Room" style="max-width: 100%; height: auto;">';
+                setReferenceImage("generated", saved.referenceImageUrl);
+            }
+
+            if (saved.queryText) {
+                document.getElementById("findSimilarQuery").value = saved.queryText;
+            }
+
+            renderSimilarityResults(saved.results);
+
+            const statusEl = document.getElementById("findSimilarStatus");
+            statusEl.hidden = false;
+            statusEl.textContent = saved.results.length
+                ? `Found ${saved.results.length} similar propert${saved.results.length === 1 ? "y" : "ies"}.`
+                : "";
+
+            // selectMode()/removeReferenceImage() above clear the
+            // persisted state as a side effect (leaving a stale mode
+            // switch around is exactly what they exist to prevent) -
+            // re-save it now that the real reference image + results
+            // are back in place, so opening ANOTHER result and
+            // clicking Back again keeps working, not just the first time.
+            saveSimilarityState(saved.mode, saved.referenceImageUrl, saved.results, saved.queryText);
+        })();
         </script>
 </body>
 </html>

@@ -70,6 +70,10 @@ app.config["MAPPLS_API_KEY"] = os.getenv(
     "MAPPLS_API_KEY"
 )
 
+app.config["OLA_MAPS_API_KEY"] = os.getenv(
+    "OLA_MAPS_API_KEY"
+)
+
 # ============================================================
 # OSM / NOMINATIM CONFIGURATION
 #

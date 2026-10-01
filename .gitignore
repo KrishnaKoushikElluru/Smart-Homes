@@ -6,6 +6,7 @@ __pycache__/
 venv/
 .venv/
 env/
+.claude/
 
 # Environment / secrets
 .env

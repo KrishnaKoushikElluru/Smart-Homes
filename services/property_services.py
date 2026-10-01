@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from bson import ObjectId
+from bson.errors import InvalidId
 
 
 class PropertyService:
@@ -96,9 +97,27 @@ class PropertyService:
         property_id
     ):
 
+        if not property_id:
+            # ObjectId(None) does NOT raise - it silently generates a
+            # fresh random id (bson's "no argument" convenience
+            # behavior), which would otherwise query with an id that
+            # was never actually requested. An empty/None property_id
+            # is unambiguously "not found", not "generate one for me".
+            return None
+
+        try:
+            object_id = ObjectId(property_id)
+        except (InvalidId, TypeError):
+            # A malformed/non-ObjectId property_id is just as "not
+            # found" as a well-formed one that doesn't match any
+            # document - callers already treat None as "not found"
+            # (see routes/property_routes.py's property_details() and
+            # delete_listing()), so this never needs a second code path.
+            return None
+
         document = self.collection.find_one(
             {
-                "_id": ObjectId(property_id)
+                "_id": object_id
             }
         )
 

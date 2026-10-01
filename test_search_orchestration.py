@@ -315,6 +315,144 @@ class ResolvePoiLocationTests(unittest.TestCase):
 
 
 # ============================================================
+# PROVIDER ORCHESTRATION (Ola primary, Mappls+OSM fallback)
+# ============================================================
+
+class ResolvePoiLocationViaBestProviderTests(unittest.TestCase):
+
+    def test_ola_success_means_mappls_is_never_called(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "matched", "latitude": 12.8358, "longitude": 80.1561,
+                "place_name": "TaTa New Haven Ribbon Walk", "formatted_address": "...",
+                "confidence": 0.95, "error": None, "alternates": [], "provider": "ola",
+            },
+        ), patch("services.search_orchestration.mappls_service.resolve_place") as mock_mappls:
+
+            result = orch.resolve_poi_location_via_best_provider(
+                "Tata New Haven Ribbon Walk", "ola-key", "mappls-key", FakeOSMService(),
+            )
+
+        mock_mappls.assert_not_called()
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(result["provider"], "ola")
+        self.assertEqual(result["latitude"], 12.8358)
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_ola_no_safe_result_falls_back_to_mappls(self, mock_resolve_place):
+        mock_resolve_place.return_value = mappls_matched()
+        osm = FakeOSMService()
+        osm.next_result = osm_matched(lat=12.9, lon=80.2)
+
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "no_match", "latitude": None, "longitude": None,
+                "place_name": None, "formatted_address": None, "confidence": None,
+                "error": "No Ola Maps candidates.", "alternates": [], "provider": "ola",
+            },
+        ):
+            result = orch.resolve_poi_location_via_best_provider(
+                "Obscure Local Place", "ola-key", "mappls-key", osm,
+            )
+
+        mock_resolve_place.assert_called_once()
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(result["provider"], "mappls")
+        self.assertEqual(result["latitude"], 12.9)
+
+    @patch("services.search_orchestration.mappls_service.resolve_place")
+    def test_ola_error_falls_back_to_mappls(self, mock_resolve_place):
+        mock_resolve_place.return_value = mappls_matched()
+        osm = FakeOSMService()
+        osm.next_result = osm_matched()
+
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "error", "latitude": None, "longitude": None,
+                "place_name": None, "formatted_address": None, "confidence": None,
+                "error": "Ola Maps request failed or timed out.", "alternates": [], "provider": "ola",
+            },
+        ):
+            result = orch.resolve_poi_location_via_best_provider(
+                "VIT Chennai", "ola-key", "mappls-key", osm,
+            )
+
+        mock_resolve_place.assert_called_once()
+        self.assertEqual(result["provider"], "mappls")
+
+    def test_mappls_failure_after_ola_failure_preserves_existing_osm_behavior(self):
+        osm = FakeOSMService()
+
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "no_match", "latitude": None, "longitude": None,
+                "place_name": None, "formatted_address": None, "confidence": None,
+                "error": None, "alternates": [], "provider": "ola",
+            },
+        ), patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ):
+            result = orch.resolve_poi_location_via_best_provider(
+                "Nonexistent Place Xyz", "ola-key", "mappls-key", osm,
+            )
+
+        self.assertEqual(result["status"], "no_match")
+        self.assertIsNone(result["provider"])
+        self.assertEqual(osm.calls, [])  # Mappls no_match -> OSM never attempted, same as before
+
+    def test_ambiguous_ola_result_does_not_silently_choose_a_location(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "ambiguous", "latitude": None, "longitude": None,
+                "place_name": None, "formatted_address": None, "confidence": 0.76,
+                "error": "Top Ola candidates were too close to distinguish confidently.",
+                "alternates": [
+                    {"matched_name": "Mambakkam", "matched_address": "Chennai, 600127",
+                     "latitude": 12.836, "longitude": 80.167, "score": None},
+                ],
+                "provider": "ola",
+            },
+        ), patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ):
+            result = orch.resolve_poi_location_via_best_provider(
+                "Mambakkam", "ola-key", "mappls-key", FakeOSMService(),
+            )
+
+        # Ola's own ambiguity is not surfaced as final - Mappls gets a
+        # full independent attempt (see this function's docstring).
+        self.assertIsNone(result["latitude"])
+        self.assertIsNone(result["longitude"])
+        self.assertIsNone(result["provider"])
+
+    def test_no_ola_key_skips_straight_to_mappls(self):
+        # ola_api_key=None (the default) must never attempt a network
+        # call - services/ola_maps_service.py's own missing-key guard
+        # makes this safe without any special-casing here.
+        with patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_matched(),
+        ) as mock_resolve_place:
+            osm = FakeOSMService()
+            osm.next_result = osm_matched()
+
+            result = orch.resolve_poi_location_via_best_provider(
+                "VIT Chennai", None, "mappls-key", osm,
+            )
+
+        mock_resolve_place.assert_called_once()
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(result["provider"], "mappls")
+
+
+# ============================================================
 # FULL ORCHESTRATION
 # ============================================================
 
@@ -615,7 +753,7 @@ class OrchestrateSearchNearbyFacilityTests(unittest.TestCase):
             "flat near a gym", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
         )
 
-        self.assertEqual(result["properties"], [{"_id": "p1"}])
+        self.assertEqual(result["properties"][0]["_id"], "p1")
         mongo_filter = prop_service.calls[0]
         self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
         self.assertIsNotNone(result["nearby_facility_enrichment_caveat"])
@@ -707,6 +845,143 @@ class OrchestrateSearchNearbyFacilityTests(unittest.TestCase):
         mongo_filter = prop_service.calls[0]
         self.assertIn("$near", mongo_filter["location.coordinates"])
         self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+
+
+# ============================================================
+# MATCHED NEARBY FACILITY NAMES (Phase 5, Part 7/8/9)
+# ============================================================
+
+class AttachMatchedNearbyFacilitiesTests(unittest.TestCase):
+    """Unit-level tests for orch._attach_matched_nearby_facilities()
+    directly - the function that lets the UI show "Gold's Gym - 780 m
+    away" instead of just "Gym - 780 m away"."""
+
+    def test_no_requirements_does_not_attach_the_key_at_all(self):
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+        ]}]
+        orch._attach_matched_nearby_facilities(properties, [])
+        self.assertNotIn("_matched_nearby_facilities", properties[0])
+
+    def test_single_matching_facility_is_surfaced_with_its_real_name(self):
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+        ]}]
+        orch._attach_matched_nearby_facilities(
+            properties, [{"category": "gym", "radius_m": None}]
+        )
+        self.assertEqual(
+            properties[0]["_matched_nearby_facilities"],
+            [{"category": "gym", "name": "Gold's Gym", "distance_m": 780}],
+        )
+
+    def test_multiple_requirements_each_get_their_own_facility(self):
+        # "2 bhk near a gym and hospital within 2 km"
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+            {"category": "hospital", "name": "ABC Hospital", "distance_m": 1400},
+        ]}]
+        orch._attach_matched_nearby_facilities(
+            properties,
+            [{"category": "gym", "radius_m": 2000}, {"category": "hospital", "radius_m": 2000}],
+        )
+        matched = properties[0]["_matched_nearby_facilities"]
+        self.assertEqual(len(matched), 2)
+        by_category = {m["category"]: m for m in matched}
+        self.assertEqual(by_category["gym"]["name"], "Gold's Gym")
+        self.assertEqual(by_category["gym"]["distance_m"], 780)
+        self.assertEqual(by_category["hospital"]["name"], "ABC Hospital")
+        self.assertEqual(by_category["hospital"]["distance_m"], 1400)
+
+    def test_multiple_stored_facilities_for_one_category_picks_the_closest(self):
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "gym", "name": "Far Gym", "distance_m": 1900},
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+        ]}]
+        orch._attach_matched_nearby_facilities(
+            properties, [{"category": "gym", "radius_m": 2000}]
+        )
+        self.assertEqual(properties[0]["_matched_nearby_facilities"][0]["name"], "Gold's Gym")
+
+    def test_requirement_outside_stored_radius_is_not_matched(self):
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 1900},
+        ]}]
+        orch._attach_matched_nearby_facilities(
+            properties, [{"category": "gym", "radius_m": 1000}]
+        )
+        self.assertEqual(properties[0]["_matched_nearby_facilities"], [])
+
+    def test_property_with_no_stored_facility_for_requested_category_gets_empty_list(self):
+        properties = [{"_id": "p1", "nearby_facilities": [
+            {"category": "hospital", "name": "ABC Hospital", "distance_m": 500},
+        ]}]
+        orch._attach_matched_nearby_facilities(
+            properties, [{"category": "gym", "radius_m": None}]
+        )
+        self.assertEqual(properties[0]["_matched_nearby_facilities"], [])
+
+    def test_property_with_no_nearby_facilities_field_at_all(self):
+        properties = [{"_id": "p1"}]
+        orch._attach_matched_nearby_facilities(
+            properties, [{"category": "gym", "radius_m": None}]
+        )
+        self.assertEqual(properties[0]["_matched_nearby_facilities"], [])
+
+
+class OrchestrateSearchMatchedNearbyFacilitiesIntegrationTests(unittest.TestCase):
+    """End-to-end through orchestrate_search() with realistic stored
+    property data, proving the property document flows all the way
+    through to the attached field."""
+
+    def test_gym_search_result_includes_the_real_gym_name(self):
+        prop_service = FakePropertyService(
+            results=[{
+                "_id": "p1",
+                "nearby_facilities": [
+                    {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+                ],
+            }],
+            count_result=0,
+        )
+
+        result = orch.orchestrate_search(
+            "2 bhk flat near a gym within 1 km in Chennai", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        self.assertEqual(
+            result["properties"][0]["_matched_nearby_facilities"],
+            [{"category": "gym", "name": "Gold's Gym", "distance_m": 780}],
+        )
+
+    def test_multi_facility_search_surfaces_both_names(self):
+        prop_service = FakePropertyService(
+            results=[{
+                "_id": "p1",
+                "nearby_facilities": [
+                    {"category": "gym", "name": "Gold's Gym", "distance_m": 780},
+                    {"category": "hospital", "name": "ABC Hospital", "distance_m": 1400},
+                ],
+            }],
+            count_result=0,
+        )
+
+        result = orch.orchestrate_search(
+            "2 bhk near a gym and hospital within 2 km", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        matched = result["properties"][0]["_matched_nearby_facilities"]
+        categories = {m["category"] for m in matched}
+        self.assertEqual(categories, {"gym", "hospital"})
+
+    def test_ordinary_search_without_nearby_facility_never_attaches_the_key(self):
+        prop_service = FakePropertyService(results=[{"_id": "p1"}], count_result=0)
+
+        result = orch.orchestrate_search(
+            "2 bhk apartment for rent under 25000", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        self.assertNotIn("_matched_nearby_facilities", result["properties"][0])
 
 
 if __name__ == "__main__":

@@ -201,6 +201,25 @@ class NaturalLanguageSearchTests(unittest.TestCase):
         mongo_filter = self.property_service.filtered_search_calls[0]
         self.assertEqual(mongo_filter["listing.price"], {"$lte": 30000.0})
 
+    def test_text_only_search_never_invokes_siglip2(self):
+        """COMBINED NLP + IMAGE SEARCH, Mode 1 (TEXT ONLY): /search_rentals
+        must use the existing NLP -> MongoDB pipeline exactly as before -
+        services.image_similarity is never imported or touched by this
+        route at all (grep-verified), so get_default_encoder() can never
+        be called by a text-only search. Patching it here and asserting
+        it was never invoked is a regression lock for Step 5/13 of the
+        combined-search feature: text-only search must never load
+        SigLIP2 or do any image-similarity work."""
+        self.property_service.filtered_search_results = [sample_property()]
+
+        with patch("services.image_similarity.siglip2_encoder.get_default_encoder") as mock_get_encoder:
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK semi furnished apartment under 30000"
+            })
+
+        self.assertEqual(resp.status_code, 200)
+        mock_get_encoder.assert_not_called()
+
     def test_area_or_city_query(self):
         self.property_service.filtered_search_results = []
 
@@ -335,6 +354,58 @@ class NaturalLanguageSearchTests(unittest.TestCase):
         # Internal fields must never leak through.
         self.assertNotIn("provider_id", str(facilities))
         self.assertNotIn("coordinates", str(facilities))
+
+    def test_matched_nearby_facilities_surfaces_the_real_facility_name(self):
+        # Phase 5, Part 7/9: distinct from the full trimmed
+        # "nearby_facilities" list above - this is specifically the
+        # facility that satisfied the QUERY's own "near a gym"
+        # requirement, so the UI can show "Gold's Gym - 650 m away"
+        # instead of just "Gym - 650 m away".
+        prop = sample_property()
+        prop["nearby_facilities"] = [
+            {"category": "gym", "name": "Test Gym", "distance_m": 650.0},
+            {"category": "hospital", "name": "Should Not Appear Hospital", "distance_m": 900.0},
+        ]
+        self.property_service.filtered_search_results = [prop]
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "flat near a gym"
+        })
+
+        body = resp.get_json()
+        self.assertEqual(
+            body["properties"][0]["matched_nearby_facilities"],
+            [{"category": "gym", "name": "Test Gym", "distance_m": 650.0}],
+        )
+
+    def test_multiple_nearby_facility_requirements_each_surfaced(self):
+        prop = sample_property()
+        prop["nearby_facilities"] = [
+            {"category": "gym", "name": "Gold's Gym", "distance_m": 780.0},
+            {"category": "hospital", "name": "ABC Hospital", "distance_m": 1400.0},
+        ]
+        self.property_service.filtered_search_results = [prop]
+
+        resp = self.client.post("/search_rentals", json={
+            "budget": 0, "query": "2 bhk near a gym and hospital within 2 km"
+        })
+
+        body = resp.get_json()
+        matched = body["properties"][0]["matched_nearby_facilities"]
+        by_category = {m["category"]: m for m in matched}
+        self.assertEqual(by_category["gym"]["name"], "Gold's Gym")
+        self.assertEqual(by_category["hospital"]["name"], "ABC Hospital")
+
+    def test_ordinary_search_response_omits_matched_nearby_facilities_key(self):
+        # Response shape/size for a search with no nearby-facility
+        # requirement must be unaffected by this phase's addition.
+        self.property_service.filtered_search_results = []
+        self.property_service.ranked_search_results = [sample_property()]
+
+        resp = self.client.post("/search_rentals", json={"budget": 0})
+
+        body = resp.get_json()
+        self.assertNotIn("matched_nearby_facilities", body["properties"][0])
 
     @patch("services.search_orchestration.mappls_service.resolve_place")
     def test_ambiguous_response_includes_alternates_for_a_picker(self, mock_resolve_place):

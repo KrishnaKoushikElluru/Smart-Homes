@@ -1,0 +1,1726 @@
+{
+  "SigLIP2": {
+    "n_bathroom_queries": 11,
+    "n_valid_bathroom_queries": 11,
+    "n_excluded_zero_positive": 0,
+    "n_correct_property_in_top10": 6,
+    "n_outranked_by_other_house_bathroom_at_rank1": 9,
+    "recall_at_k": {
+      "1": 0.18181818181818182,
+      "3": 0.18181818181818182,
+      "5": 0.18181818181818182,
+      "10": 0.5454545454545454
+    },
+    "queries": [
+      {
+        "query_id": "House_002/bathroom_01.jpeg",
+        "query_house_id": "House_002",
+        "first_correct_rank": 1,
+        "top_10": [
+          {
+            "image_id": "House_002/kitchen_01.jpeg",
+            "house_id": "House_002",
+            "category": "kitchen",
+            "similarity": 0.8239810017346307,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.7910763662765348,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bedroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bedroom",
+            "similarity": 0.7858299086002264,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_002/living_room_01.jpeg",
+            "house_id": "House_002",
+            "category": "living_room",
+            "similarity": 0.7710815156218774,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_004/bedroom_02.jpeg",
+            "house_id": "House_004",
+            "category": "bedroom",
+            "similarity": 0.7489705807774569,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_009/kitchen_01.jpeg",
+            "house_id": "House_009",
+            "category": "kitchen",
+            "similarity": 0.7411596310246713,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.739745236310277,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_004/bedroom_01.jpeg",
+            "house_id": "House_004",
+            "category": "bedroom",
+            "similarity": 0.7369834214429031,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.7340907411479485,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_003/bedroom_01.jpeg",
+            "house_id": "House_003",
+            "category": "bedroom",
+            "similarity": 0.7329925445360675,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_010/bathroom_01.jpg",
+        "query_house_id": "House_010",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8513374102314157,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8472432488492685,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.836155296720105,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8197085067864794,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.8180531030945563,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8152565380756226,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8010193889710845,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.7910763662765348,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.7864733748962319,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.7740232517154365,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_012/bathroom_01.jpg",
+        "query_house_id": "House_012",
+        "first_correct_rank": 10,
+        "top_10": [
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8807580142911647,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8632307518821415,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8493651344535137,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8472432488492685,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8282188423025635,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8244643243532044,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8225933902233515,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_001/kitchen_01.jpeg",
+            "house_id": "House_001",
+            "category": "kitchen",
+            "similarity": 0.797937450660729,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.7972673459535697,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/living_room_01.jpg",
+            "house_id": "House_012",
+            "category": "living_room",
+            "similarity": 0.7858740868812859,
+            "correct_property": true
+          }
+        ]
+      },
+      {
+        "query_id": "House_013/bathroom_01.jpg",
+        "query_house_id": "House_013",
+        "first_correct_rank": 8,
+        "top_10": [
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8522966976477858,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8333627895697684,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8180531030945563,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8020160825818132,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8000329834662238,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.7947277038543015,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.7910805796297241,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bedroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bedroom",
+            "similarity": 0.7893937145405355,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_013/kitchen_01.jpg",
+            "house_id": "House_013",
+            "category": "kitchen",
+            "similarity": 0.7799804298149257,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.7761005961959218,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_014/bathroom_01.jpg",
+        "query_house_id": "House_014",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8871297591936633,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8699304931567182,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8623982569535659,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8591892957524556,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8513374102314157,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8381297495870849,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.8333627895697684,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8283417075820415,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8282188423025635,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/kitchen_01.jpeg",
+            "house_id": "House_021",
+            "category": "kitchen",
+            "similarity": 0.779259793823425,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_015/bathroom_01.jpg",
+        "query_house_id": "House_015",
+        "first_correct_rank": 8,
+        "top_10": [
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8493651344535137,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8443100919625356,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8381297495870849,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8361685321543216,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8199560096496148,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8152565380756226,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.800162959652034,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bedroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bedroom",
+            "similarity": 0.7954461559813312,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.7932122410071801,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/living_room_01.jpg",
+            "house_id": "House_012",
+            "category": "living_room",
+            "similarity": 0.7782839904621623,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_017/bathroom_01.jpg",
+        "query_house_id": "House_017",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.9145162221120268,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.9095975302259709,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8685011873381836,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8639734401118908,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8632307518821415,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8623982569535659,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8199560096496148,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8010193889710845,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/living_room_01.jpeg",
+            "house_id": "House_021",
+            "category": "living_room",
+            "similarity": 0.7913823752821775,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.7910805796297241,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_018/bathroom_01.jpg",
+        "query_house_id": "House_018",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8871297591936633,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8849782932120726,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8685011873381836,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8421641780102662,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8361685321543216,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8279146906621444,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8244643243532044,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/kitchen_01.jpeg",
+            "house_id": "House_021",
+            "category": "kitchen",
+            "similarity": 0.8167219131341374,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.7947277038543015,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_007/master_bedroom_01.jpeg",
+            "house_id": "House_007",
+            "category": "master_bedroom",
+            "similarity": 0.7872876935948859,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_019/bathroom_01.jpg",
+        "query_house_id": "House_019",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.9145162221120268,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8849782932120726,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8807580142911647,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8699304931567182,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8674230985076703,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8655476652549305,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.8443100919625356,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.8197085067864794,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/living_room_01.jpeg",
+            "house_id": "House_021",
+            "category": "living_room",
+            "similarity": 0.8146185614242505,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.8020160825818132,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_020/bathroom_01.jpeg",
+        "query_house_id": "House_020",
+        "first_correct_rank": 1,
+        "top_10": [
+          {
+            "image_id": "House_020/kitchen_01.jpeg",
+            "house_id": "House_020",
+            "category": "kitchen",
+            "similarity": 0.8666159007352943,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8655476652549305,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.8639734401118908,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.8579641697610164,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/living_room_01.jpeg",
+            "house_id": "House_020",
+            "category": "living_room",
+            "similarity": 0.85521511497192,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8421641780102662,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8283417075820415,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/kitchen_01.jpeg",
+            "house_id": "House_010",
+            "category": "kitchen",
+            "similarity": 0.8157205307810248,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/living_room_01.jpeg",
+            "house_id": "House_021",
+            "category": "living_room",
+            "similarity": 0.8130120569996427,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bedroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bedroom",
+            "similarity": 0.8094875058828948,
+            "correct_property": true
+          }
+        ]
+      },
+      {
+        "query_id": "House_021/bathroom_01.jpeg",
+        "query_house_id": "House_021",
+        "first_correct_rank": 9,
+        "top_10": [
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.9095975302259709,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.8674230985076703,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.8591892957524556,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.8579641697610164,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.8522966976477858,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.836155296720105,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.8279146906621444,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.8225933902233515,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/living_room_01.jpeg",
+            "house_id": "House_021",
+            "category": "living_room",
+            "similarity": 0.8063903509104389,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.7932122410071801,
+            "correct_property": false
+          }
+        ]
+      }
+    ]
+  },
+  "DINOv2": {
+    "n_bathroom_queries": 11,
+    "n_valid_bathroom_queries": 11,
+    "n_excluded_zero_positive": 0,
+    "n_correct_property_in_top10": 1,
+    "n_outranked_by_other_house_bathroom_at_rank1": 11,
+    "recall_at_k": {
+      "1": 0.0,
+      "3": 0.0,
+      "5": 0.0,
+      "10": 0.09090909090909091
+    },
+    "queries": [
+      {
+        "query_id": "House_002/bathroom_01.jpeg",
+        "query_house_id": "House_002",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.6514884936612257,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.6244168088975487,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.6216333876696593,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.5914670987321463,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.5461706822111544,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.5447953241272762,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.5366905810880922,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.45452588115029813,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.43122391352229356,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.3941227621538274,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_010/bathroom_01.jpg",
+        "query_house_id": "House_010",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.7792534986209236,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.7187831447922773,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.6805260758795977,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.6514884936612257,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.6466982895903975,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.6334756905410084,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.5143439282863306,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.4917754364423198,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.4892241250901579,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.4613007899642687,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_012/bathroom_01.jpg",
+        "query_house_id": "House_012",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.6760548582778201,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.6153603195345893,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.5461706822111544,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.5143439282863306,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.5035857118989965,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.4863027147218916,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.4699649368541291,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.4141912928948168,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.38941943584953065,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.27798577607723657,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_013/bathroom_01.jpg",
+        "query_house_id": "House_013",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.6710811329409592,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.6182379546856202,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.5266052668643201,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.47501479160041177,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.4613007899642687,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.43122391352229356,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.4264798211903855,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.4139736245290531,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.3966231741049191,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.38941943584953065,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_014/bathroom_01.jpg",
+        "query_house_id": "House_014",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.7792534986209236,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.604140968945091,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.5916865790700611,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.5813360733110846,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.5366905810880922,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.5313286917639375,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.4598031352390902,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.42978403949161775,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.4141912928948168,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.3966231741049191,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_015/bathroom_01.jpg",
+        "query_house_id": "House_015",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.6880015509847113,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.6729170973899151,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.667304263067067,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.6466982895903975,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.5672735192109168,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.5644985829706494,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.5447953241272762,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.5313286917639375,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.4699649368541291,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.4264798211903855,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_017/bathroom_01.jpg",
+        "query_house_id": "House_017",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.7530084963786701,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.7187831447922773,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.6801794529277403,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.6760548582778201,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.667304263067067,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.6216333876696593,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.5856355158607983,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.5813360733110846,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.47501479160041177,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.4427776491037996,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_018/bathroom_01.jpg",
+        "query_house_id": "House_018",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.6710811329409592,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.6665257508032277,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.6307773003628018,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.5856355158607983,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.5672735192109168,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.5639376923685482,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.4892241250901579,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.4863027147218916,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.45452588115029813,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.42978403949161775,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_019/bathroom_01.jpg",
+        "query_house_id": "House_019",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.7530084963786701,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.7297647262606666,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.6729170973899151,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.6665257508032277,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.6334756905410084,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.6244168088975487,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.6153603195345893,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.5916865790700611,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.5543354224336788,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.5266052668643201,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_020/bathroom_01.jpeg",
+        "query_house_id": "House_020",
+        "first_correct_rank": 9,
+        "top_10": [
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.6307773003628018,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.6182379546856202,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.5644985829706494,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.5543354224336788,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.4917754364423198,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_021/bathroom_01.jpeg",
+            "house_id": "House_021",
+            "category": "bathroom",
+            "similarity": 0.4835926289045076,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.4598031352390902,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.4427776491037996,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/kitchen_01.jpeg",
+            "house_id": "House_020",
+            "category": "kitchen",
+            "similarity": 0.41103011920289917,
+            "correct_property": true
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.3941227621538274,
+            "correct_property": false
+          }
+        ]
+      },
+      {
+        "query_id": "House_021/bathroom_01.jpeg",
+        "query_house_id": "House_021",
+        "first_correct_rank": null,
+        "top_10": [
+          {
+            "image_id": "House_019/bathroom_01.jpg",
+            "house_id": "House_019",
+            "category": "bathroom",
+            "similarity": 0.7297647262606666,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_015/bathroom_01.jpg",
+            "house_id": "House_015",
+            "category": "bathroom",
+            "similarity": 0.6880015509847113,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_010/bathroom_01.jpg",
+            "house_id": "House_010",
+            "category": "bathroom",
+            "similarity": 0.6805260758795977,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_017/bathroom_01.jpg",
+            "house_id": "House_017",
+            "category": "bathroom",
+            "similarity": 0.6801794529277403,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_014/bathroom_01.jpg",
+            "house_id": "House_014",
+            "category": "bathroom",
+            "similarity": 0.604140968945091,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_002/bathroom_01.jpeg",
+            "house_id": "House_002",
+            "category": "bathroom",
+            "similarity": 0.5914670987321463,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_018/bathroom_01.jpg",
+            "house_id": "House_018",
+            "category": "bathroom",
+            "similarity": 0.5639376923685482,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_012/bathroom_01.jpg",
+            "house_id": "House_012",
+            "category": "bathroom",
+            "similarity": 0.5035857118989965,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_020/bathroom_01.jpeg",
+            "house_id": "House_020",
+            "category": "bathroom",
+            "similarity": 0.4835926289045076,
+            "correct_property": false
+          },
+          {
+            "image_id": "House_013/bathroom_01.jpg",
+            "house_id": "House_013",
+            "category": "bathroom",
+            "similarity": 0.4139736245290531,
+            "correct_property": false
+          }
+        ]
+      }
+    ]
+  }
+}

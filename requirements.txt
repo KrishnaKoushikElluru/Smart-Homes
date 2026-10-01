@@ -9,6 +9,6 @@ email-validator
 python-dotenv
 requests
 openai
-huggingface_hub
 Pillow
 pymongo
+google-genai

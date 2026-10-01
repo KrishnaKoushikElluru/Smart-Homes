@@ -1,0 +1,353 @@
+[
+  {
+    "property_id": "6aad6d7880184d51dc893b7e",
+    "image_id": "6aad6d7880184d51dc893b7e/54d9414de42446e8b7ffa43f2eb7bd54.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\54d9414de42446e8b7ffa43f2eb7bd54.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T16:57:29.633501+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aad6d7880184d51dc893b7e",
+    "image_id": "6aad6d7880184d51dc893b7e/61e39401c8eb4aefb07e78df4c0551ea.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\61e39401c8eb4aefb07e78df4c0551ea.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T16:57:29.885659+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aad6d7880184d51dc893b7e",
+    "image_id": "6aad6d7880184d51dc893b7e/93251e298e9a46e69183f9918f588082.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\93251e298e9a46e69183f9918f588082.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T16:57:30.174366+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aad6d7880184d51dc893b7e",
+    "image_id": "6aad6d7880184d51dc893b7e/509f86e6be0046a68b2d27028035f658.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\509f86e6be0046a68b2d27028035f658.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T16:57:30.444029+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae1fa4723b1ad7cb880568",
+    "image_id": "6aae1fa4723b1ad7cb880568/dee98b2950ee43878ca184ce2821ee8d.png",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\dee98b2950ee43878ca184ce2821ee8d.png",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T05:38:34.575018+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae1fa4723b1ad7cb880568",
+    "image_id": "6aae1fa4723b1ad7cb880568/8e89c9c85038467297596063f1d28153.png",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\8e89c9c85038467297596063f1d28153.png",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T05:38:35.137627+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae1fa4723b1ad7cb880568",
+    "image_id": "6aae1fa4723b1ad7cb880568/e96a5ef58477494f8a8bb203a1263963.png",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\e96a5ef58477494f8a8bb203a1263963.png",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T05:38:35.584749+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae1fa4723b1ad7cb880568",
+    "image_id": "6aae1fa4723b1ad7cb880568/bae7a537915f497c8ef480de51234419.png",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\bae7a537915f497c8ef480de51234419.png",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T05:38:36.094453+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae1fa4723b1ad7cb880568",
+    "image_id": "6aae1fa4723b1ad7cb880568/f0849d8f43984b4d9ddd631fa924033c.png",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\f0849d8f43984b4d9ddd631fa924033c.png",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T05:38:36.640578+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae2620723b1ad7cb880569",
+    "image_id": "6aae2620723b1ad7cb880569/dd8c2f8084e0412f87b131a72a145d04.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\dd8c2f8084e0412f87b131a72a145d04.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T06:05:21.693569+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae2620723b1ad7cb880569",
+    "image_id": "6aae2620723b1ad7cb880569/8ce134dec1bf496aa9e33c4b9a0cde2a.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\8ce134dec1bf496aa9e33c4b9a0cde2a.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T06:05:21.964943+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae2620723b1ad7cb880569",
+    "image_id": "6aae2620723b1ad7cb880569/4e1d344bd5fc4d7fbdd0acd34c754748.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\4e1d344bd5fc4d7fbdd0acd34c754748.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T06:05:22.287493+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae2620723b1ad7cb880569",
+    "image_id": "6aae2620723b1ad7cb880569/3cf3bb80f611468da529c48d5195f0f5.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\3cf3bb80f611468da529c48d5195f0f5.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T06:05:22.598945+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6aae2620723b1ad7cb880569",
+    "image_id": "6aae2620723b1ad7cb880569/4f8fb738a7c4458cb2e49d36ddabf653.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\4f8fb738a7c4458cb2e49d36ddabf653.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-19T06:05:22.879507+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea2423ebd08a63309c41",
+    "image_id": "6abcea2423ebd08a63309c41/840cb13cd99845df8000ba3d65fa5c29.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\840cb13cd99845df8000ba3d65fa5c29.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:46.476033+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea2423ebd08a63309c41",
+    "image_id": "6abcea2423ebd08a63309c41/9800e749810d483dbc064ae01e4231a2.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\9800e749810d483dbc064ae01e4231a2.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:46.702492+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea2423ebd08a63309c41",
+    "image_id": "6abcea2423ebd08a63309c41/d53397e5c92446c9898c6c6f18e9565b.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\d53397e5c92446c9898c6c6f18e9565b.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:46.945989+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea2423ebd08a63309c41",
+    "image_id": "6abcea2423ebd08a63309c41/ea6d38a705df44e9a35f09486b1a14a1.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\ea6d38a705df44e9a35f09486b1a14a1.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:47.203973+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3b23ebd08a63309c42",
+    "image_id": "6abcea3b23ebd08a63309c42/219e9b07529e4f8d81d8cf70bd3a3284.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\219e9b07529e4f8d81d8cf70bd3a3284.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:47.635918+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3b23ebd08a63309c42",
+    "image_id": "6abcea3b23ebd08a63309c42/fe1305730a00424eb626f2ab1684ceae.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\fe1305730a00424eb626f2ab1684ceae.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:47.879900+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3b23ebd08a63309c42",
+    "image_id": "6abcea3b23ebd08a63309c42/6472e7cac0864e4d921e441b3a9d31a4.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\6472e7cac0864e4d921e441b3a9d31a4.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:48.119271+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3b23ebd08a63309c42",
+    "image_id": "6abcea3b23ebd08a63309c42/509f4ae47597471abca0243e81caee2f.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\509f4ae47597471abca0243e81caee2f.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:48.426923+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3b23ebd08a63309c42",
+    "image_id": "6abcea3b23ebd08a63309c42/96b299bda1844838b24de70c00d63189.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\96b299bda1844838b24de70c00d63189.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:48.685872+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3c23ebd08a63309c43",
+    "image_id": "6abcea3c23ebd08a63309c43/c373ee0b11fc4bc187d746f0a74293ca.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\c373ee0b11fc4bc187d746f0a74293ca.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:49.033308+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3c23ebd08a63309c43",
+    "image_id": "6abcea3c23ebd08a63309c43/91d99ca0ba4f4d8e88b9fa7a8f195eb4.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\91d99ca0ba4f4d8e88b9fa7a8f195eb4.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:49.292860+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3c23ebd08a63309c43",
+    "image_id": "6abcea3c23ebd08a63309c43/ab3d1646ff354399bbf481a6c2b1e2a0.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\ab3d1646ff354399bbf481a6c2b1e2a0.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:49.538111+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3c23ebd08a63309c43",
+    "image_id": "6abcea3c23ebd08a63309c43/5a3e4b6b92b446e3a6433f27b839e2dc.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\5a3e4b6b92b446e3a6433f27b839e2dc.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:49.770504+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3d23ebd08a63309c44",
+    "image_id": "6abcea3d23ebd08a63309c44/e557ae0b865447db8416a3d32c754c14.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\e557ae0b865447db8416a3d32c754c14.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:50.090325+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3d23ebd08a63309c44",
+    "image_id": "6abcea3d23ebd08a63309c44/e57c50723b1f4abfa1a9fc04b033c812.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\e57c50723b1f4abfa1a9fc04b033c812.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:50.344728+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3d23ebd08a63309c44",
+    "image_id": "6abcea3d23ebd08a63309c44/ba5a0fd8a08f4760b937a78564d7e96f.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\ba5a0fd8a08f4760b937a78564d7e96f.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:50.651000+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3d23ebd08a63309c44",
+    "image_id": "6abcea3d23ebd08a63309c44/0fcb9e89ccd543ca9ed127a065cec529.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\0fcb9e89ccd543ca9ed127a065cec529.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:50.952862+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3e23ebd08a63309c45",
+    "image_id": "6abcea3e23ebd08a63309c45/7d47e522a1d0470e923577bd33971575.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\7d47e522a1d0470e923577bd33971575.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:51.377341+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3e23ebd08a63309c45",
+    "image_id": "6abcea3e23ebd08a63309c45/100c9ed691254610a393c69f406a8b4d.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\100c9ed691254610a393c69f406a8b4d.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:51.699084+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3e23ebd08a63309c45",
+    "image_id": "6abcea3e23ebd08a63309c45/64797005fe9f47e5b9dff282b7d56016.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\64797005fe9f47e5b9dff282b7d56016.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:52.024727+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea3e23ebd08a63309c45",
+    "image_id": "6abcea3e23ebd08a63309c45/1d18a155e14c4c0c8b8e1f7e4b20b73f.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\1d18a155e14c4c0c8b8e1f7e4b20b73f.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:52.336714+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea4023ebd08a63309c46",
+    "image_id": "6abcea4023ebd08a63309c46/14850c138a2f404a8982d0f2ab45dcf6.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\14850c138a2f404a8982d0f2ab45dcf6.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:52.745424+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea4023ebd08a63309c46",
+    "image_id": "6abcea4023ebd08a63309c46/3e58e5e74ce846589b93e98133f0b01c.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\3e58e5e74ce846589b93e98133f0b01c.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:53.062399+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea4023ebd08a63309c46",
+    "image_id": "6abcea4023ebd08a63309c46/495f64ebd54d4d58b9445c4da4c7a0f1.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\495f64ebd54d4d58b9445c4da4c7a0f1.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:53.371482+00:00",
+    "source": "mongodb_production"
+  },
+  {
+    "property_id": "6abcea4023ebd08a63309c46",
+    "image_id": "6abcea4023ebd08a63309c46/ebc3f0f67eb6428381f8f94abe208b51.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\static\\images/properties\\ebc3f0f67eb6428381f8f94abe208b51.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-30T10:53:53.664397+00:00",
+    "source": "mongodb_production"
+  }
+]

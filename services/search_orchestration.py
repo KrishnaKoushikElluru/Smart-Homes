@@ -56,6 +56,7 @@ from typing import Optional
 
 from services.nlp.parser import parse as parse_nlp_query
 from services import mappls_service
+from services import location_provider_service
 
 
 # ============================================================
@@ -283,6 +284,75 @@ def resolve_poi_location(
 
 
 # ============================================================
+# STEP 2b: PROVIDER ORCHESTRATION (Ola primary, Mappls+OSM fallback)
+#
+# Composes services/location_provider_service.py's Ola-only resolver
+# with resolve_poi_location() (Phase 1, unchanged, directly above) as
+# the fallback. This composition deliberately lives HERE rather than
+# inside location_provider_service.py itself - that module must not
+# import this one (this module already imports it for the Ola step),
+# which would be a circular import; keeping the fallback wiring at this
+# level also means every existing Mappls/OSM test's patch target (e.g.
+# "services.search_orchestration.mappls_service.resolve_place") stays
+# valid unchanged, since resolve_poi_location() itself is untouched.
+# ============================================================
+
+def resolve_poi_location_via_best_provider(
+    poi_query: str,
+    ola_api_key: Optional[str],
+    mappls_api_key: Optional[str],
+    osm_service,
+    location_bias: Optional[str] = None,
+) -> dict:
+    """
+    Ola PRIMARY -> Mappls+OSM FALLBACK, per this phase's required
+    architecture. Ola is tried first; only when it does NOT produce a
+    safe "matched" result (no_match / ambiguous / error) does this fall
+    back to the exact same Mappls -> OSM chain
+    routes/property_routes.py's /api/location/resolve-poi endpoint and
+    the pre-Ola search flow already used. Never turns a failed/
+    ambiguous Ola lookup into an unfiltered or arbitrary location -
+    every status below is one of resolve_poi_location()'s own explicit
+    vocabulary (matched/ambiguous/no_match/rejected/error).
+
+    Returns the SAME shape as resolve_poi_location() (see its
+    docstring), plus one extra key:
+        "provider": "ola" | "mappls" | None
+            None when nothing resolved (no_match/error) - there is no
+            provider to credit for a failure.
+    """
+
+    ola_result = location_provider_service.resolve_location_via_ola(
+        poi_query, ola_api_key, location_bias=location_bias
+    )
+
+    if ola_result["status"] == "matched":
+        return {
+            "status": "matched",
+            "latitude": ola_result["latitude"],
+            "longitude": ola_result["longitude"],
+            "mappls_place_name": None,
+            "confidence": ola_result["confidence"],
+            "error": None,
+            "alternates": [],
+            "provider": "ola",
+        }
+
+    # Ola did not produce a safe result (no_match / ambiguous / error) -
+    # fall back to the existing, unmodified Mappls -> OSM chain. An
+    # Ola "ambiguous" is deliberately NOT surfaced as the final answer
+    # here - Mappls+OSM gets a full independent attempt rather than
+    # inheriting Ola's uncertainty, since the two providers' ambiguity
+    # is not the same kind of signal (Ola: text-similarity too close to
+    # call; Mappls/OSM: real duplicate/nearby OSM candidates).
+    fallback = resolve_poi_location(
+        poi_query, mappls_api_key, osm_service, location_bias=location_bias
+    )
+    fallback["provider"] = "mappls" if fallback["status"] == "matched" else None
+    return fallback
+
+
+# ============================================================
 # STEP 3: MONGO FILTER CONSTRUCTION
 # ============================================================
 
@@ -465,6 +535,82 @@ def _nearby_facility_enrichment_caveat(property_service, nearby_facility_require
     }
 
 
+def _attach_matched_nearby_facilities(properties: list, nearby_facility_requirements: list) -> None:
+    """Phase 5 (Part 7/8): for every property in a search that used a
+    nearby-facility constraint, records WHICH of that property's own
+    stored services/nearby_facility_service.py facilities actually
+    satisfied each requested category - so the UI can show the real
+    facility NAME ("Gold's Gym - 780 m away") instead of just the bare
+    category ("Gym - 780 m away").
+
+    Mutates each property dict in place, attaching a
+    "_matched_nearby_facilities" key - the SAME pattern
+    services/property_services.py's ranked_search() already uses for
+    "_match_score" (an internal, underscore-prefixed field the search
+    layer adds on top of the stored document; routes/search_routes.py's
+    serializer reads it and exposes it under the public name
+    "matched_nearby_facilities", omitting the key entirely for an
+    ordinary search with no nearby-facility requirement - see that
+    serializer for why response size/shape for ordinary searches is
+    unaffected).
+
+    Selection semantics when a property has MULTIPLE stored facilities
+    for the same requested category: picks the CLOSEST one
+    (minimum distance_m). This matches the order
+    services/nearby_facility_service.py already stores them in (each
+    category's discovered places are sorted closest-first before
+    being kept - see that module's _discover_category()) - not a new
+    ranking rule invented here.
+
+    A requirement with no matching stored facility on a given property
+    (should not normally happen for a property that matched the
+    $elemMatch filter at all, but handled defensively - e.g. a property
+    matching on ONE of several requested categories) is simply omitted
+    from that property's list rather than guessed at.
+    """
+
+    if not nearby_facility_requirements:
+        return
+
+    for property_item in properties:
+
+        stored = property_item.get("nearby_facilities") or []
+        matched = []
+
+        for requirement in nearby_facility_requirements:
+
+            category = requirement.get("category")
+            radius_m = requirement.get("radius_m")
+
+            if not category:
+                continue
+
+            candidates = [
+                facility for facility in stored
+                if facility.get("category") == category
+                and (
+                    radius_m is None
+                    or (facility.get("distance_m") is not None and facility["distance_m"] <= radius_m)
+                )
+            ]
+
+            if not candidates:
+                continue
+
+            best = min(
+                candidates,
+                key=lambda f: f["distance_m"] if f.get("distance_m") is not None else float("inf"),
+            )
+
+            matched.append({
+                "category": category,
+                "name": best.get("name"),
+                "distance_m": best.get("distance_m"),
+            })
+
+        property_item["_matched_nearby_facilities"] = matched
+
+
 # ============================================================
 # STEP 4: FULL ORCHESTRATION
 # ============================================================
@@ -478,6 +624,7 @@ def orchestrate_search(
     poi_radius_km: float = DEFAULT_POI_RADIUS_KM,
     location_bias: Optional[str] = None,
     explicit_coordinates: Optional[tuple] = None,
+    ola_api_key: Optional[str] = None,
 ) -> dict:
     """
     Full Phase 3 pipeline for one search request. Never raises for a
@@ -485,8 +632,18 @@ def orchestrate_search(
     raises (see test_nlp_parser.py), and every failure mode below
     resolves to an explicit result rather than an exception.
 
+    ola_api_key: optional, added for this phase's Ola-primary/Mappls-
+    fallback provider architecture (see
+    resolve_poi_location_via_best_provider() above). Deliberately a new
+    KEYWORD-only-by-convention parameter appended at the end, not
+    inserted earlier - every existing positional call to this function
+    (see test_search_orchestration.py) must keep working unchanged.
+    When omitted (None), POI resolution falls straight to the existing
+    Mappls -> OSM chain, exactly as before this phase - Ola is additive,
+    never a hard dependency.
+
     explicit_coordinates: optional (latitude, longitude) tuple. When
-    given, POI resolution (Mappls/OSM) is skipped ENTIRELY for this
+    given, POI resolution (Ola/Mappls/OSM) is skipped ENTIRELY for this
     call - used when a caller already knows exactly where to search,
     e.g. the user picked one specific option from a previous
     "ambiguous" result's alternates (see resolve_poi_location()'s
@@ -498,7 +655,8 @@ def orchestrate_search(
     Returns:
         {
             "parsed_query": StructuredQuery.to_dict(),
-            "location_resolution": resolve_poi_location() result | None,
+            "location_resolution":
+                resolve_poi_location_via_best_provider() result | None,
             "applied_filters": dict,
             "properties": [...],
         }
@@ -533,6 +691,7 @@ def orchestrate_search(
         applied_filters["poi_radius_km"] = poi_radius_km
 
         properties = property_service.filtered_search(mongo_filter)
+        _attach_matched_nearby_facilities(properties, merged.get("nearby_facility_requirements") or [])
 
         return {
             "parsed_query": structured_dict,
@@ -544,6 +703,7 @@ def orchestrate_search(
                 "confidence": None,
                 "error": None,
                 "alternates": [],
+                "provider": None,
             },
             "applied_filters": applied_filters,
             "properties": properties,
@@ -551,8 +711,8 @@ def orchestrate_search(
         }
 
     if poi_query:
-        location_resolution = resolve_poi_location(
-            poi_query, mappls_api_key, osm_service, location_bias=location_bias
+        location_resolution = resolve_poi_location_via_best_provider(
+            poi_query, ola_api_key, mappls_api_key, osm_service, location_bias=location_bias
         )
 
         if location_resolution["status"] != "matched":
@@ -583,6 +743,7 @@ def orchestrate_search(
         applied_filters["poi_radius_km"] = poi_radius_km
 
         properties = property_service.filtered_search(mongo_filter)
+        _attach_matched_nearby_facilities(properties, merged.get("nearby_facility_requirements") or [])
 
         return {
             "parsed_query": structured_dict,
@@ -596,6 +757,7 @@ def orchestrate_search(
     # city/locality text filter, possibly with none at all).
     mongo_filter, applied_filters = build_mongo_filter(merged)
     properties = property_service.filtered_search(mongo_filter)
+    _attach_matched_nearby_facilities(properties, merged.get("nearby_facility_requirements") or [])
 
     return {
         "parsed_query": structured_dict,

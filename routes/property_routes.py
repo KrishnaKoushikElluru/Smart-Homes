@@ -1,7 +1,5 @@
 from urllib.parse import urlparse
 
-import requests
-
 from flask import (
     Blueprint,
     render_template,
@@ -55,6 +53,8 @@ from services.media_service import (
 
 from services import geospatial_service
 from services import mappls_service
+from services import ola_maps_service
+from services import location_provider_service
 from services import nearby_facility_service
 
 
@@ -130,8 +130,13 @@ def rentals():
         listings=properties,
         field_config=build_field_config(),
         image_categories=IMAGE_CATEGORIES,
-        geoapify_enabled=bool(
-            current_app.config.get("GEOAPIFY_API_KEY")
+        # Phase 5: property-registration location search no longer uses
+        # Geoapify (see routes for /api/location/autocomplete etc.
+        # below) - Ola is primary, Mappls+OSM the fallback, so this
+        # flag now reflects whether EITHER is configured, not Geoapify.
+        location_search_enabled=bool(
+            current_app.config.get("OLA_MAPS_API_KEY")
+            or current_app.config.get("MAPPLS_API_KEY")
         )
     )
 
@@ -236,15 +241,16 @@ def property_nearby_poi(property_id):
 
 
 # ============================================================
-# LOCATION AUTOCOMPLETE / REVERSE GEOCODING PROXY
+# LOCATION AUTOCOMPLETE / REVERSE GEOCODING PROXY (Phase 5)
 #
-# The Geoapify API key lives only on the server (read from the
-# environment). The frontend calls these same-origin endpoints
-# instead of talking to Geoapify directly.
+# Ola Maps PRIMARY, Mappls FALLBACK for autocomplete; Ola only for
+# reverse geocoding (the manual map click/drag convenience fill - see
+# services/ola_maps_service.py's module docstring). Geoapify is no
+# longer used anywhere in this file - see docs/PHASE_5_OLA_MAPS_LOCATION_PROVIDER.md
+# for the full architecture and why. Every provider API key lives only
+# on the server (read from the environment); the frontend calls these
+# same-origin endpoints instead of talking to any provider directly.
 # ============================================================
-
-GEOAPIFY_GEOCODE_URL = "https://api.geoapify.com/v1/geocode"
-
 
 @property_bp.route(
     "/api/location/autocomplete",
@@ -253,11 +259,10 @@ GEOAPIFY_GEOCODE_URL = "https://api.geoapify.com/v1/geocode"
 @login_required
 def location_autocomplete():
 
-    api_key = current_app.config.get(
-        "GEOAPIFY_API_KEY"
-    )
+    ola_api_key = current_app.config.get("OLA_MAPS_API_KEY")
+    mappls_api_key = current_app.config.get("MAPPLS_API_KEY")
 
-    if not api_key:
+    if not ola_api_key and not mappls_api_key:
 
         return jsonify({
             "error": "Location search is not configured.",
@@ -271,13 +276,7 @@ def location_autocomplete():
     if len(query) < 3:
         return jsonify({"results": []})
 
-    params = {
-        "text": query,
-        "apiKey": api_key,
-        "filter": "countrycode:in",
-        "format": "json",
-        "limit": 6
-    }
+    location_bias = None
 
     latitude = request.args.get("lat")
     longitude = request.args.get("lon")
@@ -285,59 +284,84 @@ def location_autocomplete():
     if latitude and longitude:
 
         try:
-
-            params["bias"] = (
-                f"proximity:{float(longitude)},{float(latitude)}"
-            )
-
+            location_bias = f"{float(latitude)},{float(longitude)}"
         except ValueError:
-            pass
+            location_bias = None
 
-    try:
+    ola_result = ola_maps_service.autocomplete(
+        query, ola_api_key, location_bias=location_bias
+    )
 
-        response = requests.get(
-            f"{GEOAPIFY_GEOCODE_URL}/autocomplete",
-            params=params,
-            timeout=6
-        )
+    if ola_result["status"] == "matched":
+        return jsonify({"results": ola_result["candidates"]})
 
-        response.raise_for_status()
+    if ola_result["status"] == "no_match":
+        # A real, confident "Ola has nothing for this text" - falling
+        # back to Mappls here would just be guessing on Ola's behalf;
+        # an empty result list is the honest answer.
+        return jsonify({"results": []})
 
-        data = response.json()
+    # Ola errored or isn't configured - Mappls remains available as
+    # fallback (single top candidate, wrapped in the same list shape so
+    # the frontend's rendering code doesn't need a second code path).
+    mappls_result = mappls_service.resolve_place(
+        query, mappls_api_key, location_bias=location_bias
+    )
 
-    except (requests.RequestException, ValueError):
+    if mappls_result["status"] != "matched":
+        return jsonify({"results": []})
 
-        return jsonify({
-            "error": "Location search is temporarily unavailable.",
-            "results": []
-        })
+    return jsonify({
+        "results": [{
+            "provider": "mappls",
+            "place_id": None,
+            "name": mappls_result["place_name"],
+            "address": mappls_result["place_address"],
+            "latitude": None,
+            "longitude": None,
+            "types": [mappls_result["type"]] if mappls_result["type"] else [],
+        }]
+    })
 
-    results = []
 
-    for item in data.get("results", []):
+@property_bp.route(
+    "/api/location/resolve-candidate",
+    methods=["POST"]
+)
+@login_required
+def location_resolve_candidate():
+    """
+    Resolves ONE user-selected autocomplete candidate (from either
+    provider - see location_autocomplete() above) to final coordinates
+    + a structured address breakdown, via
+    services/location_provider_service.py's resolve_selected_candidate().
+    This is the "Ola Place Details" / "Mappls+OSM fallback" step of the
+    registration flow: Autocomplete -> user selects -> THIS endpoint ->
+    lat/lng -> map marker.
+    """
 
-        results.append({
-            "formatted": item.get("formatted"),
-            "address_line1": item.get("address_line1"),
-            "city": (
-                item.get("city")
-                or item.get("county")
-            ),
-            "state": item.get("state"),
-            "locality": (
-                item.get("suburb")
-                or item.get("district")
-            ),
-            "sub_locality": (
-                item.get("neighbourhood")
-                or item.get("quarter")
-            ),
-            "postcode": item.get("postcode"),
-            "lat": item.get("lat"),
-            "lon": item.get("lon")
-        })
+    data = request.get_json(silent=True) or {}
 
-    return jsonify({"results": results})
+    provider = data.get("provider")
+
+    if provider not in ("ola", "mappls"):
+        return jsonify({"error": "A valid candidate 'provider' is required."}), 400
+
+    candidate = {
+        "provider": provider,
+        "place_id": data.get("place_id"),
+        "name": (data.get("name") or "").strip(),
+        "address": (data.get("address") or "").strip(),
+    }
+
+    ola_api_key = current_app.config.get("OLA_MAPS_API_KEY")
+    osm_service = current_app.extensions.get("osm_location_service")
+
+    result = location_provider_service.resolve_selected_candidate(
+        candidate, ola_api_key=ola_api_key, osm_service=osm_service
+    )
+
+    return jsonify(result)
 
 
 @property_bp.route(
@@ -347,9 +371,7 @@ def location_autocomplete():
 @login_required
 def location_reverse():
 
-    api_key = current_app.config.get(
-        "GEOAPIFY_API_KEY"
-    )
+    api_key = current_app.config.get("OLA_MAPS_API_KEY")
 
     if not api_key:
 
@@ -368,64 +390,37 @@ def location_reverse():
             "error": "Invalid coordinates."
         }), 400
 
-    params = {
-        "lat": latitude,
-        "lon": longitude,
-        "apiKey": api_key,
-        "format": "json"
-    }
+    result = ola_maps_service.reverse_geocode(latitude, longitude, api_key)
 
-    try:
-
-        response = requests.get(
-            f"{GEOAPIFY_GEOCODE_URL}/reverse",
-            params=params,
-            timeout=6
-        )
-
-        response.raise_for_status()
-
-        data = response.json()
-
-    except (requests.RequestException, ValueError):
+    if result["status"] != "matched":
 
         return jsonify({
-            "error": "Reverse geocoding is temporarily unavailable."
+            "error": result["error"] or "Reverse geocoding is temporarily unavailable."
         })
 
-    results = data.get("results", [])
-    item = results[0] if results else {}
-
     return jsonify({
-        "formatted": item.get("formatted"),
-        "city": (
-            item.get("city")
-            or item.get("county")
-        ),
-        "state": item.get("state"),
-        "locality": (
-            item.get("suburb")
-            or item.get("district")
-        ),
-        "sub_locality": (
-            item.get("neighbourhood")
-            or item.get("quarter")
-        ),
-        "postcode": item.get("postcode")
+        "formatted": result["formatted_address"],
+        "city": result["city"],
+        "state": result["state"],
+        "locality": result["locality"],
+        "sub_locality": result["sub_locality"],
+        "postcode": result["postcode"]
     })
 
 
 # ============================================================
-# POI COORDINATE RESOLUTION (Mappls -> OSM)
+# POI COORDINATE RESOLUTION (Ola -> Mappls -> OSM)
 #
-# Development/testing endpoint for the new Mappls -> OSM coordinate
-# -resolution pipeline (see services/mappls_service.py and
+# Development/testing endpoint for this project's full location-
+# resolution pipeline (see services/location_provider_service.py,
+# services/ola_maps_service.py, services/mappls_service.py and
 # services/osm_location_service.py). NOT yet wired into property
 # search - this only resolves a named place into coordinates so the
-# pipeline can be exercised and verified on its own before any search
-# flow depends on it. Mappls decides WHICH entity a query means; OSM
-# only ever tries to locate the SAME entity Mappls already selected -
-# it never re-ranks or second-guesses Mappls' choice.
+# pipeline can be exercised and verified on its own. Ola is tried
+# first; Mappls+OSM (Phase 1, unchanged) only run at all when Ola does
+# NOT produce a safe "matched" result - see
+# services/search_orchestration.py's resolve_poi_location_via_best_provider()
+# for the same composition this endpoint exercises.
 # ============================================================
 
 @property_bp.route(
@@ -442,33 +437,55 @@ def resolve_poi():
     if not query:
         return jsonify({"error": "A 'query' field is required."}), 400
 
+    ola_key = current_app.config.get("OLA_MAPS_API_KEY")
     mappls_key = current_app.config.get("MAPPLS_API_KEY")
 
-    # Mappls' own ambiguity resolution depends heavily on this: without a
-    # location bias, a short/generic query (e.g. "SRM") can resolve to an
-    # unrelated place anywhere in India (confirmed during manual testing -
-    # see the implementation report). Callers may pass their own
-    # "lat,lon" (e.g. the city the user is currently searching in);
-    # SmartHomes' current listings are Chennai-only, so that's the
-    # fallback default - NOT a hard-coded assumption once other cities
-    # are onboarded, just today's sensible default.
+    # Mappls' (and Ola's) own ambiguity resolution depends heavily on
+    # this: without a location bias, a short/generic query (e.g. "SRM")
+    # can resolve to an unrelated place anywhere in India (confirmed
+    # during manual testing - see the implementation report). Callers
+    # may pass their own "lat,lon" (e.g. the city the user is currently
+    # searching in); SmartHomes' current listings are Chennai-only, so
+    # that's the fallback default - NOT a hard-coded assumption once
+    # other cities are onboarded, just today's sensible default.
     location_bias = (data.get("location_bias") or "").strip() or "12.9716,80.2217"
+
+    ola_result = location_provider_service.resolve_location_via_ola(
+        query, ola_key, location_bias=location_bias
+    )
+
+    response = {
+        "query": query,
+        "ola": {
+            "status": ola_result["status"],
+            "place_name": ola_result["place_name"],
+            "formatted_address": ola_result["formatted_address"],
+            "latitude": ola_result["latitude"],
+            "longitude": ola_result["longitude"],
+            "confidence": ola_result["confidence"],
+            "alternates": ola_result["alternates"],
+            "error": ola_result["error"],
+        },
+        "mappls": None,
+        "osm": None,
+        "provider": None,
+    }
+
+    if ola_result["status"] == "matched":
+        response["provider"] = "ola"
+        return jsonify(response)
 
     mappls_result = mappls_service.resolve_place(
         query, mappls_key, location_bias=location_bias
     )
 
-    response = {
-        "query": query,
-        "mappls": {
-            "status": mappls_result["status"],
-            "place_name": mappls_result["place_name"],
-            "place_address": mappls_result["place_address"],
-            "eloc": mappls_result["eloc"],
-            "type": mappls_result["type"],
-            "error": mappls_result["error"],
-        },
-        "osm": None,
+    response["mappls"] = {
+        "status": mappls_result["status"],
+        "place_name": mappls_result["place_name"],
+        "place_address": mappls_result["place_address"],
+        "eloc": mappls_result["eloc"],
+        "type": mappls_result["type"],
+        "error": mappls_result["error"],
     }
 
     if mappls_result["status"] != "matched":
@@ -501,6 +518,9 @@ def resolve_poi():
         "alternates": osm_result["alternates"],
         "error": osm_result["error"],
     }
+
+    if osm_result["status"] == "matched":
+        response["provider"] = "mappls"
 
     return jsonify(response)
 
@@ -1039,6 +1059,32 @@ def submit_listing():
         radius_km=current_app.config.get("NEARBY_FACILITY_RADIUS_KM"),
     )
 
+
+    # ========================================================
+    # PRODUCTION IMAGE-SIMILARITY EMBEDDING (Phase 6 - best-effort,
+    # background - see services/image_similarity/production_indexer.py)
+    #
+    # Mirrors the nearby-facility background call immediately above:
+    # returns IMMEDIATELY, never blocks this response. Embeds each
+    # saved image with the SAME SigLIP2 encoder already used by the
+    # 21-house benchmark and the MongoDB smoke test, tagging every
+    # record source="mongodb_production" - a completely separate index
+    # from the smoke test's (source="mongodb_smoke_test"), never mixed
+    # into production retrieval. Lazily imported here (not at module
+    # load time) so torch/transformers are never loaded at Flask
+    # startup or on any other request path - only the first time a
+    # property with images is actually registered. A property with no
+    # images is a no-op inside start_background_embedding() itself.
+    # ========================================================
+
+    from services.image_similarity import production_indexer
+
+    production_indexer.start_background_embedding(
+        property_id,
+        image_filenames,
+        static_root,
+    )
+
     flash(
         "Property listed successfully!",
         "success"
@@ -1106,15 +1152,115 @@ def delete_listing(
             )
         )
 
-    property_service.update_status(
-        property_id,
-        "inactive"
+    if property_item.get("listing", {}).get("status") == "inactive":
+
+        flash(
+            "This property is already unlisted.",
+            "info"
+        )
+
+    else:
+
+        property_service.update_status(
+            property_id,
+            "inactive"
+        )
+
+        flash(
+            "Property has been unlisted. It no longer appears in "
+            "search results or Find Similar Homes.",
+            "success"
+        )
+
+    return redirect(
+        url_for(
+            "property.profile"
+        )
     )
 
-    flash(
-        "Property has been unlisted.",
-        "success"
+
+# ============================================================
+# RELIST PROPERTY
+#
+# Symmetric counterpart to delete_listing() above - the application's
+# "delete" was always a reversible status change (listing.status:
+# "active" <-> "inactive"), never a permanent deletion (see
+# PropertyService.delete_property(), which exists but is intentionally
+# never called from any route) - so relisting is just setting the
+# status back, using the exact same ownership check as unlisting.
+# ============================================================
+
+@property_bp.route(
+    "/relist_listing/<property_id>",
+    methods=["POST"]
+)
+@login_required
+def relist_listing(
+    property_id
+):
+
+    property_service = (
+        get_property_service()
     )
+
+    property_item = (
+        property_service.get_property(
+            property_id
+        )
+    )
+
+    if property_item is None:
+
+        flash(
+            "Property not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "property.profile"
+            )
+        )
+
+    seller = property_item.get(
+        "seller",
+        {}
+    )
+
+    if seller.get(
+        "user_id"
+    ) != current_user.id:
+
+        flash(
+            "You do not have permission "
+            "to modify this property.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "property.profile"
+            )
+        )
+
+    if property_item.get("listing", {}).get("status") == "active":
+
+        flash(
+            "This property is already listed.",
+            "info"
+        )
+
+    else:
+
+        property_service.update_status(
+            property_id,
+            "active"
+        )
+
+        flash(
+            "Property has been relisted and is active again.",
+            "success"
+        )
 
     return redirect(
         url_for(

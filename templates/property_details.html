@@ -752,10 +752,11 @@
 
 
         <a
-            href="javascript:history.back()"
+            href="{{ url_for('property.rentals') }}"
             class="back-button"
+            onclick="if (document.referrer && document.referrer.indexOf(window.location.origin) === 0) { event.preventDefault(); history.back(); }"
         >
-            ← Back to Listings
+            ← Back
         </a>
 
 

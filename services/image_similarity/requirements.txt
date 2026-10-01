@@ -1,0 +1,20 @@
+# SigLIP2 image-similarity service - ISOLATED dependencies.
+#
+# Intentionally NOT added to the project's root requirements.txt or
+# the Flask app's own .venv - torch + transformers are heavy (multi-GB
+# with model weights) and this service is not wired into any Flask
+# route yet (see docs/PHASE_6_SIGLIP2_SIMILARITY_SERVICE.md's
+# "Production status"). Install into whatever interpreter you run
+# services/image_similarity/index_builder.py or the real-data smoke
+# test with:
+#
+#     pip install -r services/image_similarity/requirements.txt
+#
+# Pillow is already a root dependency (see requirements.txt) and is
+# not repeated here. numpy is required for the brute-force embedding
+# comparison in retrieval.py/embedding_cache.py, but NOT for the pure
+# ranking logic in similarity.py (stdlib-only, always testable without
+# any of these installed).
+torch>=2.0
+transformers>=4.51
+numpy>=1.24

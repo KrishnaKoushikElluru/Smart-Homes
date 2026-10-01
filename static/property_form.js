@@ -11,7 +11,11 @@
 
     const CONFIG = window.PROPERTY_FIELD_CONFIG || {};
     const IMAGE_CATEGORIES = window.PROPERTY_IMAGE_CATEGORIES || [];
-    const GEOAPIFY_ENABLED = window.GEOAPIFY_ENABLED === true;
+    // Phase 5: Ola Maps primary / Mappls fallback - Geoapify is no
+    // longer used for property-location search. The flag name changed
+    // (was GEOAPIFY_ENABLED) since it no longer names one specific
+    // provider - see routes/property_routes.py's rentals() route.
+    const LOCATION_SEARCH_ENABLED = window.LOCATION_SEARCH_ENABLED === true;
 
     let map = null;
     let marker = null;
@@ -154,7 +158,7 @@
 
 
     // ============================================================
-    // MAP + GEOAPIFY LOCATION SEARCH
+    // MAP + LOCATION SEARCH (Ola Maps primary, Mappls fallback)
     // ============================================================
 
     function initMap() {
@@ -205,7 +209,7 @@
         if (latInput) latInput.value = lat.toFixed(8);
         if (lonInput) lonInput.value = lon.toFixed(8);
 
-        if (reverseGeocode && GEOAPIFY_ENABLED) {
+        if (reverseGeocode && LOCATION_SEARCH_ENABLED) {
             reverseGeocodeLocation(lat, lon);
         }
     }
@@ -229,6 +233,10 @@
     }
 
     async function reverseGeocodeLocation(lat, lon) {
+        // /api/location/reverse is Ola Maps reverse-geocode now (was
+        // Geoapify) - same response shape (formatted/city/state/
+        // locality/sub_locality/postcode), so fillLocationFields()
+        // below needs no change for this call site.
 
         try {
 
@@ -250,6 +258,13 @@
     }
 
     async function searchLocation(query) {
+        // /api/location/autocomplete is Ola Maps PRIMARY / Mappls
+        // FALLBACK now (was Geoapify) - returns a list of
+        // {provider, place_id, name, address, latitude, longitude}
+        // candidates (see services/ola_maps_service.py). Neither
+        // provider's coordinates here are treated as final - selecting
+        // a candidate below always resolves it through
+        // /api/location/resolve-candidate first.
 
         try {
 
@@ -272,6 +287,61 @@
         }
     }
 
+    async function selectLocationCandidate(candidate, container, searchBox) {
+        // Resolves the SELECTED candidate to authoritative coordinates
+        // + a structured address breakdown via
+        // /api/location/resolve-candidate (Ola Place Details, or the
+        // existing Mappls+OSM fallback chain for a Mappls-sourced
+        // candidate) - never trusts a bare autocomplete coordinate as
+        // final, per this phase's required flow.
+
+        try {
+
+            const response = await fetch("/api/location/resolve-candidate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: candidate.provider,
+                    place_id: candidate.place_id,
+                    name: candidate.name,
+                    address: candidate.address
+                })
+            });
+
+            if (!response.ok) return;
+
+            const resolved = await response.json();
+
+            if (resolved.status !== "matched" || resolved.latitude == null || resolved.longitude == null) {
+                // No usable coordinate - never place a marker on a
+                // guess. The user can still search again or place the
+                // marker manually (map click/drag remains available).
+                console.warn("Could not resolve coordinates for the selected location.");
+                return;
+            }
+
+            fillLocationFields({
+                formatted: resolved.formatted_address,
+                city: resolved.city,
+                state: resolved.state,
+                locality: resolved.locality,
+                sub_locality: resolved.sub_locality,
+                postcode: resolved.postcode
+            });
+
+            if (searchBox) {
+                searchBox.value = resolved.formatted_address || candidate.name || candidate.address || "";
+            }
+
+            setMarker(resolved.latitude, resolved.longitude, false);
+
+        } catch (error) {
+            console.error("Location resolution error:", error);
+        } finally {
+            if (container) container.style.display = "none";
+        }
+    }
+
     function renderSuggestions(results) {
 
         const container = document.getElementById("pfLocationSuggestions");
@@ -288,20 +358,22 @@
 
             const item = document.createElement("div");
             item.className = "pf-location-suggestion";
-            item.textContent = result.formatted || result.address_line1 || "Unknown location";
+
+            const nameEl = document.createElement("span");
+            nameEl.className = "pf-location-suggestion-name";
+            nameEl.textContent = result.name || "Unknown location";
+            item.appendChild(nameEl);
+
+            if (result.address && result.address !== result.name) {
+                const addressEl = document.createElement("span");
+                addressEl.className = "pf-location-suggestion-address";
+                addressEl.textContent = result.address;
+                item.appendChild(addressEl);
+            }
 
             item.addEventListener("click", function () {
-
-                fillLocationFields(result);
-
                 const searchBox = document.getElementById("pfLocationSearch");
-                if (searchBox) searchBox.value = result.formatted || "";
-
-                container.style.display = "none";
-
-                if (result.lat && result.lon) {
-                    setMarker(parseFloat(result.lat), parseFloat(result.lon), false);
-                }
+                selectLocationCandidate(result, container, searchBox);
             });
 
             container.appendChild(item);
@@ -335,7 +407,7 @@
             imagesInput.addEventListener("change", renderImagePreviews);
         }
 
-        if (GEOAPIFY_ENABLED) {
+        if (LOCATION_SEARCH_ENABLED) {
 
             const searchBox = document.getElementById("pfLocationSearch");
 

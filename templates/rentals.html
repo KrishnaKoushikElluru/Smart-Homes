@@ -436,6 +436,71 @@
             margin: 6px 0 0 0;
         }
 
+        /* Phase 5.5: voice search button + status line. Scoped as
+           ".nlp-search-row .nlp-voice-button" (two classes) so it
+           beats the existing ".nlp-search-row button" rule's
+           specificity above, the same override technique already
+           used elsewhere in this file (see .nlp-location-picker
+           .nlp-location-option) - otherwise this would inherit the
+           wide rectangular Search-button padding instead of looking
+           like a compact icon button. */
+        .nlp-search-row .nlp-voice-button {
+            flex: 0 0 auto;
+            width: 44px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            line-height: 1;
+            background-color: rgba(0, 102, 204, 0.1);
+            color: #004080;
+            border: 1px solid rgba(0, 102, 204, 0.35);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .nlp-search-row .nlp-voice-button:hover {
+            background-color: rgba(0, 102, 204, 0.2);
+        }
+
+        .nlp-search-row .nlp-voice-button:focus-visible {
+            outline: 2px solid #0066cc;
+            outline-offset: 2px;
+        }
+
+        /* LISTENING state - toggled via JS, never left on by mistake
+           since it's only ever set from the adapter's onStart/onEnd
+           callbacks (see the wiring script below), not from click
+           handlers guessing at state. */
+        .nlp-search-row .nlp-voice-button.listening {
+            background-color: #d32f2f;
+            border-color: #d32f2f;
+            color: white;
+            animation: nlp-voice-pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes nlp-voice-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(211, 47, 47, 0); }
+        }
+
+        .nlp-voice-status {
+            font-size: 0.85rem;
+            margin: 6px 0 0 0;
+            color: #555;
+        }
+
+        .nlp-voice-status.listening {
+            color: #a10000;
+            font-weight: 600;
+        }
+
+        .nlp-voice-status.error {
+            color: #a10000;
+        }
+
         .search-divider {
             display: flex;
             align-items: center;
@@ -827,6 +892,26 @@
                             maxlength="500"
                         >
 
+                        <!-- Phase 5.5: voice input for the SAME box above -
+                             type="button" (never "submit") so clicking the
+                             mic can never submit this form by itself; it
+                             only ever fills #nlpQuery, exactly like typing
+                             would. Hidden by default and only revealed by
+                             JS after feature-detecting browser support (see
+                             the wiring below) - a browser with no Web
+                             Speech API support sees a completely normal
+                             text-only search box. -->
+                        <button
+                            type="button"
+                            id="nlpVoiceButton"
+                            class="nlp-voice-button"
+                            aria-label="Search by voice"
+                            title="Search by voice"
+                            hidden
+                        >
+                            🎙️
+                        </button>
+
                         <button
                             type="submit"
                             id="nlpSearchButton"
@@ -843,6 +928,17 @@
                     >
                         Please describe what you're looking for.
                     </p>
+
+                    <!-- Phase 5.5: voice status line (idle/listening/
+                         interim transcript/error) - aria-live so screen
+                         readers announce state changes without focus
+                         moving. Never shows a raw browser exception. -->
+                    <p
+                        id="nlpVoiceStatus"
+                        class="nlp-voice-status"
+                        aria-live="polite"
+                        hidden
+                    ></p>
 
                 </form>
 
@@ -1053,12 +1149,12 @@
                     Submit a Property Listing
                 </h3>
 
-                {% if not geoapify_enabled %}
+                {% if not location_search_enabled %}
 
                     <div class="pf-geoapify-disabled-note">
                         Location search is currently unavailable
-                        (no Geoapify API key configured). You can
-                        still click on the map or drag the marker
+                        (no location provider API key configured). You
+                        can still click on the map or drag the marker
                         to set the exact location.
                     </div>
 
@@ -1280,7 +1376,7 @@
 
                         <h4>Location</h4>
 
-                        {% if geoapify_enabled %}
+                        {% if location_search_enabled %}
 
                             <label for="pfLocationSearch">Search Property Location</label>
 
@@ -1489,10 +1585,16 @@
     <script>
         window.PROPERTY_FIELD_CONFIG = {{ field_config | tojson }};
         window.PROPERTY_IMAGE_CATEGORIES = {{ image_categories | tojson }};
-        window.GEOAPIFY_ENABLED = {{ geoapify_enabled | tojson }};
+        window.LOCATION_SEARCH_ENABLED = {{ location_search_enabled | tojson }};
     </script>
 
     <script src="{{ url_for('static', filename='property_form.js') }}"></script>
+
+    <!-- Phase 5.5: browser-native voice search adapter (Web Speech
+         API only - no API key, no backend service). Loaded before the
+         NL-search wiring below so window.VoiceSearch is available when
+         that script runs. See static/voice_search.js's own docstring. -->
+    <script src="{{ url_for('static', filename='voice_search.js') }}"></script>
 
 
     <!-- ====================================================
@@ -1667,19 +1769,27 @@
         ================================================== */
 
         /* ==================================================
-           RESULT EXPLANATION (Stage 2, Phase 4)
+           RESULT EXPLANATION (Stage 2 / Phase 4, names added Phase 5)
 
            Only rendered when the search actually used a nearby-
            facility constraint (nearbyFacilityCategories is empty for
            every manual-filter search and for any NLP search that
            didn't mention one - see renderPropertyResults()). Uses
-           ONLY property.nearby_facilities, the trimmed, real, stored
-           data routes/search_routes.py's _serialize_property() now
-           includes - never a fabricated or estimated distance. If a
-           requested category has no matching entry on THIS property
-           (should not happen for a property that matched the search
-           filter at all, but handled defensively), it is simply
-           omitted rather than guessed at.
+           ONLY property.matched_nearby_facilities - the concise,
+           query-specific field routes/search_routes.py's
+           _serialize_property() attaches (see
+           services/search_orchestration.py's
+           _attach_matched_nearby_facilities()), already narrowed to
+           exactly the facility that satisfied EACH requested category,
+           with its real stored name and distance - never a fabricated
+           or estimated one, and never inferred/guessed here. Phase 5
+           changed this from showing the bare category ("Gym - 650 m
+           away") to the actual facility name ("Gold's Gym - 650 m
+           away") - the whole reason a user asks "near a gym" is to
+           find out WHICH gym. If a requested category has no matching
+           entry on THIS property (should not happen for a property
+           that matched the search filter at all, but handled
+           defensively), it is simply omitted rather than guessed at.
         ================================================== */
 
         function buildNearbyFacilityExplanationHTML(property, nearbyFacilityCategories) {
@@ -1688,8 +1798,8 @@
                 return '';
             }
 
-            const propertyFacilities =
-                property.nearby_facilities || [];
+            const matchedFacilities =
+                property.matched_nearby_facilities || [];
 
             const lines = [];
 
@@ -1697,7 +1807,7 @@
                 category => {
 
                     const match =
-                        propertyFacilities.find(
+                        matchedFacilities.find(
                             f => f.category === category
                         );
 
@@ -1710,8 +1820,15 @@
                             ? formatDistance(match.distance_m) + ' away'
                             : 'nearby';
 
+                    // Real facility name always preferred; the bare
+                    // category label is only a fallback for the
+                    // (should-not-normally-happen) case where the
+                    // stored facility has no name at all.
+                    const facilityLabel =
+                        match.name || formatLabel(category);
+
                     lines.push(
-                        '✓ ' + formatLabel(category) + ' ' + distanceText
+                        '✓ ' + formatLabel(category) + ': ' + facilityLabel + ' ' + distanceText
                     );
 
                 }
@@ -1999,6 +2116,151 @@
         ================================================== */
 
         let nlpSearchInFlight = false;
+
+
+        /* ==================================================
+           VOICE SEARCH (Phase 5.5)
+
+           Thin wiring only - ALL SpeechRecognition logic lives in
+           static/voice_search.js (window.VoiceSearch), the one
+           isolated adapter module. This block's job is limited to:
+
+             1. feature-detect support and reveal/hide the mic button
+                accordingly (a browser with no Web Speech API sees a
+                perfectly normal text-only search box - see
+                voice_search.js's isSupported())
+             2. create exactly ONE controller for the page's lifetime
+                (this IIFE runs once, at page load, matching the rest
+                of this file's existing script-tag-at-the-bottom
+                pattern - no re-init path exists, so no risk of
+                duplicate handlers)
+             3. on mic click: toggle start()/stop()
+             4. feed the interim/final TRANSCRIPT into the EXISTING
+                #nlpQuery input - nothing here ever calls
+                performNlpSearch()/searchNaturalLanguage() directly, or
+                submits #nlpSearchForm. The user must still press
+                Search (or Enter) exactly as before this phase; voice
+                only ever populates the same box a keyboard would.
+        ================================================== */
+
+        (function initVoiceSearch() {
+
+            const micButton = document.getElementById('nlpVoiceButton');
+            const statusEl = document.getElementById('nlpVoiceStatus');
+            const queryInput = document.getElementById('nlpQuery');
+
+            if (!micButton || !statusEl || !queryInput) {
+                return;
+            }
+
+            if (!window.VoiceSearch || !window.VoiceSearch.isSupported()) {
+                // NOT SUPPORTED: leave the button hidden (its default
+                // HTML state) and change nothing else - text search is
+                // completely unaffected either way.
+                return;
+            }
+
+            function setStatus(text, cssClass) {
+
+                if (!text) {
+                    statusEl.hidden = true;
+                    statusEl.textContent = '';
+                    statusEl.className = 'nlp-voice-status';
+                    return;
+                }
+
+                statusEl.hidden = false;
+                statusEl.textContent = text;
+                statusEl.className = 'nlp-voice-status' + (cssClass ? ' ' + cssClass : '');
+            }
+
+            function setListeningVisuals(isListening) {
+
+                micButton.classList.toggle('listening', isListening);
+
+                micButton.setAttribute(
+                    'aria-label',
+                    isListening ? 'Stop voice search' : 'Search by voice'
+                );
+
+                micButton.title =
+                    isListening ? 'Stop voice search' : 'Search by voice';
+            }
+
+            const controller = window.VoiceSearch.createController({
+
+                lang: 'en-IN',
+                interimResults: true,
+                continuous: false,
+
+                onStart: function () {
+                    setListeningVisuals(true);
+                    setStatus('Listening…', 'listening');
+                },
+
+                onInterimResult: function (transcript) {
+                    // TRANSCRIBING state: shown in the existing search
+                    // box AND the status line, but never treated as
+                    // final - the user can keep talking and it will
+                    // still be replaced/refined before recognition ends.
+                    queryInput.value = transcript;
+                    setStatus('Listening… "' + transcript + '"', 'listening');
+                },
+
+                onFinalResult: function (transcript) {
+                    // SUCCESS: the existing #nlpQuery box now contains
+                    // the final transcript - same box the user could
+                    // have typed into. The user reviews/edits it and
+                    // presses Search themselves; nothing here submits
+                    // the form.
+                    queryInput.value = transcript;
+                },
+
+                onEnd: function () {
+                    setListeningVisuals(false);
+                    // Only clear a "Listening…" status - a final error
+                    // message (set via onError, below) must stay
+                    // visible after onEnd fires so the user actually
+                    // sees why it stopped.
+                    if (statusEl.classList.contains('listening')) {
+                        setStatus(null);
+                    }
+                },
+
+                onError: function (message) {
+                    // ERROR: a short, friendly message only - the
+                    // adapter itself already maps every raw
+                    // SpeechRecognition error code to one of these
+                    // before it ever reaches this callback (see
+                    // static/voice_search.js's friendlyErrorMessage()).
+                    setListeningVisuals(false);
+                    setStatus(message, 'error');
+                },
+            });
+
+            if (!controller) {
+                // Defensive: isSupported() said yes but construction
+                // still failed - fail exactly like the unsupported
+                // path above rather than leaving a half-working button.
+                micButton.hidden = true;
+                return;
+            }
+
+            // Only NOW, once a working controller actually exists, is
+            // the mic button revealed - never shown as clickable
+            // before this point.
+            micButton.hidden = false;
+
+            micButton.addEventListener('click', function () {
+
+                if (controller.isListening()) {
+                    controller.stop();
+                } else {
+                    controller.start();
+                }
+            });
+
+        })();
 
 
         function searchNaturalLanguage(event) {

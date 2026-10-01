@@ -144,7 +144,19 @@ def _serialize_property(property_item):
     # RESULT
     # ============================================================
 
-    return {
+    # Phase 5 (Part 7/8/9): only present when this search actually used
+    # a nearby-facility requirement (see
+    # services/search_orchestration.py's _attach_matched_nearby_facilities())
+    # - an ordinary search (manual filters, or an NLP query with no
+    # "near a gym" style constraint) never gets this key attached to
+    # the property document at all, so `result` below omits it
+    # entirely rather than including an empty list - existing response
+    # shape/size for ordinary searches is unaffected.
+    matched_nearby_facilities = property_item.get(
+        "_matched_nearby_facilities"
+    )
+
+    result = {
 
         "id": str(
             property_item["_id"]
@@ -262,6 +274,18 @@ def _serialize_property(property_item):
                 "url"
             )
     }
+
+    if matched_nearby_facilities is not None:
+
+        # Concise, query-specific field ("Part 9" of this phase) - the
+        # facility that actually satisfied each requested nearby-
+        # facility category, with its real stored name/distance_m.
+        # Deliberately separate from the full "nearby_facilities" trim
+        # above, which is every stored facility on the property, not
+        # just the ones the query asked about.
+        result["matched_nearby_facilities"] = matched_nearby_facilities
+
+    return result
 
 
 # ============================================================
@@ -488,6 +512,10 @@ def search_rentals():
             "MAPPLS_API_KEY"
         )
 
+        ola_key = current_app.config.get(
+            "OLA_MAPS_API_KEY"
+        )
+
         poi_radius_km = current_app.config.get(
             "SEARCH_POI_RADIUS_KM",
             search_orchestration.DEFAULT_POI_RADIUS_KM
@@ -561,6 +589,7 @@ def search_rentals():
             poi_radius_km=poi_radius_km,
             location_bias=location_bias,
             explicit_coordinates=explicit_coordinates,
+            ola_api_key=ola_key,
         )
 
         results = [

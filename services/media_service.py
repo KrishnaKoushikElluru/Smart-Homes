@@ -35,6 +35,7 @@ MAX_VIDEOS = 5
 IMAGE_DIRECTORY = "images/properties"
 VIDEO_DIRECTORY = "videos/properties"
 DOCUMENT_DIRECTORY = "documents/properties"
+DESIGN_REFERENCE_DIRECTORY = "images/design_references"
 
 IMAGE_CATEGORIES = [
     ("exterior", "Exterior"),
@@ -200,6 +201,42 @@ def save_images(files, categories, cover_index, static_root):
         meta[0]["is_cover"] = True
 
     return saved_filenames, meta
+
+
+# ============================================================
+# DESIGN REFERENCE IMAGE (single, user-uploaded - separate from the
+# FLUX-generated design image; never sent to Gemini/FLUX in this phase)
+# ============================================================
+
+def validate_reference_image(file_storage):
+    """Validate a single uploaded reference image. Raises
+    MediaValidationError on any problem; never trusts the filename
+    extension alone (checked, then the actual content is verified with
+    Pillow)."""
+
+    if file_storage is None or not file_storage.filename:
+        raise MediaValidationError("Reference image: no file provided.")
+
+    _require_extension(file_storage.filename, IMAGE_EXTENSIONS, "Reference image")
+    _require_size(file_storage, MAX_IMAGE_BYTES, "Reference image")
+    _require_valid_image(file_storage, "Reference image")
+
+
+def save_reference_image(file_storage, static_root):
+    """Save an already-validated reference image. Call
+    `validate_reference_image` first. Returns the generated filename
+    only (never a filesystem path)."""
+
+    directory = os.path.join(static_root, DESIGN_REFERENCE_DIRECTORY)
+    os.makedirs(directory, exist_ok=True)
+
+    extension = _extension(secure_filename(file_storage.filename or ""))
+    safe_name = _unique_filename(extension)
+
+    file_storage.stream.seek(0)
+    file_storage.save(os.path.join(directory, safe_name))
+
+    return safe_name
 
 
 # ============================================================

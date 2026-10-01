@@ -1,0 +1,1625 @@
+[
+  {
+    "id": 30000,
+    "query": "2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30001,
+    "query": "3 BHK apartment venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30002,
+    "query": "1 BHK house venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "independent_house"
+    },
+    "category": "property_type",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30003,
+    "query": "villa venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa"
+    },
+    "category": "property_type",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30004,
+    "query": "fully furnished flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "furnishing": "fully_furnished"
+    },
+    "category": "furnishing",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30005,
+    "query": "semi furnished 2 BHK venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "furnishing": "semi_furnished"
+    },
+    "category": "furnishing",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30006,
+    "query": "unfurnished 3 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "furnishing": "unfurnished"
+    },
+    "category": "furnishing",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30007,
+    "query": "rent ku 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "rent",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30008,
+    "query": "sale ku 3 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "sell",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "sell",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30009,
+    "query": "2 BHK flat irukanum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": "spelling variant 'irukanum' (single-k) is NOT in the frozen lexicon (only 'irukkanum' is) - want-word does not gate any field, so this is expected to still pass, confirming the want-rule was never load-bearing."
+  },
+  {
+    "id": 30010,
+    "query": "2 BHK flat 20k kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 20000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30011,
+    "query": "3 BHK flat 25k kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30012,
+    "query": "flat 40 thousand kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 40000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30013,
+    "query": "2 BHK flat 1 lakh kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 100000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30014,
+    "query": "2 BHK flat gym venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "amenities": [
+        "gym"
+      ]
+    },
+    "category": "amenities",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30015,
+    "query": "flat parking balcony venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "parking",
+        "balcony"
+      ]
+    },
+    "category": "amenities",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30016,
+    "query": "hospital kitta 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "hospital"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": "'kitta' (near) is NOT in the frozen lexicon - deliberate robustness/generalization-boundary test, expected to likely fail (hospital falls through to the amenity lexicon instead of nearby_facility)."
+  },
+  {
+    "id": 30017,
+    "query": "school pakkathula 3 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "school"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30018,
+    "query": "supermarket pakkam flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "supermarket"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30019,
+    "query": "Chennai la 2 BHK semi furnished flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30020,
+    "query": "rent ku 2 BHK flat 25k kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30021,
+    "query": "Chennai la 3 BHK villa 50k kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 50000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30022,
+    "query": "Prestige Towers pakkathula 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Prestige Towers"
+      }
+    },
+    "category": "location_poi",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30023,
+    "query": "Loyola College pakkam flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Loyola College"
+      }
+    },
+    "category": "location_poi",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30024,
+    "query": "Apollo Hospital pakkathula 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Apollo Hospital"
+      }
+    },
+    "category": "location_poi",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "NEW POI; specific named hospital (POI), distinct from the generic 'hospital' nearby_facility category tested elsewhere."
+  },
+  {
+    "id": 30025,
+    "query": "SBIOA pakkam 3 BHK house venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "SBIOA"
+      }
+    },
+    "category": "location_poi",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30026,
+    "query": "VIT Chennai pakkathula 2 BHK semi furnished flat venum 30k kulla",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "poi",
+        "query": "VIT Chennai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "POI + furnishing + price all in one query."
+  },
+  {
+    "id": 30027,
+    "query": "Mambakkam pakkam 3 BHK house venum parking irukkanum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "Mambakkam"
+      },
+      "amenities": [
+        "parking"
+      ]
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30028,
+    "query": "flat 1.5 crore kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 15000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "decimal-value price."
+  },
+  {
+    "id": 30029,
+    "query": "3 BHK villa 80 lakh kulla venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 8000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30030,
+    "query": "gym pakkathula flat venum 1 km ulla",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "gym",
+          "radius_m": 1000.0
+        }
+      ]
+    },
+    "category": "distance",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "'ulla' (within/inside) is NOT in the frozen lexicon (only 'kulla' is) - radius extraction is not scored by the reused slot-comparison framework (see report methodology note); included to observe real behavior, not scored on radius specifically."
+  },
+  {
+    "id": 30031,
+    "query": "hospital pakkam 2 km kulla flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "hospital",
+          "radius_m": 2000.0
+        }
+      ]
+    },
+    "category": "distance",
+    "language": "ta-en",
+    "difficulty": "hard",
+    "notes": "'kulla' reused here for a distance radius rather than price - overload/robustness test."
+  },
+  {
+    "id": 30032,
+    "query": "1000 sqft flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1000.0
+      }
+    },
+    "category": "area",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30033,
+    "query": "2 BHK flat 1200 sqft venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1200.0
+      }
+    },
+    "category": "area",
+    "language": "ta-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30034,
+    "query": "2 BHK flat rent ku venum Chennai la",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "simple_multi",
+    "language": "ta-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30035,
+    "query": "2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30036,
+    "query": "3 BHK apartment chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30037,
+    "query": "1 BHK ghar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "independent_house"
+    },
+    "category": "property_type",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30038,
+    "query": "villa chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa"
+    },
+    "category": "property_type",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30039,
+    "query": "fully furnished flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "furnishing": "fully_furnished"
+    },
+    "category": "furnishing",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30040,
+    "query": "semi furnished 2 BHK chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "furnishing": "semi_furnished"
+    },
+    "category": "furnishing",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30041,
+    "query": "unfurnished 3 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "furnishing": "unfurnished"
+    },
+    "category": "furnishing",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30042,
+    "query": "rent ke liye 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "rent",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30043,
+    "query": "sale ke liye 3 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "sell",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "sell",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30044,
+    "query": "Chennai me 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "simple_bhk",
+    "language": "hi-en",
+    "difficulty": "easy",
+    "notes": "'me' spelling variant of 'mein' - both are no-ops under the frozen normalizer (the 'in' rule was removed in Phase 5.6); Chennai is still recognized directly."
+  },
+  {
+    "id": 30045,
+    "query": "2 BHK flat 20k ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 20000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30046,
+    "query": "3 BHK flat 30 hazaar ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30047,
+    "query": "flat 50 hazaar ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 50000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30048,
+    "query": "2 BHK flat 1 lakh ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 100000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30049,
+    "query": "2 BHK flat gym chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "amenities": [
+        "gym"
+      ]
+    },
+    "category": "amenities",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30050,
+    "query": "flat parking balcony chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "parking",
+        "balcony"
+      ]
+    },
+    "category": "amenities",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30051,
+    "query": "hospital ke paas 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "hospital"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30052,
+    "query": "school ke paas 3 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "school"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30053,
+    "query": "1000 sqft flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1000.0
+      }
+    },
+    "category": "area",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30054,
+    "query": "Chennai mein 2 BHK semi furnished flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "multi_constraint",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30055,
+    "query": "rent ke liye 2 BHK flat 25k ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "hi-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30056,
+    "query": "gym ke paas flat chahiye 1 km ke andar",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "gym",
+          "radius_m": 1000.0
+        }
+      ]
+    },
+    "category": "distance",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": "'ke andar' reused for a distance radius rather than price - overload/robustness test; radius not scored by the reused framework."
+  },
+  {
+    "id": 30057,
+    "query": "Prestige Towers ke paas 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Prestige Towers"
+      }
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30058,
+    "query": "Anna University ke paas flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Anna University"
+      }
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30059,
+    "query": "Apollo Hospital ke paas 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Apollo Hospital"
+      }
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": "NEW POI; specific named hospital, distinct from the generic 'hospital' facility category."
+  },
+  {
+    "id": 30060,
+    "query": "SBIOA ke paas 3 BHK ghar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "SBIOA"
+      }
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30061,
+    "query": "VIT Chennai ke paas 2 BHK semi furnished flat chahiye 30k ke andar",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "poi",
+        "query": "VIT Chennai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30062,
+    "query": "Mambakkam ke paas 3 BHK ghar chahiye parking chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "Mambakkam"
+      },
+      "amenities": [
+        "parking"
+      ]
+    },
+    "category": "multi_constraint",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30063,
+    "query": "flat 1.5 crore ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 15000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30064,
+    "query": "3 BHK villa 80 lakh ke andar chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 8000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "hi-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30065,
+    "query": "2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30066,
+    "query": "3 BHK apartment kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30067,
+    "query": "1 BHK illu kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "independent_house"
+    },
+    "category": "property_type",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30068,
+    "query": "villa kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa"
+    },
+    "category": "property_type",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30069,
+    "query": "fully furnished flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "furnishing": "fully_furnished"
+    },
+    "category": "furnishing",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30070,
+    "query": "semi furnished 2 BHK kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "furnishing": "semi_furnished"
+    },
+    "category": "furnishing",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30071,
+    "query": "unfurnished 3 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "furnishing": "unfurnished"
+    },
+    "category": "furnishing",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30072,
+    "query": "rent ki 2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "rent",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30073,
+    "query": "sale ki 3 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "sell",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "sell",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  },
+  {
+    "id": 30074,
+    "query": "2 BHK flat undali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment"
+    },
+    "category": "simple_bhk",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": "'undali' IS in the frozen lexicon (mapped to 'want')."
+  },
+  {
+    "id": 30075,
+    "query": "2 BHK flat 20k lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 20000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30076,
+    "query": "3 BHK flat 30 vela lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30077,
+    "query": "flat 50 vela lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 50000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30078,
+    "query": "2 BHK flat 1 lakh lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 100000.0
+      }
+    },
+    "category": "price_variant",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30079,
+    "query": "2 BHK flat gym kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "amenities": [
+        "gym"
+      ]
+    },
+    "category": "amenities",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30080,
+    "query": "flat parking balcony kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "parking",
+        "balcony"
+      ]
+    },
+    "category": "amenities",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30081,
+    "query": "hospital daggara 2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "hospital"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30082,
+    "query": "school daggara 3 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "school"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30083,
+    "query": "supermarket deggara flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "supermarket"
+        }
+      ]
+    },
+    "category": "nearby_facility",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": "'deggara' spelling variant of 'daggara' is NOT in the frozen lexicon - deliberate robustness/generalization-boundary test, expected to likely fail."
+  },
+  {
+    "id": 30084,
+    "query": "Chennai lo 2 BHK semi furnished flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30085,
+    "query": "rent ki 2 BHK flat 25k lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30086,
+    "query": "Chennai lo 3 BHK villa 50k lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 50000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30087,
+    "query": "Prestige Towers daggara 2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Prestige Towers"
+      }
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30088,
+    "query": "Hiranandani Gardens daggara flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Hiranandani Gardens"
+      }
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": "NEW POI, not in Phase 5.6."
+  },
+  {
+    "id": 30089,
+    "query": "Apollo Hospital daggara 2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Apollo Hospital"
+      }
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": "NEW POI; specific named hospital, distinct from the generic 'hospital' facility category."
+  },
+  {
+    "id": 30090,
+    "query": "SBIOA daggara 3 BHK illu kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "SBIOA"
+      }
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30091,
+    "query": "VIT Chennai daggara 2 BHK semi furnished flat kavali 30k lopala",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "semi_furnished",
+      "location": {
+        "type": "poi",
+        "query": "VIT Chennai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30092,
+    "query": "Mambakkam daggara 3 BHK illu kavali parking undali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "Mambakkam"
+      },
+      "amenities": [
+        "parking"
+      ]
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30093,
+    "query": "flat 1.5 crore lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 15000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30094,
+    "query": "3 BHK villa 80 lakh lopala kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 8000000.0
+      }
+    },
+    "category": "numeric_unit",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30095,
+    "query": "1000 sqft flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1000.0
+      }
+    },
+    "category": "area",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30096,
+    "query": "2 BHK flat 1200 sqft kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1200.0
+      }
+    },
+    "category": "area",
+    "language": "te-en",
+    "difficulty": "medium",
+    "notes": ""
+  },
+  {
+    "id": 30097,
+    "query": "gym daggara flat kavali 1 km lopala",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "gym",
+          "radius_m": 1000.0
+        }
+      ]
+    },
+    "category": "distance",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": "radius not scored by the reused framework; included to observe real behavior."
+  },
+  {
+    "id": 30098,
+    "query": "hospital daggara 2 km lopala flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [
+        {
+          "category": "hospital",
+          "radius_m": 2000.0
+        }
+      ]
+    },
+    "category": "distance",
+    "language": "te-en",
+    "difficulty": "hard",
+    "notes": ""
+  },
+  {
+    "id": 30099,
+    "query": "2 BHK flat rent ki kavali Chennai lo",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "simple_multi",
+    "language": "te-en",
+    "difficulty": "easy",
+    "notes": ""
+  }
+]

@@ -203,6 +203,9 @@
 }
 
 .pf-location-suggestion {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     padding: 10px;
     cursor: pointer;
     color: #333;
@@ -213,6 +216,15 @@
 
 .pf-location-suggestion:hover {
     background-color: #f1f1f1;
+}
+
+.pf-location-suggestion-name {
+    font-weight: 600;
+}
+
+.pf-location-suggestion-address {
+    font-size: 12px;
+    color: #666;
 }
 
 #pfPropertyMap {

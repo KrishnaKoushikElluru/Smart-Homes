@@ -1,0 +1,171 @@
+[
+  {
+    "query": "SBIOA pakkathula 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {"type": "poi", "query": "SBIOA"}
+    },
+    "category": "location_poi",
+    "language": "ta-en",
+    "notes": "HELD-OUT: new POI (SBIOA) not seen while writing romanized_normalizer.py's rules; tests 'pakkathula'=near generalizes to an unseen proper noun.",
+    "id": 9000
+  },
+  {
+    "query": "SRM ke paas 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {"type": "poi", "query": "SRM"}
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "notes": "HELD-OUT: 'SRM' alone (bare acronym, no 'University' suffix) combined with hi-en 'ke paas' - the original dataset only paired SRM with ta-en.",
+    "id": 9001
+  },
+  {
+    "query": "20k kulla 3 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "price": {"operator": "lte", "value": 20000.0}
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "notes": "HELD-OUT: 'kulla'=under with a new price value (20k) and BHK count (3) not in the tuning set's price_variant rows.",
+    "id": 9002
+  },
+  {
+    "query": "Chennai lo 50k lopala 3 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment",
+      "location": {"type": "area_or_city", "query": "Chennai"},
+      "price": {"operator": "lte", "value": 50000.0}
+    },
+    "category": "multi_constraint",
+    "language": "te-en",
+    "notes": "HELD-OUT: combines 'lo'=in and 'lopala'=under with a new price value (50k) and BHK count (3).",
+    "id": 9003
+  },
+  {
+    "query": "school ke paas flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [{"category": "school"}]
+    },
+    "category": "nearby_facility",
+    "language": "hi-en",
+    "notes": "HELD-OUT: new facility category (school, not gym) combined with 'ke paas'=near.",
+    "id": 9004
+  },
+  {
+    "query": "hospital pakkathula flat venum",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "nearby_facilities": [{"category": "hospital"}]
+    },
+    "category": "nearby_facility",
+    "language": "ta-en",
+    "notes": "HELD-OUT: new facility category (hospital) combined with ta-en 'pakkathula' - the original dataset only paired hospital with hi-en.",
+    "id": 9005
+  },
+  {
+    "query": "VIT Chennai daggara 3 BHK house kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "location": {"type": "poi", "query": "VIT Chennai"}
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "notes": "HELD-OUT: combines 'daggara'=near (POI) with the ALREADY-ENGLISH word 'house' in the same query - a combination not present in the tuning set (te-en house words were always 'illu', never bare 'house').",
+    "id": 9006
+  },
+  {
+    "query": "Tata Homes ke paas 2 BHK flat chahiye",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {"type": "poi", "query": "Tata Homes"}
+    },
+    "category": "location_poi",
+    "language": "hi-en",
+    "notes": "HELD-OUT: same POI/language pair as tuning-set id 46, but with an added BHK constraint - a new combination the normalizer's rules were not written against.",
+    "id": 9007
+  },
+  {
+    "query": "40 thousand kulla 2 BHK flat venum",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {"operator": "lte", "value": 40000.0}
+    },
+    "category": "price_variant",
+    "language": "ta-en",
+    "notes": "HELD-OUT: already-spelled-out English 'thousand' combined with Romanized 'kulla'=under - checks the rule doesn't double-substitute or corrupt an already-English unit word.",
+    "id": 9008
+  },
+  {
+    "query": "SBIOA daggara 2 BHK flat kavali",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {"type": "poi", "query": "SBIOA"}
+    },
+    "category": "location_poi",
+    "language": "te-en",
+    "notes": "HELD-OUT: new POI (SBIOA) paired with te-en 'daggara'=near.",
+    "id": 9009
+  },
+  {
+    "query": "semi furnished 3 BHK house chahiye Mambakkam ke paas",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "independent_house",
+      "furnishing": "semi_furnished",
+      "location": {"type": "poi", "query": "Mambakkam"}
+    },
+    "category": "multi_constraint",
+    "language": "hi-en",
+    "notes": "HELD-OUT: a genuinely harder combination not present anywhere in the tuning set - furnishing + already-English 'house' + POI + 'ke paas'=near all in one query.",
+    "id": 9010
+  },
+  {
+    "query": "rent ku 2 BHK flat venum Chennai la",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {"type": "area_or_city", "query": "Chennai"}
+    },
+    "category": "multi_constraint",
+    "language": "ta-en",
+    "notes": "HELD-OUT: 'rent ku' (tuning set only ever paired 'rent ku' with 'villa', no BHK/location) combined with BHK and 'la'=in.",
+    "id": 9011
+  },
+  {
+    "query": "50 hazaar wala 3 BHK flat",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "price": {"operator": "eq", "value": 50000.0}
+    },
+    "category": "numeric_unit",
+    "language": "hi-en",
+    "notes": "HELD-OUT: deliberately repeats the tuning set's 'wala' ambiguity (id 70) with a different number/BHK, to check the normalizer's decision to leave 'wala' untouched is consistent, not a one-off.",
+    "id": 9012
+  }
+]
