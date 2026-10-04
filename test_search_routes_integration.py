@@ -83,6 +83,16 @@ def make_test_app(property_service, osm_service, mappls_key="dummy-key"):
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "test-secret"
     app.config["MAPPLS_API_KEY"] = mappls_key
+    # Square Yards integration (Phase 8) must never make this suite
+    # depend on a live external endpoint - every test here that wants
+    # to exercise the Square Yards merge path patches
+    # services.external_property_sources.square_yards_service itself
+    # (see SquareYardsMergeTests below) rather than relying on this
+    # default. Without this, a query like "...for rent in Chennai"
+    # (which has both a listing_type and a city - exactly what
+    # square_yards_service.build_search_args() requires) would
+    # silently attempt a REAL network call on every test run.
+    app.config["SQUARE_YARDS_ENABLED"] = False
     app.testing = True
 
     app.extensions["property_service"] = property_service
@@ -501,6 +511,227 @@ class ExplicitCoordinatesTests(unittest.TestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertIsNone(resp.get_json()["location_resolution"])
+
+
+class SquareYardsMergeTests(unittest.TestCase):
+    """Integration tests for /search_rentals' Square Yards merge (Phase
+    8): services.external_property_sources.square_yards_service is
+    mocked at its call site in routes/search_routes.py - no live MCP
+    dependency, matching every other external-provider test convention
+    in this project (see test_property_routes.py's mappls_service/
+    mcp patches). A query here always includes both "for rent"/"for
+    sale" and a city, so square_yards_service.build_search_args()
+    would actually produce args - the POINT of these tests is to prove
+    the MERGE/failure-handling logic in search_rentals() itself, not
+    to re-test square_yards_service's own internals (already covered
+    in test_square_yards_service.py)."""
+
+    def setUp(self):
+        self.property_service = FakePropertyService()
+        self.osm_service = FakeOSMService()
+        self.app = make_test_app(self.property_service, self.osm_service)
+        self.client = logged_in_client(self.app)
+
+    def test_smarthomes_results_are_tagged_with_provider(self):
+        self.property_service.filtered_search_results = [sample_property()]
+
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties",
+            return_value=[],
+        ):
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK apartment for rent in Chennai",
+            })
+
+        body = resp.get_json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(body["properties"]), 1)
+        self.assertEqual(body["properties"][0]["provider"], "smarthomes")
+
+    def test_square_yards_results_are_merged_in_alongside_smarthomes(self):
+        self.property_service.filtered_search_results = [sample_property()]
+
+        external_candidate = {
+            "source": "squareyards", "external_id": "999", "title": "External Flat",
+            "listing_type": "rent", "price": 24000, "bhk": 2, "area_sqft": 1000,
+            "property_type": "Apartment", "furnishing": "semi_furnished",
+            "amenities": [], "locality": "Somewhere", "city": "Chennai",
+            "images": ["https://img.squareyards.com/x.jpg"],
+            "source_url": "https://www.squareyards.com/rental-foo/999",
+            "price_on_request": False,
+        }
+
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties",
+            return_value=[external_candidate],
+        ):
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK apartment for rent in Chennai",
+            })
+
+        body = resp.get_json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(body["properties"]), 2)
+
+        providers = {p["provider"] for p in body["properties"]}
+        self.assertEqual(providers, {"smarthomes", "squareyards"})
+
+        external_result = next(p for p in body["properties"] if p["provider"] == "squareyards")
+        self.assertEqual(external_result["external_id"], "999")
+        self.assertEqual(external_result["source_url"], "https://www.squareyards.com/rental-foo/999")
+        self.assertEqual(external_result["image_url"], "https://img.squareyards.com/x.jpg")
+        self.assertIsNone(body["external_search_error"])
+
+    def test_square_yards_failure_never_breaks_smarthomes_results(self):
+        """Phase 5/13's core guarantee: an exception inside the Square
+        Yards call path must not affect SmartHomes' own results or
+        turn the whole request into an error."""
+        self.property_service.filtered_search_results = [sample_property()]
+
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties",
+            side_effect=RuntimeError("MCP exploded"),
+        ):
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK apartment for rent in Chennai",
+            })
+
+        body = resp.get_json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(body["properties"]), 1)
+        self.assertEqual(body["properties"][0]["provider"], "smarthomes")
+        self.assertIsNotNone(body["external_search_error"])
+
+    def test_square_yards_disabled_by_default_in_this_test_app(self):
+        """Proves make_test_app()'s SQUARE_YARDS_ENABLED=False default
+        (added alongside this feature) actually takes effect through
+        the real current_app.config -> square_yards_service.is_enabled()
+        path, not just that the config KEY exists - the real risk this
+        guards against is the whole test suite silently depending on
+        Square Yards being online."""
+        self.property_service.filtered_search_results = []
+
+        with patch(
+            "routes.search_routes.square_yards_service._call_tool"
+        ) as mock_call_tool:
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK apartment for rent in Chennai",
+            })
+
+        self.assertEqual(resp.status_code, 200)
+        mock_call_tool.assert_not_called()
+
+    def test_zero_square_yards_matches_still_returns_smarthomes_results(self):
+        self.property_service.filtered_search_results = [sample_property()]
+
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties",
+            return_value=[],
+        ):
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2 BHK apartment for rent in Chennai",
+            })
+
+        body = resp.get_json()
+        self.assertEqual(len(body["properties"]), 1)
+        self.assertIsNone(body["external_search_error"])
+
+    def test_no_query_never_calls_square_yards(self):
+        """The structured-only (no "query") path is the ORIGINAL
+        ranked_search() flow (Phase 5: 'preserve existing search') -
+        it must never reach the Square Yards merge code at all."""
+        self.property_service.ranked_search_results = [sample_property()]
+
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties"
+        ) as mock_search:
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "city": "Chennai",
+            })
+
+        self.assertEqual(resp.status_code, 200)
+        mock_search.assert_not_called()
+
+
+class DefaultListingTypeRouteTests(unittest.TestCase):
+    """Route-level coverage for search_rentals()'s
+    RENTALS_PAGE_DEFAULT_LISTING_TYPE wiring (the Rentals page's "no
+    listing intent -> default to rent, but explicit sale intent/a
+    manual dropdown pick must still win" requirement). Square Yards'
+    own search_rental_properties() is mocked - these tests verify
+    WHAT the route hands it, not the MCP call itself (already covered
+    in test_square_yards_service.py and SquareYardsMergeTests above)."""
+
+    def setUp(self):
+        self.property_service = FakePropertyService()
+        self.osm_service = FakeOSMService()
+        self.app = make_test_app(self.property_service, self.osm_service)
+        self.client = logged_in_client(self.app)
+
+    def _post_and_capture_applied_listing_type(self, query, listing_type=""):
+        self.property_service.filtered_search_results = []
+        with patch(
+            "routes.search_routes.square_yards_service.search_rental_properties",
+            return_value=[],
+        ) as mock_search:
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": query, "listing_type": listing_type,
+            })
+        body = resp.get_json()
+        self.assertEqual(resp.status_code, 200)
+        applied_to_square_yards = mock_search.call_args[0][0].get("listing_type")
+        return body["applied_filters"].get("listing_type"), applied_to_square_yards
+
+    def test_no_intent_no_override_defaults_to_rent(self):
+        applied, sent_to_sy = self._post_and_capture_applied_listing_type(
+            "2BHK flat in Chennai", listing_type=""
+        )
+        self.assertEqual(applied, "rent")
+        self.assertEqual(sent_to_sy, "rent")
+
+    def test_explicit_sale_intent_beats_the_rent_default(self):
+        applied, sent_to_sy = self._post_and_capture_applied_listing_type(
+            "2BHK flat for sale in Chennai", listing_type=""
+        )
+        self.assertEqual(applied, "sell")
+        self.assertEqual(sent_to_sy, "sell")
+
+    def test_buy_phrasing_also_beats_the_rent_default(self):
+        applied, sent_to_sy = self._post_and_capture_applied_listing_type(
+            "2BHK flat buy in Chennai", listing_type=""
+        )
+        self.assertEqual(applied, "sell")
+        self.assertEqual(sent_to_sy, "sell")
+
+    def test_manual_sell_selection_wins_over_the_rent_default(self):
+        applied, sent_to_sy = self._post_and_capture_applied_listing_type(
+            "2BHK flat in Chennai", listing_type="sell"
+        )
+        self.assertEqual(applied, "sell")
+        self.assertEqual(sent_to_sy, "sell")
+
+    def test_manual_rent_selection_wins_even_over_sale_text(self):
+        applied, sent_to_sy = self._post_and_capture_applied_listing_type(
+            "2BHK flat for sale in Chennai", listing_type="rent"
+        )
+        self.assertEqual(applied, "rent")
+        self.assertEqual(sent_to_sy, "rent")
+
+    def test_square_yards_still_refuses_to_run_without_a_city(self):
+        """Confirms the default never substitutes for the OTHER thing
+        square_yards_service.build_search_args() requires (a city/
+        locality text) - it only ever fills in listing_type."""
+        self.property_service.filtered_search_results = []
+        with patch(
+            "routes.search_routes.square_yards_service._call_tool"
+        ) as mock_call_tool, patch(
+            "routes.search_routes.square_yards_service.is_enabled", return_value=True
+        ):
+            resp = self.client.post("/search_rentals", json={
+                "budget": 0, "query": "2BHK flat", "listing_type": "",
+            })
+        self.assertEqual(resp.status_code, 200)
+        mock_call_tool.assert_not_called()
 
 
 if __name__ == "__main__":

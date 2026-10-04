@@ -84,5 +84,161 @@ class ExistingPoiPatternsStillWorkTests(unittest.TestCase):
         self.assertEqual(r.query.lower(), "srm kattankulathur")
 
 
+class DetectedCityTests(unittest.TestCase):
+    """LocationMention.city - purely additive metadata for a "poi"-type
+    mention, reusing this module's existing _KNOWN_CITIES set (never a
+    second parser). Must never change `query`/`raw_text` - see each
+    test's assertion on those alongside `city`."""
+
+    def test_city_as_trailing_word_no_comma(self):
+        r = extract_location("near vit chennai")
+        self.assertEqual(r.query.lower(), "vit chennai")  # unchanged
+        self.assertEqual(r.city.lower(), "chennai")
+
+    def test_city_with_in_preposition_between(self):
+        r = extract_location("near phoenix mall in bangalore")
+        self.assertEqual(r.query.lower(), "phoenix mall in bangalore")
+        self.assertEqual(r.city.lower(), "bangalore")
+
+    def test_city_after_comma_clause(self):
+        # The comma already stops `query` at "marina mall" (see
+        # CommaBoundaryTests above, unchanged) - the city is detected
+        # from the clause AFTER that comma, which `query` itself never
+        # includes.
+        r = extract_location("near marina mall, chennai")
+        self.assertEqual(r.query.lower(), "marina mall")
+        self.assertEqual(r.city.lower(), "chennai")
+
+    def test_no_city_present_returns_none(self):
+        r = extract_location("near vit")
+        self.assertIsNone(r.city)
+
+    def test_unrelated_trailing_clause_is_not_mistaken_for_a_city(self):
+        r = extract_location("near marina mall, i need a gym nearby")
+        self.assertEqual(r.query.lower(), "marina mall")
+        self.assertIsNone(r.city)
+
+    def test_non_city_stop_word_clause_does_not_produce_a_city(self):
+        r = extract_location("near srm kattankulathur for boys under 6000")
+        self.assertIsNone(r.city)
+
+    def test_whole_phrase_being_a_city_name_is_still_detected(self):
+        # Degenerate but safe input: "near Hyderabad" alone - the POI
+        # phrase IS the city. Harmless (see
+        # services/search_orchestration.py's "already present" guard,
+        # which prevents ever appending ", Hyderabad" to "Hyderabad").
+        r = extract_location("near hyderabad")
+        self.assertEqual(r.query.lower(), "hyderabad")
+        self.assertEqual(r.city.lower(), "hyderabad")
+
+    def test_pure_city_only_area_or_city_mention_gets_no_separate_city_field(self):
+        # A bare city name with nothing else ("flat in chennai") has no
+        # separate locality to split off - `query` already IS the city
+        # text, so a separate `city` field would be redundant. This is
+        # DIFFERENT from a "<locality> <city>" mention like "flat in
+        # Velachery Chennai", which DOES populate `city` now - see
+        # AreaOrCityLocalityCitySplitTests below for that behavior.
+        r = extract_location("flat in chennai")
+        self.assertEqual(r.type, "area_or_city")
+        self.assertEqual(r.query.lower(), "chennai")
+        self.assertIsNone(r.city)
+
+    def test_city_preserves_original_casing_like_query_does(self):
+        r = extract_location("near vit chennai", original_text="2 BHK near VIT Chennai")
+        self.assertEqual(r.query, "VIT Chennai")
+        self.assertEqual(r.city, "Chennai")
+
+    def test_multiple_commas_city_still_detected_from_first_clause(self):
+        r = extract_location("near marina mall, chennai, with a gym nearby")
+        self.assertEqual(r.query.lower(), "marina mall")
+        self.assertEqual(r.city.lower(), "chennai")
+
+
+class AreaOrCityLocalityCitySplitTests(unittest.TestCase):
+    """Regression suite for the "Velachery Chennai never matched"
+    bug: an area_or_city phrase shaped like "<locality> <city>" (no
+    comma) or "<locality>, <city>" (comma) is now split into a
+    separate `query` (locality) and `city`, instead of the whole
+    two-word phrase being treated as one opaque string that never
+    matches a document storing city/locality separately. Generic -
+    reuses the SAME _KNOWN_CITIES set as everything else in this
+    module; these tests deliberately span multiple different cities,
+    not just Chennai, to prove that."""
+
+    # ---- Case 1: no comma (the originally-reported failure) ----
+
+    def test_velachery_chennai_without_comma_splits_locality_and_city(self):
+        r = extract_location("2 bhk semi furnished apartment for rent in velachery chennai")
+        self.assertEqual(r.type, "area_or_city")
+        self.assertEqual(r.query.lower(), "velachery")
+        self.assertEqual(r.city.lower(), "chennai")
+
+    # ---- Case 2: with comma (previously silently dropped the city) ----
+
+    def test_velachery_chennai_with_comma_also_splits_locality_and_city(self):
+        r = extract_location("2 bhk semi furnished apartment for rent in velachery, chennai")
+        self.assertEqual(r.type, "area_or_city")
+        self.assertEqual(r.query.lower(), "velachery")
+        self.assertEqual(r.city.lower(), "chennai")
+
+    # ---- Case 3: non-Chennai locality + city examples (generality) ----
+
+    def test_whitefield_bangalore_splits_correctly(self):
+        r = extract_location("apartment in whitefield bangalore")
+        self.assertEqual(r.query.lower(), "whitefield")
+        self.assertEqual(r.city.lower(), "bangalore")
+
+    def test_indiranagar_bengaluru_splits_correctly(self):
+        r = extract_location("flat in indiranagar bengaluru")
+        self.assertEqual(r.query.lower(), "indiranagar")
+        self.assertEqual(r.city.lower(), "bengaluru")
+
+    def test_multi_word_locality_hsr_layout_bangalore_splits_correctly(self):
+        # The locality itself can be more than one word - only the
+        # trailing city is split off, not assumed to be "the last
+        # token" of the locality.
+        r = extract_location("house in hsr layout bangalore")
+        self.assertEqual(r.query.lower(), "hsr layout")
+        self.assertEqual(r.city.lower(), "bangalore")
+
+    def test_multi_word_locality_t_nagar_chennai_splits_correctly(self):
+        r = extract_location("2 bhk in t nagar chennai")
+        self.assertEqual(r.query.lower(), "t nagar")
+        self.assertEqual(r.city.lower(), "chennai")
+
+    # ---- Case 4: city-only query - existing behavior preserved ----
+
+    def test_city_only_query_is_unaffected(self):
+        r = extract_location("flat in chennai")
+        self.assertEqual(r.type, "area_or_city")
+        self.assertEqual(r.query.lower(), "chennai")
+        self.assertIsNone(r.city)
+
+    def test_locality_only_query_with_no_known_city_is_unaffected(self):
+        r = extract_location("flat in anna nagar")
+        self.assertEqual(r.type, "area_or_city")
+        self.assertEqual(r.query.lower(), "anna nagar")
+        self.assertIsNone(r.city)
+
+    # ---- Case 5: existing POI + city query - must stay unaffected ----
+
+    def test_poi_plus_city_query_is_unaffected_by_the_area_or_city_fix(self):
+        # The POI branch (type="poi") has its OWN pre-existing
+        # city-detection (_detect_trailing_city, used for the
+        # city-qualified Ola retry) that must NEVER have `query`
+        # stripped - that's a hard requirement for Phase 1 POI
+        # resolution. This fix only touches the area_or_city branch.
+        r = extract_location("near phoenix mall in bangalore")
+        self.assertEqual(r.type, "poi")
+        self.assertEqual(r.query.lower(), "phoenix mall in bangalore")
+        self.assertEqual(r.city.lower(), "bangalore")
+
+    def test_existing_poi_near_vit_chennai_is_unaffected(self):
+        r = extract_location("near vit chennai")
+        self.assertEqual(r.type, "poi")
+        self.assertEqual(r.query.lower(), "vit chennai")
+        self.assertEqual(r.city.lower(), "chennai")
+
+
 if __name__ == "__main__":
     unittest.main()

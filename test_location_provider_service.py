@@ -186,6 +186,38 @@ class ResolveLocationViaOlaTests(unittest.TestCase):
         self.assertIsNone(result["longitude"])
         self.assertTrue(len(result["alternates"]) >= 2)
 
+    def test_ambiguous_alternates_carry_place_id_and_provider_for_the_picker(self):
+        # Additive fields (see location_provider_service.py's own
+        # comment on this) needed so a picked alternate can be
+        # re-resolved via the EXISTING
+        # /api/location/resolve-candidate -> resolve_selected_candidate()
+        # -> Ola Place Details path, instead of trusting a raw
+        # autocomplete coordinate as final.
+        candidates = [
+            {"provider": "ola", "place_id": "ola-platform:a", "name": "Mambakkam",
+             "address": "Chennai, Tamil Nadu, 600127, India", "latitude": 12.836, "longitude": 80.167, "types": []},
+            {"provider": "ola", "place_id": "ola-platform:b", "name": "Mambakkam",
+             "address": "Sriperumbudur, Tamil Nadu, 602106, India", "latitude": 12.97, "longitude": 79.95, "types": []},
+        ]
+        with patch(
+            "services.location_provider_service.ola_maps_service.autocomplete",
+            return_value={"status": "matched", "candidates": candidates, "error": None},
+        ), patch(
+            "services.location_provider_service.ola_maps_service.get_place_details",
+        ):
+            result = lps.resolve_location_via_ola("Mambakkam", "key")
+
+        self.assertEqual(result["status"], "ambiguous")
+        place_ids = {alt["place_id"] for alt in result["alternates"]}
+        self.assertEqual(place_ids, {"ola-platform:a", "ola-platform:b"})
+        self.assertTrue(all(alt["provider"] == "ola" for alt in result["alternates"]))
+        # Existing fields untouched - a caller reading only these 5
+        # (e.g. the picker code written before this phase) still works.
+        self.assertEqual(
+            set(result["alternates"][0].keys()),
+            {"matched_name", "matched_address", "latitude", "longitude", "score", "place_id", "provider"},
+        )
+
 
 class ResolveSelectedCandidateTests(unittest.TestCase):
 

@@ -130,11 +130,34 @@ class LocationMention:
     query: str            # the location text itself, e.g. "VIT Chennai" - for Phase 1 to resolve later
     raw_text: str          # the matched span in the original query (may include "near")
     confidence: float
+    city: Optional[str] = None  # a known city name detected attached to `query`
+        # For type="poi": a city found WITHIN the POI phrase itself
+        # (e.g. "Chennai" inside "VIT Chennai", or "Bangalore" inside
+        # "Phoenix Mall in Bangalore") - NEVER changes `query`/
+        # `raw_text` in this case; purely additive metadata for
+        # services/search_orchestration.py's city-qualified Ola retry.
+        # For type="area_or_city": a trailing city SPLIT OFF of the
+        # captured phrase (e.g. "Velachery Chennai" -> query="Velachery",
+        # city="Chennai"; "T Nagar, Chennai" -> query="T Nagar",
+        # city="Chennai") - here `query` DOES change, to just the
+        # locality part, specifically so services/search_orchestration.py
+        # can match city and locality against MongoDB's separate
+        # location.city/location.locality fields independently instead
+        # of requiring one field to contain both words as a literal
+        # substring. A plain city-only mention ("Chennai" alone) or a
+        # plain locality-only mention ("Anna Nagar", no recognized
+        # city attached) leaves `city` None and `query` unchanged, same
+        # as before.
+        # Both cases reuse services/nlp/location_extractor.py's single
+        # _KNOWN_CITIES set and _detect_trailing_city() - never a
+        # second city parser. Always None when no known city was
+        # recognized.
 
     def to_dict(self):
         return {
             "type": self.type, "query": self.query,
             "raw_text": self.raw_text, "confidence": round(self.confidence, 3),
+            "city": self.city,
         }
 
 

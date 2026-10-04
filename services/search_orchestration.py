@@ -100,7 +100,9 @@ DEFAULT_LOCATION_BIAS = "12.9716,80.2217"
 # STEP 1: PARSE + MERGE
 # ============================================================
 
-def merge_structured_fields(structured_dict: dict, overrides: dict) -> dict:
+def merge_structured_fields(
+    structured_dict: dict, overrides: dict, default_listing_type: Optional[str] = None
+) -> dict:
     """
     structured_dict: services.nlp.schema.StructuredQuery.to_dict() output.
     overrides: explicit, already-validated structured search fields from
@@ -114,11 +116,24 @@ def merge_structured_fields(structured_dict: dict, overrides: dict) -> dict:
           endpoint's own "budget and budget > 0" convention)
         city (str, "" = not specified)
         locality (str, "" = not specified)
+    default_listing_type: optional page-level fallback (e.g. the
+      Rentals page defaulting to "rent"), used ONLY when neither an
+      explicit override NOR the NLP parse produced a listing_type.
+      Deliberately a caller-supplied value, never hardcoded here -
+      this function stays generic across every caller (e.g.
+      routes/design_routes.py passes none and keeps today's "absent
+      means absent" behavior).
 
-    Returns a merged, internal spec dict. An explicit override ALWAYS
-    wins over the parsed equivalent for that field - NLP never silently
-    replaces something the caller stated outright. Fields with no
-    override and no parsed value are simply absent (never invented).
+    Returns a merged, internal spec dict. Precedence for listing_type
+    (and every other overridable field) is: explicit override first
+    (a manual/explicit value from the caller), then the NLP-parsed
+    value (explicit intent in the query text, e.g. "for sale"), then
+    default_listing_type last. An explicit override or explicit NLP
+    intent ALWAYS wins over the page-level default - NLP never
+    silently replaces something the caller stated outright, and the
+    default never silently replaces explicit NLP intent either. Fields
+    with no override, no parsed value, and no default are simply
+    absent (never invented).
     """
 
     def slot_value(key):
@@ -127,7 +142,11 @@ def merge_structured_fields(structured_dict: dict, overrides: dict) -> dict:
 
     merged: dict = {}
 
-    listing_type = overrides.get("listing_type") or slot_value("listing_type")
+    listing_type = (
+        overrides.get("listing_type")
+        or slot_value("listing_type")
+        or default_listing_type
+    )
     if listing_type:
         merged["listing_type"] = listing_type
 
@@ -185,16 +204,32 @@ def merge_structured_fields(structured_dict: dict, overrides: dict) -> dict:
         merged["city"] = override_city or None
         merged["locality"] = override_locality or None
     elif location and location.get("type") == "area_or_city":
-        # ranked_search()'s own city/locality scoring is symmetric and
-        # purely additive (see services/property_services.py) - neither
-        # field can ever be penalized for not matching, only rewarded
-        # for matching. Putting the same parsed text in both lets
-        # whichever field the property document actually has it in
-        # match, without us having to guess locality-vs-city from text
-        # alone (services/nlp/location_extractor.py explicitly does not
-        # attempt that distinction - see its module docstring).
-        merged["city"] = location["query"]
-        merged["locality"] = location["query"]
+        detected_city = location.get("city")
+        if detected_city:
+            # services/nlp/location_extractor.py detected a genuine
+            # "<locality> <city>" or "<locality>, <city>" split (e.g.
+            # "Velachery Chennai" -> locality="Velachery",
+            # city="Chennai") - match each part against its OWN text
+            # independently (see build_mongo_filter() below) instead of
+            # requiring a single field to contain both words as one
+            # literal substring. This is the fix for queries like
+            # "2 BHK in Velachery Chennai" never matching a document
+            # storing city="Chennai"/locality="Velachery" separately.
+            merged["city"] = detected_city
+            merged["locality"] = location["query"]
+        else:
+            # No split detected (a plain city name, or a plain locality
+            # name with no recognized city attached) - existing
+            # symmetric behavior, UNCHANGED: ranked_search()'s own city/
+            # locality scoring is symmetric and purely additive (see
+            # services/property_services.py) - neither field can ever
+            # be penalized for not matching, only rewarded for
+            # matching. Putting the same parsed text in both lets
+            # whichever field the property document actually has it in
+            # match, without us having to guess locality-vs-city from
+            # text alone.
+            merged["city"] = location["query"]
+            merged["locality"] = location["query"]
     elif location and location.get("type") == "poi":
         merged["poi_query"] = location["query"]
 
@@ -297,12 +332,25 @@ def resolve_poi_location(
 # valid unchanged, since resolve_poi_location() itself is untouched.
 # ============================================================
 
+def _city_already_mentioned(query: str, city: str) -> bool:
+    """Case-insensitive, word-bounded: does `query` already contain
+    `city` as a token? Prevents resolve_poi_location_via_best_provider()
+    below from ever producing "VIT Chennai, Chennai" or re-appending a
+    city that's already part of the POI text (e.g. "Marina Mall,
+    Chennai" after a FIRST retry already added it, should this function
+    somehow be called twice for the same effective query - defense in
+    depth, even though the caller only ever retries once)."""
+
+    return bool(re.search(rf"\b{re.escape(city)}\b", query, re.IGNORECASE))
+
+
 def resolve_poi_location_via_best_provider(
     poi_query: str,
     ola_api_key: Optional[str],
     mappls_api_key: Optional[str],
     osm_service,
     location_bias: Optional[str] = None,
+    detected_city: Optional[str] = None,
 ) -> dict:
     """
     Ola PRIMARY -> Mappls+OSM FALLBACK, per this phase's required
@@ -313,13 +361,58 @@ def resolve_poi_location_via_best_provider(
     the pre-Ola search flow already used. Never turns a failed/
     ambiguous Ola lookup into an unfiltered or arbitrary location -
     every status below is one of resolve_poi_location()'s own explicit
-    vocabulary (matched/ambiguous/no_match/rejected/error).
+    vocabulary (matched/ambiguous/no_match/rejected/error), PLUS this
+    function's own "ambiguous-with-alternates-to-pick-from" case below.
+
+    detected_city: optional, from services.nlp.schema.LocationMention.city
+    (see services/nlp/location_extractor.py) - a city name the NLP
+    layer found WITHIN the user's own POI phrase (e.g. "Chennai" from
+    "VIT Chennai", or "Bangalore" from "Phoenix Mall in Bangalore").
+    NEVER a hardcoded default, NEVER invented when the user didn't
+    mention one - None here means "no city information available",
+    and this function then behaves EXACTLY as before this parameter
+    existed (every call site that omits it, e.g. any direct/older
+    caller, is completely unaffected).
+
+    Two NEW behaviors, both strictly additive on top of the pre-
+    existing Ola -> Mappls -> OSM chain - the provider order itself is
+    never changed:
+
+    1. AMBIGUOUS + alternates available: Ola's own candidates are
+       SURFACED (status="ambiguous", "alternates" populated with
+       place_id/provider="ola" included - see
+       services/location_provider_service.py's resolve_location_via_ola())
+       instead of silently discarding them and giving Mappls+OSM an
+       independent attempt (the PRE-EXISTING behavior, which the
+       existing test suite's history already names explicitly - see
+       test_search_orchestration.py). The existing frontend "did you
+       mean one of these?" picker (templates/rentals.html) already
+       dispatches on exactly this status/shape - no new endpoint was
+       needed for this. If Ola is ambiguous with ZERO alternates (a
+       defensive edge case, not expected in practice), this still
+       falls through to Mappls -> OSM exactly as before.
+
+    2. NO_MATCH + a usable detected_city not already present in
+       `poi_query`: retries Ola EXACTLY ONCE with
+       "<poi_query>, <detected_city>" (reusing
+       location_provider_service.resolve_location_via_ola() itself -
+       no second Ola implementation). If that retry is "matched", its
+       coordinates are returned directly (Mappls/OSM never run at
+       all). If the retry is anything else (no_match / ambiguous /
+       error), this falls through to the EXISTING Mappls -> OSM chain
+       using the ORIGINAL (un-suffixed) poi_query - never the retry
+       string, and never a third Ola attempt, never a Mappls/OSM
+       retry. A retry result of "ambiguous" is deliberately treated
+       the same as "no_match" here (falls through) rather than
+       surfacing a SECOND picker for a city-qualified guess the user
+       never typed themselves - a disclosed scope decision, not an
+       oversight.
 
     Returns the SAME shape as resolve_poi_location() (see its
     docstring), plus one extra key:
         "provider": "ola" | "mappls" | None
-            None when nothing resolved (no_match/error) - there is no
-            provider to credit for a failure.
+            None when nothing resolved (no_match/ambiguous/error) -
+            there is no provider to credit for a non-final result.
     """
 
     ola_result = location_provider_service.resolve_location_via_ola(
@@ -338,13 +431,51 @@ def resolve_poi_location_via_best_provider(
             "provider": "ola",
         }
 
-    # Ola did not produce a safe result (no_match / ambiguous / error) -
-    # fall back to the existing, unmodified Mappls -> OSM chain. An
-    # Ola "ambiguous" is deliberately NOT surfaced as the final answer
-    # here - Mappls+OSM gets a full independent attempt rather than
-    # inheriting Ola's uncertainty, since the two providers' ambiguity
-    # is not the same kind of signal (Ola: text-similarity too close to
-    # call; Mappls/OSM: real duplicate/nearby OSM candidates).
+    if ola_result["status"] == "ambiguous" and ola_result["alternates"]:
+        # Objective 1: let the user choose from Ola's own candidates
+        # rather than silently handing an independent attempt to
+        # Mappls+OSM. See this function's docstring, point 1.
+        return {
+            "status": "ambiguous",
+            "latitude": None,
+            "longitude": None,
+            "mappls_place_name": None,
+            "confidence": ola_result["confidence"],
+            "error": ola_result["error"],
+            "alternates": ola_result["alternates"],
+            "provider": None,
+        }
+
+    if (
+        ola_result["status"] == "no_match"
+        and detected_city
+        and not _city_already_mentioned(poi_query, detected_city)
+    ):
+        retry_query = f"{poi_query}, {detected_city}"
+        retry_result = location_provider_service.resolve_location_via_ola(
+            retry_query, ola_api_key, location_bias=location_bias
+        )
+
+        if retry_result["status"] == "matched":
+            return {
+                "status": "matched",
+                "latitude": retry_result["latitude"],
+                "longitude": retry_result["longitude"],
+                "mappls_place_name": None,
+                "confidence": retry_result["confidence"],
+                "error": None,
+                "alternates": [],
+                "provider": "ola",
+            }
+        # Retry ambiguous/no_match/error - exactly one additional Ola
+        # attempt maximum (see this function's docstring, point 2) -
+        # falls through below using the ORIGINAL poi_query, never the
+        # retry string and never a third Ola call.
+
+    # Ola did not produce a safe result (no_match with no usable city,
+    # ambiguous with no alternates, a failed retry, or error) - fall
+    # back to the existing, unmodified Mappls -> OSM chain, using the
+    # ORIGINAL poi_query.
     fallback = resolve_poi_location(
         poi_query, mappls_api_key, osm_service, location_bias=location_bias
     )
@@ -483,14 +614,37 @@ def build_mongo_filter(merged: dict) -> tuple:
 
     city = merged.get("city")
     locality = merged.get("locality")
-    if city or locality:
-        text = city or locality
-        pattern = re.escape(text)
-        and_clauses.append({"$or": [
-            {"location.city": {"$regex": pattern, "$options": "i"}},
-            {"location.locality": {"$regex": pattern, "$options": "i"}},
-        ]})
-        applied["area_or_city_text"] = text
+
+    # One $or clause (matching EITHER location.city or location.locality
+    # - never assuming which field actually holds a given piece of text,
+    # the same "don't guess locality-vs-city" philosophy
+    # services/nlp/location_extractor.py already follows) PER DISTINCT
+    # text, $and-ed together. When city == locality (the existing
+    # single-text case - a plain city name or a plain locality name
+    # with no separate city attached) this collapses to exactly one
+    # clause, byte-for-byte the prior behavior. When city != locality
+    # (services/nlp/location_extractor.py detected a genuine
+    # "<locality> <city>" split, e.g. "Velachery"/"Chennai"), this
+    # requires BOTH texts to independently be found somewhere in the
+    # location sub-document, instead of silently ignoring one of them.
+    location_texts = []
+    for text in (city, locality):
+        if text and text not in location_texts:
+            location_texts.append(text)
+
+    if location_texts:
+        for text in location_texts:
+            pattern = re.escape(text)
+            and_clauses.append({"$or": [
+                {"location.city": {"$regex": pattern, "$options": "i"}},
+                {"location.locality": {"$regex": pattern, "$options": "i"}},
+            ]})
+        # Always a single string (never a list) - square_yards_service.
+        # build_search_args() and the frontend both expect a plain
+        # location string here. A genuine two-part split joins as
+        # "Velachery, Chennai" - itself a perfectly good location
+        # string for Square Yards too, not just for Mongo.
+        applied["area_or_city_text"] = ", ".join(location_texts)
 
     if and_clauses:
         mongo_filter["$and"] = and_clauses
@@ -625,12 +779,19 @@ def orchestrate_search(
     location_bias: Optional[str] = None,
     explicit_coordinates: Optional[tuple] = None,
     ola_api_key: Optional[str] = None,
+    default_listing_type: Optional[str] = None,
 ) -> dict:
     """
     Full Phase 3 pipeline for one search request. Never raises for a
     malformed/unknown query - services.nlp.parser.parse() itself never
     raises (see test_nlp_parser.py), and every failure mode below
     resolves to an explicit result rather than an exception.
+
+    default_listing_type: optional, passed straight through to
+    merge_structured_fields() - see that function's docstring. A new
+    KEYWORD-only-by-convention parameter appended at the end, same as
+    ola_api_key below, so every existing positional call keeps working
+    unchanged. None (the default) preserves today's behavior exactly.
 
     ola_api_key: optional, added for this phase's Ola-primary/Mappls-
     fallback provider architecture (see
@@ -665,9 +826,20 @@ def orchestrate_search(
     structured = parse_nlp_query(raw_query or "")
     structured_dict = structured.to_dict()
 
-    merged = merge_structured_fields(structured_dict, overrides)
+    merged = merge_structured_fields(
+        structured_dict, overrides, default_listing_type=default_listing_type
+    )
 
     poi_query = merged.pop("poi_query", None)
+
+    # services.nlp.schema.LocationMention.city - a city name the NLP
+    # layer found WITHIN the user's own POI phrase (see
+    # services/nlp/location_extractor.py). Always None for a
+    # non-"poi" location (or no location at all) - by construction,
+    # never guessed here. Passed straight through to
+    # resolve_poi_location_via_best_provider()'s city-qualified retry;
+    # see that function's own docstring for the full behavior.
+    detected_city = ((structured_dict.get("location") or {}).get("city"))
 
     # Stage 2: computed once, attached to every return path below (see
     # _nearby_facility_enrichment_caveat()'s own docstring) - None when
@@ -712,7 +884,8 @@ def orchestrate_search(
 
     if poi_query:
         location_resolution = resolve_poi_location_via_best_provider(
-            poi_query, ola_api_key, mappls_api_key, osm_service, location_bias=location_bias
+            poi_query, ola_api_key, mappls_api_key, osm_service, location_bias=location_bias,
+            detected_city=detected_city,
         )
 
         if location_resolution["status"] != "matched":

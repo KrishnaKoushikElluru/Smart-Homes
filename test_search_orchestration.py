@@ -102,6 +102,43 @@ class MergeFieldsTests(unittest.TestCase):
         merged = orch.merge_structured_fields(structured, overrides)
         self.assertEqual(merged["listing_type"], "sell")
 
+    # --------------------------------------------------------
+    # default_listing_type precedence (Rentals page "default to Rent,
+    # but explicit sell intent/manual selection must still win")
+    # --------------------------------------------------------
+
+    def test_default_listing_type_used_when_no_override_and_no_nlp_intent(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES, default_listing_type="rent")
+        self.assertEqual(merged["listing_type"], "rent")
+
+    def test_explicit_nlp_sell_intent_beats_the_default(self):
+        structured = {"listing_type": {"value": "sell"}, "property_type": None,
+                      "bedrooms": None, "price": None, "area": None, "amenities": [], "location": None}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES, default_listing_type="rent")
+        self.assertEqual(merged["listing_type"], "sell")
+
+    def test_manual_override_beats_both_nlp_intent_and_the_default(self):
+        structured = {"listing_type": {"value": "sell"}, "property_type": None,
+                      "bedrooms": None, "price": None, "area": None, "amenities": [], "location": None}
+        overrides = dict(NO_OVERRIDES, listing_type="rent")
+        merged = orch.merge_structured_fields(structured, overrides, default_listing_type="rent")
+        self.assertEqual(merged["listing_type"], "rent")
+
+    def test_manual_sell_override_is_respected_even_with_a_rent_default(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None}
+        overrides = dict(NO_OVERRIDES, listing_type="sell")
+        merged = orch.merge_structured_fields(structured, overrides, default_listing_type="rent")
+        self.assertEqual(merged["listing_type"], "sell")
+
+    def test_no_default_given_preserves_todays_absent_behavior(self):
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [], "location": None}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertNotIn("listing_type", merged)
+
     def test_explicit_budget_wins_over_parsed_price(self):
         structured = {"listing_type": None, "property_type": None, "bedrooms": None,
                       "price": {"operator": "lte", "value": 20000.0}, "area": None,
@@ -125,6 +162,19 @@ class MergeFieldsTests(unittest.TestCase):
         self.assertEqual(merged["city"], "Tambaram")
         self.assertEqual(merged["locality"], "Tambaram")
         self.assertNotIn("poi_query", merged)
+
+    def test_area_or_city_with_detected_city_splits_into_separate_fields(self):
+        # services/nlp/location_extractor.py's new locality+city split
+        # (e.g. "Velachery Chennai" -> query="Velachery", city="Chennai")
+        # must map to SEPARATE merged city/locality values, not the
+        # same combined text in both - this is the actual fix for the
+        # "Velachery Chennai never matched" bug.
+        structured = {"listing_type": None, "property_type": None, "bedrooms": None,
+                      "price": None, "area": None, "amenities": [],
+                      "location": {"type": "area_or_city", "query": "Velachery", "city": "Chennai"}}
+        merged = orch.merge_structured_fields(structured, NO_OVERRIDES)
+        self.assertEqual(merged["city"], "Chennai")
+        self.assertEqual(merged["locality"], "Velachery")
 
     def test_poi_location_produces_poi_query_not_city(self):
         structured = {"listing_type": None, "property_type": None, "bedrooms": None,
@@ -214,6 +264,43 @@ class BuildMongoFilterTests(unittest.TestCase):
         or_clause = mongo_filter["$and"][0]["$or"]
         self.assertIn({"location.city": {"$regex": "Tambaram", "$options": "i"}}, or_clause)
         self.assertIn({"location.locality": {"$regex": "Tambaram", "$options": "i"}}, or_clause)
+
+    def test_distinct_city_and_locality_both_required_as_separate_and_clauses(self):
+        # The actual Mongo-side fix: when city != locality (a genuine
+        # "Velachery"/"Chennai" split), BOTH must independently be
+        # found somewhere in the location sub-document - neither one
+        # is silently dropped in favor of the other.
+        merged = {"city": "Chennai", "locality": "Velachery"}
+        mongo_filter, applied = orch.build_mongo_filter(merged)
+        and_clauses = mongo_filter["$and"]
+
+        city_clause = {"$or": [
+            {"location.city": {"$regex": "Chennai", "$options": "i"}},
+            {"location.locality": {"$regex": "Chennai", "$options": "i"}},
+        ]}
+        locality_clause = {"$or": [
+            {"location.city": {"$regex": "Velachery", "$options": "i"}},
+            {"location.locality": {"$regex": "Velachery", "$options": "i"}},
+        ]}
+        self.assertIn(city_clause, and_clauses)
+        self.assertIn(locality_clause, and_clauses)
+        self.assertEqual(applied["area_or_city_text"], "Chennai, Velachery")
+
+    def test_single_text_city_equals_locality_collapses_to_one_clause_as_before(self):
+        # Byte-for-byte the pre-fix behavior when there's only one
+        # distinct piece of text (no regression for the common case).
+        merged = {"city": "Chennai", "locality": "Chennai"}
+        mongo_filter, applied = orch.build_mongo_filter(merged)
+        self.assertEqual(len(mongo_filter["$and"]), 1)
+        self.assertEqual(applied["area_or_city_text"], "Chennai")
+
+    def test_area_or_city_text_is_always_a_plain_string_never_a_list(self):
+        # services/external_property_sources/square_yards_service.py's
+        # build_search_args() passes this straight through as a plain
+        # location string - it must never become a list/other type.
+        merged = {"city": "Chennai", "locality": "Velachery"}
+        _, applied = orch.build_mongo_filter(merged)
+        self.assertIsInstance(applied["area_or_city_text"], str)
 
     def test_no_filters_still_returns_active_only_filter(self):
         mongo_filter, applied = orch.build_mongo_filter({})
@@ -405,7 +492,15 @@ class ResolvePoiLocationViaBestProviderTests(unittest.TestCase):
         self.assertIsNone(result["provider"])
         self.assertEqual(osm.calls, [])  # Mappls no_match -> OSM never attempted, same as before
 
-    def test_ambiguous_ola_result_does_not_silently_choose_a_location(self):
+    def test_ambiguous_ola_result_with_alternates_is_surfaced_not_silently_discarded(self):
+        # Behavior CHANGED by this phase's Objective 1: Ola's own
+        # ambiguous candidates are now surfaced for the user to pick
+        # from (the existing "did you mean one of these?" picker -
+        # templates/rentals.html - already dispatches on exactly this
+        # status/shape) INSTEAD of silently discarding them and giving
+        # Mappls an independent attempt (the old behavior this test
+        # used to assert - see git history for the prior version of
+        # this test/docstring).
         with patch(
             "services.search_orchestration.location_provider_service.resolve_location_via_ola",
             return_value={
@@ -414,20 +509,51 @@ class ResolvePoiLocationViaBestProviderTests(unittest.TestCase):
                 "error": "Top Ola candidates were too close to distinguish confidently.",
                 "alternates": [
                     {"matched_name": "Mambakkam", "matched_address": "Chennai, 600127",
-                     "latitude": 12.836, "longitude": 80.167, "score": None},
+                     "latitude": 12.836, "longitude": 80.167, "score": None,
+                     "place_id": "ola-platform:a", "provider": "ola"},
                 ],
                 "provider": "ola",
             },
         ), patch(
             "services.search_orchestration.mappls_service.resolve_place",
-            return_value=mappls_no_match(),
-        ):
+        ) as mock_resolve_place:
             result = orch.resolve_poi_location_via_best_provider(
                 "Mambakkam", "ola-key", "mappls-key", FakeOSMService(),
             )
 
-        # Ola's own ambiguity is not surfaced as final - Mappls gets a
-        # full independent attempt (see this function's docstring).
+        mock_resolve_place.assert_not_called()  # Mappls never gets an independent attempt
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertIsNone(result["latitude"])
+        self.assertIsNone(result["longitude"])
+        self.assertIsNone(result["provider"])  # no provider resolved a FINAL location yet
+        self.assertEqual(len(result["alternates"]), 1)
+        self.assertEqual(result["alternates"][0]["place_id"], "ola-platform:a")
+        self.assertEqual(result["alternates"][0]["provider"], "ola")
+
+    def test_ambiguous_ola_result_with_no_alternates_still_falls_back_to_mappls(self):
+        # Defensive edge case: an "ambiguous" status with an EMPTY
+        # alternates list (should not normally happen, but nothing to
+        # offer the user to pick from either way) must still fall
+        # through to the existing Mappls -> OSM chain, exactly as
+        # before this phase.
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value={
+                "status": "ambiguous", "latitude": None, "longitude": None,
+                "place_name": None, "formatted_address": None, "confidence": 0.76,
+                "error": "Top Ola candidates were too close to distinguish confidently.",
+                "alternates": [],
+                "provider": "ola",
+            },
+        ), patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ) as mock_resolve_place:
+            result = orch.resolve_poi_location_via_best_provider(
+                "Mambakkam", "ola-key", "mappls-key", FakeOSMService(),
+            )
+
+        mock_resolve_place.assert_called_once()
         self.assertIsNone(result["latitude"])
         self.assertIsNone(result["longitude"])
         self.assertIsNone(result["provider"])
@@ -450,6 +576,203 @@ class ResolvePoiLocationViaBestProviderTests(unittest.TestCase):
         mock_resolve_place.assert_called_once()
         self.assertEqual(result["status"], "matched")
         self.assertEqual(result["provider"], "mappls")
+
+
+class CityQualifiedRetryTests(unittest.TestCase):
+    """resolve_poi_location_via_best_provider()'s NEW no_match +
+    detected_city retry (Objective 3-7 of this phase). The city comes
+    from the CALLER (services.nlp.schema.LocationMention.city, via
+    services/nlp/location_extractor.py) - NEVER hardcoded here. Every
+    test mocks location_provider_service.resolve_location_via_ola()
+    directly (no real network), using side_effect lists where a test
+    needs to distinguish the FIRST call's result from the RETRY call's
+    result."""
+
+    def _ola_result(self, status, lat=None, lon=None, alternates=None):
+        return {
+            "status": status, "latitude": lat, "longitude": lon,
+            "place_name": None, "formatted_address": None, "confidence": 0.9,
+            "error": None, "alternates": alternates or [], "provider": "ola",
+        }
+
+    def test_no_match_with_city_retries_with_city_appended(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            side_effect=[self._ola_result("no_match"), self._ola_result("matched", 12.84, 80.15)],
+        ) as mock_ola:
+            result = orch.resolve_poi_location_via_best_provider(
+                "Some Obscure POI", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city="Chennai",
+            )
+
+        self.assertEqual(mock_ola.call_count, 2)
+        self.assertEqual(mock_ola.call_args_list[0].args[0], "Some Obscure POI")
+        self.assertEqual(mock_ola.call_args_list[1].args[0], "Some Obscure POI, Chennai")
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(result["provider"], "ola")
+        self.assertEqual(result["latitude"], 12.84)
+        self.assertEqual(result["longitude"], 80.15)
+
+    def test_retry_uses_whatever_city_was_detected_not_a_hardcoded_one(self):
+        # Generalization proof: Bangalore and Hyderabad both work
+        # identically - nothing here is Chennai-specific.
+        for city in ("Bangalore", "Hyderabad"):
+            with self.subTest(city=city):
+                with patch(
+                    "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+                    side_effect=[self._ola_result("no_match"), self._ola_result("matched", 1.0, 2.0)],
+                ) as mock_ola:
+                    orch.resolve_poi_location_via_best_provider(
+                        "Phoenix Mall", "ola-key", "mappls-key", FakeOSMService(),
+                        detected_city=city,
+                    )
+                self.assertEqual(mock_ola.call_args_list[1].args[0], f"Phoenix Mall, {city}")
+
+    def test_city_already_present_in_query_skips_retry(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value=self._ola_result("no_match"),
+        ) as mock_ola, patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ):
+            orch.resolve_poi_location_via_best_provider(
+                "VIT Chennai", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city="Chennai",
+            )
+
+        mock_ola.assert_called_once()  # no second (retry) call at all
+
+    def test_city_already_present_check_is_case_insensitive(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value=self._ola_result("no_match"),
+        ) as mock_ola, patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ):
+            orch.resolve_poi_location_via_best_provider(
+                "vit chennai", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city="Chennai",
+            )
+
+        mock_ola.assert_called_once()
+
+    def test_no_city_detected_skips_retry_and_never_invents_one(self):
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value=self._ola_result("no_match"),
+        ) as mock_ola, patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ):
+            result = orch.resolve_poi_location_via_best_provider(
+                "VIT", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city=None,
+            )
+
+        mock_ola.assert_called_once()
+        self.assertEqual(result["status"], "no_match")
+
+    def test_retry_failure_falls_back_to_mappls_osm_with_original_query(self):
+        osm = FakeOSMService()
+        osm.next_result = osm_matched(lat=12.9, lon=80.2)
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            side_effect=[self._ola_result("no_match"), self._ola_result("no_match")],
+        ) as mock_ola, patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_matched(),
+        ) as mock_resolve_place:
+            result = orch.resolve_poi_location_via_best_provider(
+                "Some Obscure POI", "ola-key", "mappls-key", osm,
+                detected_city="Chennai",
+            )
+
+        self.assertEqual(mock_ola.call_count, 2)  # exactly one retry, never a third Ola attempt
+        mock_resolve_place.assert_called_once()
+        # Mappls must receive the ORIGINAL query, never the failed
+        # retry's city-suffixed string.
+        self.assertEqual(mock_resolve_place.call_args.args[0], "Some Obscure POI")
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(result["provider"], "mappls")
+
+    def test_retry_ambiguous_is_treated_as_failure_falls_back_to_mappls(self):
+        # Disclosed scope decision (see resolve_poi_location_via_best_provider()'s
+        # docstring): a city-qualified RETRY that comes back ambiguous
+        # does not get its own picker - it falls through exactly like
+        # a retry no_match would.
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            side_effect=[
+                self._ola_result("no_match"),
+                self._ola_result("ambiguous", alternates=[{"matched_name": "X", "matched_address": "Y",
+                                                             "latitude": 1.0, "longitude": 2.0, "score": None}]),
+            ],
+        ) as mock_ola, patch(
+            "services.search_orchestration.mappls_service.resolve_place",
+            return_value=mappls_no_match(),
+        ) as mock_resolve_place:
+            result = orch.resolve_poi_location_via_best_provider(
+                "Some Obscure POI", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city="Chennai",
+            )
+
+        self.assertEqual(mock_ola.call_count, 2)
+        mock_resolve_place.assert_called_once()
+        self.assertEqual(result["status"], "no_match")
+
+    def test_city_retry_never_attempted_when_first_ola_is_ambiguous_not_no_match(self):
+        # The retry trigger is specifically NO_MATCH (Objective 3) -
+        # an ambiguous first result is surfaced to the user instead
+        # (CityQualifiedRetryTests' sibling behavior,
+        # ResolvePoiLocationViaBestProviderTests above) and must never
+        # also trigger a city-qualified retry.
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            return_value=self._ola_result("ambiguous", alternates=[
+                {"matched_name": "X", "matched_address": "Y", "latitude": 1.0, "longitude": 2.0,
+                 "score": None, "place_id": "p1", "provider": "ola"},
+            ]),
+        ) as mock_ola:
+            result = orch.resolve_poi_location_via_best_provider(
+                "Some Obscure POI", "ola-key", "mappls-key", FakeOSMService(),
+                detected_city="Chennai",
+            )
+
+        mock_ola.assert_called_once()
+        self.assertEqual(result["status"], "ambiguous")
+
+    def test_orchestrate_search_passes_detected_city_through_from_nlp(self):
+        # End-to-end: a real query ("near VIT Chennai") parses to
+        # location.city="Chennai" via the REAL NLP parser (not
+        # mocked), and orchestrate_search() must pass that through to
+        # resolve_poi_location_via_best_provider() - but since "VIT
+        # Chennai" already contains "Chennai", no retry should fire
+        # (see test_city_already_present_in_query_skips_retry above) -
+        # this test instead uses a POI name that does NOT already
+        # contain its detected city, to prove the wiring end to end.
+        prop_service = FakePropertyService(results=[{"_id": "p1"}])
+        osm = FakeOSMService()
+
+        with patch(
+            "services.search_orchestration.location_provider_service.resolve_location_via_ola",
+            side_effect=[
+                {"status": "no_match", "latitude": None, "longitude": None, "place_name": None,
+                 "formatted_address": None, "confidence": None, "error": None, "alternates": [], "provider": "ola"},
+                {"status": "matched", "latitude": 12.84, "longitude": 80.15, "place_name": "Some POI",
+                 "formatted_address": None, "confidence": 0.9, "error": None, "alternates": [], "provider": "ola"},
+            ],
+        ) as mock_ola:
+            result = orch.orchestrate_search(
+                "2 bhk flat near Some Obscure POI, Chennai", NO_OVERRIDES, "mappls-key", osm, prop_service,
+                ola_api_key="ola-key",
+            )
+
+        self.assertEqual(mock_ola.call_count, 2)
+        self.assertIn("Chennai", mock_ola.call_args_list[1].args[0])
+        self.assertEqual(result["location_resolution"]["status"], "matched")
+        self.assertEqual(result["properties"], [{"_id": "p1"}])
 
 
 # ============================================================
@@ -485,6 +808,90 @@ class OrchestrateSearchTests(unittest.TestCase):
         mongo_filter = prop_service.calls[0]
         self.assertNotIn("location.coordinates", mongo_filter)
         self.assertIn("$and", mongo_filter)
+
+    def test_locality_city_without_comma_requires_both_as_separate_clauses(self):
+        # Regression for the originally-reported bug: "2 BHK semi
+        # furnished apartment for rent in Velachery Chennai" (no comma)
+        # previously produced a SINGLE "Velachery Chennai" literal
+        # string that never matched a document storing
+        # city="Chennai"/locality="Velachery" separately.
+        prop_service = FakePropertyService(results=[])
+
+        result = orch.orchestrate_search(
+            "2 BHK semi furnished apartment for rent in Velachery Chennai",
+            NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        and_clauses = mongo_filter["$and"]
+        city_clause = {"$or": [
+            {"location.city": {"$regex": "Chennai", "$options": "i"}},
+            {"location.locality": {"$regex": "Chennai", "$options": "i"}},
+        ]}
+        locality_clause = {"$or": [
+            {"location.city": {"$regex": "Velachery", "$options": "i"}},
+            {"location.locality": {"$regex": "Velachery", "$options": "i"}},
+        ]}
+        self.assertIn(city_clause, and_clauses)
+        self.assertIn(locality_clause, and_clauses)
+        self.assertEqual(result["applied_filters"]["area_or_city_text"], "Chennai, Velachery")
+
+    def test_locality_city_with_comma_produces_the_identical_filter(self):
+        # The comma variant must now produce the SAME two-clause
+        # filter as the no-comma variant - previously it silently
+        # dropped "Chennai" entirely and searched on "Velachery" alone.
+        prop_service = FakePropertyService(results=[])
+
+        result = orch.orchestrate_search(
+            "2 BHK semi furnished apartment for rent in Velachery, Chennai",
+            NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        and_clauses = mongo_filter["$and"]
+        city_clause = {"$or": [
+            {"location.city": {"$regex": "Chennai", "$options": "i"}},
+            {"location.locality": {"$regex": "Chennai", "$options": "i"}},
+        ]}
+        locality_clause = {"$or": [
+            {"location.city": {"$regex": "Velachery", "$options": "i"}},
+            {"location.locality": {"$regex": "Velachery", "$options": "i"}},
+        ]}
+        self.assertIn(city_clause, and_clauses)
+        self.assertIn(locality_clause, and_clauses)
+
+    def test_non_chennai_locality_city_whitefield_bangalore(self):
+        # Proves the fix is generic, not Chennai-specific.
+        prop_service = FakePropertyService(results=[])
+
+        result = orch.orchestrate_search(
+            "2 bhk apartment for rent in Whitefield Bangalore",
+            NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        and_clauses = mongo_filter["$and"]
+        city_clause = {"$or": [
+            {"location.city": {"$regex": "Bangalore", "$options": "i"}},
+            {"location.locality": {"$regex": "Bangalore", "$options": "i"}},
+        ]}
+        locality_clause = {"$or": [
+            {"location.city": {"$regex": "Whitefield", "$options": "i"}},
+            {"location.locality": {"$regex": "Whitefield", "$options": "i"}},
+        ]}
+        self.assertIn(city_clause, and_clauses)
+        self.assertIn(locality_clause, and_clauses)
+
+    def test_city_only_query_unaffected_by_the_fix(self):
+        prop_service = FakePropertyService(results=[])
+
+        result = orch.orchestrate_search(
+            "2 bhk flat in Chennai", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+
+        mongo_filter = prop_service.calls[0]
+        self.assertEqual(len(mongo_filter["$and"]), 1)
+        self.assertEqual(result["applied_filters"]["area_or_city_text"], "Chennai")
 
     @patch("services.search_orchestration.mappls_service.resolve_place")
     def test_matched_poi_adds_near_query_on_existing_2dsphere_index(self, mock_resolve_place):
@@ -845,6 +1252,67 @@ class OrchestrateSearchNearbyFacilityTests(unittest.TestCase):
         mongo_filter = prop_service.calls[0]
         self.assertIn("$near", mongo_filter["location.coordinates"])
         self.assertIn({"nearby_facilities": {"$elemMatch": {"category": "gym"}}}, mongo_filter["$and"])
+
+
+# ============================================================
+# default_listing_type END-TO-END (Rentals page defaults to Rent,
+# but explicit NLP sell intent or a manual override must still win -
+# see merge_structured_fields()'s default_listing_type docstring)
+# ============================================================
+
+class DefaultListingTypeOrchestrationTests(unittest.TestCase):
+    """Real NLP parse (no mocking) through orchestrate_search(), the
+    same entry point routes/search_routes.py's search_rentals() calls
+    - these are the task's own 6 named cases."""
+
+    def _applied_listing_type(self, query, listing_type_override=""):
+        prop_service = FakePropertyService(results=[], count_result=0)
+        overrides = dict(NO_OVERRIDES, listing_type=listing_type_override)
+        result = orch.orchestrate_search(
+            query, overrides, "key", FakeOSMService(), prop_service,
+            default_listing_type="rent",
+        )
+        return result["applied_filters"].get("listing_type")
+
+    def test_case1_no_intent_no_override_defaults_to_rent(self):
+        self.assertEqual(self._applied_listing_type("2BHK flat in Chennai"), "rent")
+
+    def test_case2_explicit_rent_intent_stays_rent(self):
+        self.assertEqual(self._applied_listing_type("2BHK flat for rent in Chennai"), "rent")
+
+    def test_case3_explicit_sale_intent_beats_the_rent_default(self):
+        self.assertEqual(self._applied_listing_type("2BHK flat for sale in Chennai"), "sell")
+
+    def test_case4_buy_phrasing_also_beats_the_rent_default(self):
+        self.assertEqual(self._applied_listing_type("2BHK flat buy in Chennai"), "sell")
+
+    def test_case5_manual_sell_selection_with_no_query_intent(self):
+        self.assertEqual(
+            self._applied_listing_type("2BHK flat in Chennai", listing_type_override="sell"), "sell"
+        )
+
+    def test_case6_manual_rent_selection_with_no_query_intent(self):
+        self.assertEqual(
+            self._applied_listing_type("2BHK flat in Chennai", listing_type_override="rent"), "rent"
+        )
+
+    def test_manual_rent_selection_still_wins_even_with_sale_text(self):
+        # The user explicitly picked the dropdown despite typing "for
+        # sale" - a genuinely manual pick must win (see
+        # performNlpSearch()'s listingTypeManuallySet flag in
+        # templates/rentals.html, which is what makes this override
+        # non-empty in the first place).
+        self.assertEqual(
+            self._applied_listing_type("2BHK flat for sale in Chennai", listing_type_override="rent"),
+            "rent",
+        )
+
+    def test_no_default_given_falls_back_to_todays_plain_nlp_behavior(self):
+        prop_service = FakePropertyService(results=[], count_result=0)
+        result = orch.orchestrate_search(
+            "2BHK flat in Chennai", NO_OVERRIDES, "key", FakeOSMService(), prop_service,
+        )
+        self.assertNotIn("listing_type", result["applied_filters"])
 
 
 # ============================================================

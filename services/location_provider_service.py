@@ -315,6 +315,25 @@ def resolve_location_via_ola(query: str, ola_api_key: Optional[str], location_bi
                 "latitude": c.get("latitude"),
                 "longitude": c.get("longitude"),
                 "score": None,
+                # Additive vs. the OSM-ambiguous alternate shape this
+                # mirrors (services/osm_location_service.py never has a
+                # place_id/provider concept - it has no refinement step
+                # of its own). A caller that already only reads
+                # matched_name/matched_address/latitude/longitude/score
+                # (e.g. templates/rentals.html's EXISTING picker, before
+                # this phase) is unaffected - these are new keys, not
+                # changed ones. What a caller NEEDS these two new keys
+                # for: once the user picks ONE of these alternates, the
+                # existing routes/property_routes.py
+                # /api/location/resolve-candidate endpoint (already
+                # used by the property-registration flow for exactly
+                # this) can re-resolve it via Ola Place Details for
+                # authoritative coordinates - see that endpoint's own
+                # resolve_selected_candidate() docstring for why a raw
+                # autocomplete coordinate should not be trusted as
+                # final on its own.
+                "place_id": c.get("place_id"),
+                "provider": "ola",
             }
             for c in classification["alternates"]
         ]

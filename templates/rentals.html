@@ -385,6 +385,63 @@
 
 
         /* ====================================================
+           EXTERNAL (SQUARE YARDS) RESULT - Phase 8/10. A distinct
+           color from .view-details-button so it is visually obvious
+           this leaves SmartHomes, never styled to look like an
+           internal property page.
+        ==================================================== */
+
+        .external-source-badge {
+            display: inline-block;
+
+            margin-bottom: 8px;
+
+            padding: 3px 10px;
+
+            background-color: #666;
+
+            color: white;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+
+            border-radius: 4px;
+        }
+
+
+        .view-external-button {
+            display: inline-block;
+
+            margin-top: 15px;
+
+            padding: 10px 18px;
+
+            background-color: #555;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 5px;
+
+            font-weight: bold;
+
+            transition:
+                background-color 0.3s ease;
+        }
+
+
+        .view-external-button:hover {
+            background-color: #333;
+        }
+
+
+        /* ====================================================
            NATURAL-LANGUAGE SEARCH (Phase 3.1)
 
            Reuses the existing .sub-form input/button styling (this
@@ -1018,7 +1075,7 @@
                             All
                         </option>
 
-                        <option value="rent">
+                        <option value="rent" selected>
                             Rent
                         </option>
 
@@ -1167,6 +1224,8 @@
                     method="POST"
                     enctype="multipart/form-data"
                 >
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
 
                     <!-- ==================================================
@@ -1854,6 +1913,73 @@
                     'div'
                 );
 
+
+            /* ==================================================
+               SQUARE YARDS (EXTERNAL) RESULT - Phase 8/10/17
+
+               A completely separate, simpler card: no internal
+               /property/<id> link (there is no such page for an
+               external listing - Phase 10 explicitly forbids faking
+               one), the image is the external CDN URL as-is, and the
+               CTA opens the ORIGINAL Square Yards listing in a new
+               tab. Returns early so none of the SmartHomes-specific
+               rendering below (nearby-facility explanation, internal
+               image path, /property/<id> URL) ever runs for an
+               external result.
+            ================================================== */
+
+            if (property.provider === 'squareyards') {
+
+                // property.* here is THIRD-PARTY text (Square Yards),
+                // unlike the rest of this app's own MongoDB-backed
+                // fields below - escaped before going into innerHTML.
+                const esc = (value) => {
+                    const div = document.createElement('div');
+                    div.textContent = (value == null ? '' : String(value));
+                    return div.innerHTML;
+                };
+
+                const externalImageHTML = property.image_url
+                    ? `<img class="property-image" src="${esc(property.image_url)}" alt="Property Image">`
+                    : '';
+
+                const priceText = property.price_on_request
+                    ? 'Price on request'
+                    : ('₹' + esc(property.price != null ? property.price : 'N/A'));
+
+                // source_url is already restricted server-side to the
+                // squareyards.com domain (see services/
+                // external_property_sources/square_yards_service.py's
+                // build_listing_url()) - esc() here guards the HTML
+                // attribute context only, it is not what makes the
+                // domain itself trustworthy.
+                listingElement.innerHTML = `
+
+                    <span class="external-source-badge">Source: Square Yards</span>
+
+                    <h3>${esc(property.property_type) || 'Property'}</h3>
+
+                    ${externalImageHTML}
+
+                    <p><strong>Listing Type:</strong> ${esc(property.listing_type) || 'N/A'}</p>
+                    <p><strong>Price:</strong> ${priceText}</p>
+                    <p><strong>BHK:</strong> ${property.bhk != null ? esc(property.bhk) : 'N/A'}</p>
+                    <p><strong>Area:</strong> ${property.area != null ? esc(property.area) : 'N/A'} sq.ft</p>
+                    <p><strong>City:</strong> ${esc(property.city) || 'N/A'}</p>
+                    <p><strong>Locality:</strong> ${esc(property.locality) || 'N/A'}</p>
+                    ${property.furnishing ? `<p><strong>Furnishing:</strong> ${esc(property.furnishing.replace(/_/g, ' '))}</p>` : ''}
+
+                    ${property.source_url
+                        ? `<a href="${esc(property.source_url)}" target="_blank" rel="noopener noreferrer" class="view-external-button">View on Square Yards</a>`
+                        : ''
+                    }
+
+                `;
+
+                return listingElement;
+            }
+
+
             const matchExplanationHTML =
                 buildNearbyFacilityExplanationHTML(
                     property,
@@ -2116,6 +2242,25 @@
         ================================================== */
 
         let nlpSearchInFlight = false;
+
+        /* listingTypeManuallySet distinguishes "user actually picked
+           a value from the Listing Type dropdown" from "dropdown is
+           still showing its page default (Rent)". Only a manual pick
+           is sent to the backend as an explicit override - see
+           services/search_orchestration.merge_structured_fields()'s
+           default_listing_type docstring for why this matters: an
+           explicit NLP intent in the query text (e.g. "for sale")
+           must be able to win over the untouched page default, but
+           must NOT be able to override a value the user deliberately
+           chose. */
+        let listingTypeManuallySet = false;
+
+        document.getElementById('search_listing_type').addEventListener(
+            'change',
+            function () {
+                listingTypeManuallySet = true;
+            }
+        );
 
 
         /* ==================================================
@@ -2396,8 +2541,13 @@
                 locality:
                     locality,
 
+                // Only a manual dropdown pick is sent as an explicit
+                // override here - an untouched default (Rent) is sent
+                // as "" so the backend's NLP-parsed intent (e.g. "for
+                // sale") can still win; see
+                // listingTypeManuallySet's own comment above.
                 listing_type:
-                    listingType,
+                    listingTypeManuallySet ? listingType : '',
 
                 property_type:
                     propertyType,
@@ -2781,8 +2931,16 @@
             const alternates =
                 (locationResolution.alternates || []).filter(
                     alt =>
-                        alt.latitude != null
-                        && alt.longitude != null
+                        // Pickable either way: an OSM-sourced alternate
+                        // (no place_id - OSM has no further refinement
+                        // step of its own) already carries final-quality
+                        // lat/lon directly. An Ola-sourced alternate
+                        // (place_id present) is pickable even WITHOUT
+                        // raw lat/lon, since selecting it resolves
+                        // through Ola Place Details below instead -
+                        // see the click handler's place_id branch.
+                        (alt.latitude != null && alt.longitude != null)
+                        || alt.place_id
                 );
 
 
@@ -2888,13 +3046,10 @@
                         'click',
                         () => {
 
-                            performNlpSearch(
-                                queryText,
-                                {
-                                    lat: alternate.latitude,
-                                    lon: alternate.longitude,
-                                    label: alternate.matched_name || 'this location'
-                                }
+                            selectLocationAlternate(
+                                optionButton,
+                                alternate,
+                                queryText
                             );
 
                         }
@@ -2911,6 +3066,143 @@
 
             feedbackContainer.appendChild(
                 picker
+            );
+
+        }
+
+
+        /* ==================================================
+           selectLocationAlternate(button, alternate, queryText)
+
+           Reuses the EXISTING /api/location/resolve-candidate endpoint
+           (routes/property_routes.py's location_resolve_candidate(),
+           already used by the property-registration map/autocomplete
+           flow - static/property_form.js) rather than a new backend
+           endpoint - see services/location_provider_service.py's
+           resolve_selected_candidate() for what it actually does per
+           provider.
+
+           An Ola-sourced alternate (has a place_id - see
+           services/search_orchestration.py's
+           resolve_poi_location_via_best_provider()) is resolved via
+           Ola Place Details for authoritative coordinates BEFORE the
+           search re-runs - a raw Ola autocomplete coordinate is
+           explicitly documented as not safe to trust as final (see
+           services/ola_maps_service.py's autocomplete() docstring).
+
+           An OSM-sourced alternate (no place_id - OSM has no further
+           refinement step; services/osm_location_service.py's
+           resolve_coordinates() already returns its final coordinate
+           per candidate) keeps the EXISTING, unchanged behavior: its
+           own latitude/longitude is used directly, with no extra
+           round-trip - this is the same single-step flow the picker
+           has always used for an OSM-sourced "ambiguous" result.
+        ================================================== */
+
+        function selectLocationAlternate(button, alternate, queryText) {
+
+            if (!alternate.place_id) {
+
+                performNlpSearch(
+                    queryText,
+                    {
+                        lat: alternate.latitude,
+                        lon: alternate.longitude,
+                        label: alternate.matched_name || 'this location'
+                    }
+                );
+
+                return;
+
+            }
+
+
+            const originalButtonHTML =
+                button.innerHTML;
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                'Resolving…';
+
+
+            fetch(
+                '{{ url_for("property.location_resolve_candidate") }}',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body: JSON.stringify({
+                        provider: alternate.provider || 'ola',
+                        place_id: alternate.place_id,
+                        name: alternate.matched_name,
+                        address: alternate.matched_address
+                    })
+                }
+            )
+
+            .then(
+                response => response.json()
+            )
+
+            .then(
+                data => {
+
+                    if (
+                        data.status === 'matched'
+                        && data.latitude != null
+                        && data.longitude != null
+                    ) {
+
+                        performNlpSearch(
+                            queryText,
+                            {
+                                lat: data.latitude,
+                                lon: data.longitude,
+                                label: alternate.matched_name || 'this location'
+                            }
+                        );
+
+                        return;
+
+                    }
+
+
+                    // Place Details failed to produce a usable
+                    // coordinate for this specific candidate - restore
+                    // the button rather than leaving the user stuck on
+                    // a permanently-disabled option; they can still try
+                    // a different alternate or refine their search text.
+                    button.disabled =
+                        false;
+
+                    button.innerHTML =
+                        originalButtonHTML;
+
+                    button.title =
+                        'Could not resolve this location. Please try a different option.';
+
+                }
+            )
+
+            .catch(
+                () => {
+
+                    button.disabled =
+                        false;
+
+                    button.innerHTML =
+                        originalButtonHTML;
+
+                    button.title =
+                        'Could not resolve this location. Please try a different option.';
+
+                }
             );
 
         }

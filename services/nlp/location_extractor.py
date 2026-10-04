@@ -97,6 +97,129 @@ _KNOWN_CITIES = {
 _CLAUSE_BOUNDARY_PATTERN = r","
 
 
+def _detect_trailing_city(remainder: str, phrase: str) -> Optional[str]:
+    """Detects a KNOWN city name associated with an already-captured POI
+    `phrase` (from `remainder`, the text right after the POI
+    preposition) - REUSES this module's existing _KNOWN_CITIES set and
+    _capture_phrase() helper; does not add a second city parser or a
+    second gazetteer.
+
+    NEVER changes `phrase` itself - this is purely additive detection
+    for LocationMention.city, read by
+    services/search_orchestration.py's city-qualified Ola retry. The
+    POI name (`query`/`raw_text`) keeps its exact existing value and
+    existing test coverage (test_location_extractor.py's
+    CommaBoundaryTests/ExistingPoiPatternsStillWorkTests) regardless of
+    whether a city is also detected here.
+
+    Two shapes, matching the two ways _capture_phrase() can end a
+    phrase:
+      1. No comma stopped the phrase ("near vit chennai",
+         "near phoenix mall in bangalore") - the city, if any, is the
+         LAST WORD of `phrase` itself (works whether or not a
+         preposition like "in" sits in between - "phoenix mall in
+         bangalore"'s last word is "bangalore" either way).
+      2. A comma stopped the phrase ("near marina mall, chennai") -
+         `phrase` itself never contains the city (the comma already
+         excluded it, exactly as test_vit_chennai_stops_at_comma's
+         group of tests requires - unchanged here). The city, if any,
+         is in the clause immediately following that comma, captured
+         with the SAME _capture_phrase() function reused on that
+         sub-string.
+    """
+
+    # Re-finds the SAME boundary _capture_phrase() already computed
+    # internally (its own stop_match/comma_match/end logic, reused
+    # verbatim here rather than threaded through as a return value -
+    # that function's existing signature/callers stay untouched), to
+    # know precisely whether a comma is what ended `phrase`, and if so,
+    # exactly where it sits in `remainder` so the clause right after it
+    # can be captured.
+    stop_match = re.search(_STOP_PATTERN, remainder)
+    comma_match = re.search(_CLAUSE_BOUNDARY_PATTERN, remainder)
+    end_positions = [m.start() for m in (stop_match, comma_match) if m]
+    end = min(end_positions) if end_positions else len(remainder)
+
+    if comma_match and comma_match.start() == end:
+        next_clause = _capture_phrase(remainder, end + 1)
+        candidate = next_clause.strip().lower()
+        if candidate and candidate in _KNOWN_CITIES:
+            return next_clause.strip()
+        return None
+
+    words = phrase.strip().split()
+    if not words:
+        return None
+    last_word = words[-1].strip(" ,.")
+    if last_word.lower() in _KNOWN_CITIES:
+        return last_word
+    return None
+
+
+def _split_area_or_city_phrase(phrase: str, remainder_after_phrase: str) -> tuple:
+    """For a bare "in <place>" area_or_city phrase, detects whether the
+    captured `phrase` is actually "<locality> <city>" (no comma - e.g.
+    "velachery chennai") or "<locality>, <city>" (comma - e.g.
+    "velachery, chennai") and splits them apart, so the locality and
+    city can each be matched against MongoDB's SEPARATE location.city /
+    location.locality fields instead of requiring one field to contain
+    both words as a single literal substring - the exact bug this
+    fixes ("Velachery Chennai" never matched a document storing
+    city="Chennai"/locality="Velachery" separately, while "Velachery,
+    Chennai" happened to work only because the comma caused "Chennai"
+    to be dropped entirely and "Velachery" alone was already specific
+    enough).
+
+    REUSES _detect_trailing_city() verbatim (the exact same
+    _KNOWN_CITIES set and comma/stop-word boundary logic already used
+    for POI mentions) rather than adding a second city parser or a
+    second gazetteer - this function only adds the locality-splitting
+    behavior area_or_city needs on top, which POI mentions must NOT
+    have (a POI's `query` must stay byte-for-byte unchanged for Phase 1
+    resolution - see _detect_trailing_city()'s own docstring).
+
+    Returns (locality_query, city):
+      - (None, None) when `phrase` is ALREADY nothing but a bare city
+        name ("chennai") - deliberately left to extract_location()'s
+        existing whole-phrase-is-a-city handling, untouched, so a pure
+        city-only query's behavior cannot regress.
+      - (None, None) when no known city is attached at all (an
+        ordinary single-locality phrase like "anna nagar") - also left
+        completely unchanged.
+      - (locality_text, detected_city) when a genuine two-part split
+        was found - "velachery chennai" -> ("velachery", "chennai");
+        "velachery, chennai" -> ("velachery", "chennai"); "whitefield
+        bangalore" -> ("whitefield", "bangalore"); "t nagar chennai"
+        -> ("t nagar", "chennai") (the locality itself can be more
+        than one word - only the trailing city is split off).
+    """
+
+    detected_city = _detect_trailing_city(remainder_after_phrase, phrase)
+
+    if not detected_city:
+        return None, None
+
+    words = phrase.strip().split()
+    detected_city_lower = detected_city.strip().lower()
+
+    if words and words[-1].strip(" ,.").lower() == detected_city_lower:
+        # No-comma case: the city is the last word of `phrase` itself -
+        # strip it off to get the remaining locality text.
+        locality_text = " ".join(words[:-1]).strip(" ,.")
+    else:
+        # Comma case: _capture_phrase() already stopped `phrase` at the
+        # comma, so `phrase` IS already just the locality text, and
+        # `detected_city` came from the separate clause after the comma.
+        locality_text = phrase.strip()
+
+    if not locality_text:
+        # The whole phrase WAS just the city itself ("in chennai") -
+        # not a locality+city split.
+        return None, None
+
+    return locality_text, detected_city
+
+
 def _capture_phrase(text: str, start: int) -> str:
     """From `start`, capture tokens until a stop-word, a clause-boundary
     comma, or end of string - whichever comes first."""
@@ -160,11 +283,13 @@ def extract_location(text: str, original_text: Optional[str] = None) -> Optional
                 # entirely rather than returning a bogus location.
                 continue
             if phrase:
+                detected_city = _detect_trailing_city(text[m.end():], phrase)
                 return LocationMention(
                     type="poi",
                     query=_original_case(phrase, original_text),
                     raw_text=text[m.start():m.end() + len(phrase) + 1],
                     confidence=0.85,
+                    city=_original_case(detected_city, original_text) if detected_city else None,
                 )
 
     # 2. Bare "in <place>" mention.
@@ -173,11 +298,14 @@ def extract_location(text: str, original_text: Optional[str] = None) -> Optional
         phrase = _capture_phrase(text, m.end())
         if phrase:
             known = phrase.strip().split()[-1] in _KNOWN_CITIES or phrase.strip() in _KNOWN_CITIES
+            locality_text, detected_city = _split_area_or_city_phrase(phrase, text[m.end():])
+            query_text = locality_text if locality_text else phrase
             return LocationMention(
                 type="area_or_city",
-                query=_original_case(phrase, original_text),
+                query=_original_case(query_text, original_text),
                 raw_text=text[m.start():m.end() + len(phrase)],
-                confidence=0.75 if known else 0.5,
+                confidence=0.75 if (known or detected_city) else 0.5,
+                city=_original_case(detected_city, original_text) if detected_city else None,
             )
 
     # 3. A known city name appearing anywhere, with no preposition at all
