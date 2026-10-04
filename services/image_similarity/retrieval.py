@@ -6,9 +6,11 @@ search_similar_properties() - the isolated retrieval interface:
     -> max aggregation per property
     -> ranked properties
 
-NOT wired into any Flask route or the frontend. Callers (tests,
-scripts, a future route) import this module directly - see
-docs/PHASE_6_SIGLIP2_SIMILARITY_SERVICE.md's "Production status".
+Wired into the production `/design` find_similar route
+(routes/design_routes.py), which imports this module directly, as well as
+tests and scripts - see docs/PHASE_6_SIGLIP2_SIMILARITY_SERVICE.md's
+"Production status" for how that wiring came after this module was
+originally written.
 """
 
 from services.image_similarity.similarity import aggregate_property_scores, rank_properties

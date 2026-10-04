@@ -1,4 +1,4 @@
-# Phase 6 — SigLIP2 Image-Similarity Service (Isolated, Not Yet In Production)
+# Phase 6 — SigLIP2 Image-Similarity Service (Originally Isolated; Now Wired Into Production — see "Production status")
 
 ## Model
 
@@ -113,11 +113,15 @@ means rewriting those two methods, not any caller.
 
 The offline dataset (`properties/House_<NNN>/`) uses folder-based property
 IDs (`"House_007"`), **not** the real MongoDB `ObjectId` strings production
-property documents use. This phase's retrieval results (`property_id`
-field) therefore refer to the offline benchmark dataset, not live listings —
-consistent with "not yet connected to production search/UI." Connecting
-this to real property documents would need a property_id mapping step, not
-attempted here.
+property documents use. This phase's own retrieval results (`property_id`
+field) therefore still refer to the offline benchmark dataset, not live
+listings — this benchmark itself was never connected to real property
+documents, and connecting *it* would need a property_id mapping step, not
+attempted here. (The separate production pipeline added later —
+`services/image_similarity/production_indexer.py`, used by the real
+`/design` find_similar route — sidesteps this entirely by generating
+embeddings directly from real MongoDB property documents, never from this
+phase's folder-based benchmark dataset. See "Production status" below.)
 
 ## Dataset
 
@@ -210,11 +214,30 @@ holding the embeddings fixed and only changing the evaluation protocol.
 
 ## Production status
 
-**Similarity service isolated; not yet connected to production
-search/UI.** No Flask route calls this module. No frontend code references
-it. No production property document was read or modified. This phase is
-retrieval infrastructure only — see the parent Phase 6 analysis documents
-for the full evaluation history this service is built on top of.
+**At the time this phase was originally implemented:** the similarity
+service was intentionally isolated and not yet connected to production
+search/UI — no Flask route called this module, no frontend code
+referenced it, no production property document was read or modified by
+it. This phase was retrieval infrastructure only, evaluated against the
+offline 21-house benchmark dataset described above — see the parent Phase
+6 analysis documents for the full evaluation history this service is
+built on top of.
+
+**Current state:** this is no longer the case. SigLIP2 image similarity
+is now wired into the production `/design` find_similar route
+(`routes/design_routes.py`), which lazily imports this service's
+`embedding_cache.py`, `retrieval.py`, and `siglip2_encoder.py` the first
+time that route is actually called — so torch/transformers are only ever
+loaded into the Flask process on first real use, never at app startup. A
+separate production embedding pipeline
+(`services/image_similarity/production_indexer.py`) generates and caches
+embeddings for real, registered SmartHomes properties (tagged
+`source="mongodb_production"`) in the background after each listing is
+created — a distinct cache from this phase's own offline benchmark data,
+never merged with it. `torch`/`transformers`/`numpy` are now also declared
+in the project's root `requirements.txt` (not only
+`services/image_similarity/requirements.txt`) because of this production
+wiring — see that file's own header comment for detail.
 
 ## Performance
 
