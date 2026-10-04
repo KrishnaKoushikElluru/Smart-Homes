@@ -14,3 +14,4 @@ transformers>=4.51
 numpy>=1.24
 pymongo
 google-genai
+mcp==2.2.0

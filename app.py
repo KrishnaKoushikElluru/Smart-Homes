@@ -83,6 +83,28 @@ app.config["OLA_MAPS_API_KEY"] = os.getenv(
 )
 
 # ============================================================
+# SQUARE YARDS EXTERNAL SEARCH PROVIDER (Phase 7/8)
+#
+# No API key/credential exists for this endpoint (confirmed in the
+# Phase 7 isolated smoke test - a public, read-only MCP connector) -
+# still kept config-driven rather than hardcoded, per this phase's
+# explicit instruction, so the endpoint/toggle can change without a
+# code change. See services/external_property_sources/
+# square_yards_service.py's module docstring for the full
+# "external live search, never permanent ingestion" architecture.
+# ============================================================
+
+app.config["SQUARE_YARDS_MCP_URL"] = os.getenv(
+    "SQUARE_YARDS_MCP_URL",
+    "https://sy-mcp.squareyards.com/mcp/external"
+)
+
+app.config["SQUARE_YARDS_ENABLED"] = os.getenv(
+    "SQUARE_YARDS_ENABLED",
+    "true"
+).strip().lower() not in ("false", "0", "no")
+
+# ============================================================
 # OSM / NOMINATIM CONFIGURATION
 #
 # Kept fully env-driven and provider-isolated (see

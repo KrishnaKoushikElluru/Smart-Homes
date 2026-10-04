@@ -9,12 +9,22 @@ from flask_login import login_required
 
 from services.nlp.parser import parse as parse_nlp_query
 from services import search_orchestration
+from services.external_property_sources import square_yards_service
 
 
 search_bp = Blueprint(
     "search",
     __name__
 )
+
+
+# This route's own page-level default - NOT a square_yards_service.py
+# or search_orchestration.py concept (see orchestrate_search()'s
+# default_listing_type docstring). Used only as a last-resort fallback
+# when the request supplies no explicit listing_type override AND the
+# NLP parse found no explicit rent/sale intent in the query text
+# either - both of those still take precedence over this default.
+RENTALS_PAGE_DEFAULT_LISTING_TYPE = "rent"
 
 
 # ============================================================
@@ -286,6 +296,74 @@ def _serialize_property(property_item):
         result["matched_nearby_facilities"] = matched_nearby_facilities
 
     return result
+
+
+# ============================================================
+# EXTERNAL (SQUARE YARDS) RESULT SERIALIZATION
+#
+# Deliberately a SEPARATE, additive shape from _serialize_property()'s
+# above, not a reuse of its "source"/"source_url" keys - those already
+# mean a SmartHomes property's OWN origin metadata (property_item.
+# source.type/url, e.g. "owner"-posted), which is unrelated to "which
+# search provider found this result" and must not be silently
+# repurposed. Every SmartHomes result additionally gets
+# "provider": "smarthomes" tagged at its call site (search_rentals()
+# below) so the frontend can branch on ONE consistent field regardless
+# of which provider a result came from.
+# ============================================================
+
+def _serialize_external_result(normalized):
+
+    images = normalized.get("images") or []
+
+    return {
+        "provider": "squareyards",
+        "external_id": normalized.get("external_id"),
+        "title": normalized.get("title"),
+        "property_type": normalized.get("property_type"),
+        "listing_type": normalized.get("listing_type"),
+        "price": normalized.get("price"),
+        "price_on_request": normalized.get("price_on_request", False),
+        "bhk": normalized.get("bhk"),
+        "area": normalized.get("area_sqft"),
+        "furnishing": normalized.get("furnishing"),
+        "amenities": normalized.get("amenities") or [],
+        "city": normalized.get("city"),
+        "locality": normalized.get("locality"),
+        "image_url": images[0] if images else None,
+        "images": images,
+        "source_url": normalized.get("source_url"),
+    }
+
+
+def _external_search_results(applied_filters, config=None):
+    """Square Yards candidates for the SAME applied_filters
+    search_orchestration.orchestrate_search() already computed for
+    SmartHomes' own MongoDB search - no second NLP pass (Phase 4).
+
+    NEVER raises and NEVER blocks the SmartHomes result set on a
+    Square Yards problem (Phase 5/13): any failure inside
+    square_yards_service.search_rental_properties() already resolves
+    to an empty list on its own (see that module's docstring), and
+    this wrapper adds one more layer of defense + a short, secret-free
+    internal log line, consistent with this file's existing
+    try/except-at-the-route-boundary convention (see search_rentals()'s
+    own query-parsing error handling above).
+
+    Returns (serialized_results, error_message_or_None) - the error
+    message is informational only (surfaced to the frontend as
+    "external_search_error" so Phase 13's "useful logging" requirement
+    extends to the response too, without ever turning into an HTTP
+    error for the whole request)."""
+
+    try:
+        normalized_candidates = square_yards_service.search_rental_properties(
+            applied_filters, config=config
+        )
+        return [_serialize_external_result(n) for n in normalized_candidates], None
+    except Exception as error:  # noqa: BLE001 - external provider must never break this route
+        print(f"Square Yards external search failed: {error!r}")
+        return [], "Square Yards search is currently unavailable."
 
 
 # ============================================================
@@ -590,12 +668,18 @@ def search_rentals():
             location_bias=location_bias,
             explicit_coordinates=explicit_coordinates,
             ola_api_key=ola_key,
+            default_listing_type=RENTALS_PAGE_DEFAULT_LISTING_TYPE,
         )
 
         results = [
-            _serialize_property(property_item)
+            {**_serialize_property(property_item), "provider": "smarthomes"}
             for property_item in orchestration_result["properties"]
         ]
+
+        external_results, external_search_error = _external_search_results(
+            orchestration_result["applied_filters"], config=current_app.config
+        )
+        results.extend(external_results)
 
         return jsonify({
 
@@ -612,7 +696,10 @@ def search_rentals():
                 orchestration_result["applied_filters"],
 
             "nearby_facility_enrichment_caveat":
-                orchestration_result.get("nearby_facility_enrichment_caveat")
+                orchestration_result.get("nearby_facility_enrichment_caveat"),
+
+            "external_search_error":
+                external_search_error
 
         })
 
