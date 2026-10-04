@@ -8,7 +8,6 @@ WTForms
 email-validator
 python-dotenv
 requests
-openai
 Pillow
 pymongo
 google-genai
