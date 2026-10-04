@@ -646,6 +646,142 @@
 
 
         /* ====================================================
+           NEARBY AMENITIES
+        ==================================================== */
+
+        .nearby-status-note {
+
+            background: #f7f7f7;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            color: #777;
+
+            font-style: italic;
+
+        }
+
+
+        .nearby-facilities-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(240px, 1fr)
+                );
+
+            gap: 15px;
+
+        }
+
+
+        .nearby-category-card {
+
+            background: #f7f7f7;
+
+            border-radius: 8px;
+
+            padding: 15px;
+
+            border:
+                1px solid #e0e0e0;
+
+        }
+
+
+        .nearby-category-title {
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            color: #0066cc;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.5px;
+
+            margin: 0 0 10px;
+
+        }
+
+
+        .nearby-facility-list {
+
+            list-style: none;
+
+            margin: 0;
+
+            padding: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+        }
+
+
+        .nearby-facility {
+
+            padding-bottom: 10px;
+
+            border-bottom:
+                1px solid #e5e5e5;
+
+        }
+
+
+        .nearby-facility:last-child {
+
+            border-bottom: none;
+
+            padding-bottom: 0;
+
+        }
+
+
+        .nearby-facility-name {
+
+            font-weight: 600;
+
+            color: #222;
+
+            word-break: break-word;
+
+        }
+
+
+        .nearby-facility-distance {
+
+            color: #0066cc;
+
+            font-weight: bold;
+
+            font-size: 14px;
+
+        }
+
+
+        .nearby-facility-address {
+
+            color: #888;
+
+            font-size: 13px;
+
+            word-break: break-word;
+
+            margin-top: 2px;
+
+        }
+
+
+        /* ====================================================
            RESPONSIVE
         ==================================================== */
 
@@ -847,6 +983,86 @@
             ================================================== -->
 
             {{ render_property_body(property, field_labels, amenity_labels) }}
+
+
+            <!-- ==================================================
+                 NEARBY AMENITIES
+
+                 Reads nearby_facilities_display, built server-side by
+                 services/nearby_facility_service.py's
+                 build_nearby_facilities_display() from this property's
+                 OWN already-stored nearby_facilities[] - no API call,
+                 no coordinates, no second taxonomy. "unavailable" and
+                 "skipped" intentionally render nothing at all (see
+                 that function's docstring for why) rather than a
+                 broken/empty section.
+            ================================================== -->
+
+            {% if nearby_facilities_display.status == "pending" %}
+
+                <h2 class="section-title">Nearby Amenities</h2>
+
+                <div class="nearby-status-note">
+                    Nearby facilities are being prepared…
+                </div>
+
+            {% elif nearby_facilities_display.status == "failed" %}
+
+                <h2 class="section-title">Nearby Amenities</h2>
+
+                <div class="nearby-status-note">
+                    Nearby facilities could not be checked for this property.
+                </div>
+
+            {% elif nearby_facilities_display.status == "empty" %}
+
+                <h2 class="section-title">Nearby Amenities</h2>
+
+                <div class="nearby-status-note">
+                    No nearby facilities were found for this property.
+                </div>
+
+            {% elif nearby_facilities_display.status == "ready" %}
+
+                <h2 class="section-title">Nearby Amenities</h2>
+
+                <div class="nearby-facilities-grid">
+
+                    {% for group in nearby_facilities_display.groups %}
+
+                        <div class="nearby-category-card">
+
+                            <div class="nearby-category-title">{{ group.label }}</div>
+
+                            <ul class="nearby-facility-list">
+
+                                {% for facility in group.facilities %}
+
+                                    <li class="nearby-facility">
+
+                                        <div class="nearby-facility-name">{{ facility.name }}</div>
+
+                                        {% if facility.distance_label %}
+                                            <div class="nearby-facility-distance">{{ facility.distance_label }} away</div>
+                                        {% endif %}
+
+                                        {% if facility.address %}
+                                            <div class="nearby-facility-address">{{ facility.address }}</div>
+                                        {% endif %}
+
+                                    </li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
 
 
             <!-- ==================================================

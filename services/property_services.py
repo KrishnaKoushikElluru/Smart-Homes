@@ -50,18 +50,21 @@ class PropertyService:
             [("location.coordinates", "2dsphere")]
         )
 
-        # Phase 4.0 (services/nearby_facility_service.py): a multikey
-        # 2dsphere index over each embedded nearby_facilities[] entry's
-        # "coordinates" field. Not queried by anything in this phase -
-        # added now purely so the data model is ready for a future
-        # "property within 1 km of a school" style search without a
-        # migration. A facility whose coordinates couldn't be resolved
-        # (coordinates: None - see nearby_facility_service.py) is
-        # simply not included in this index; that's normal, not an
-        # error, for a multikey geospatial index over an array.
-        self.collection.create_index(
-            [("nearby_facilities.coordinates", "2dsphere")]
-        )
+        # A prior version of this module also created a multikey
+        # 2dsphere index on nearby_facilities[].coordinates, added
+        # speculatively for a future geospatial facility search that
+        # was never built. Nothing ever queried it, and it actively
+        # broke enrichment writes: a facility whose coordinates
+        # couldn't be resolved was stored with a literal `coordinates:
+        # None`, which a 2dsphere index cannot extract geo keys from -
+        # confirmed live, this failed the ENTIRE nearby_facilities[]
+        # array write, not just that one entry. See
+        # services/nearby_facility_service.py's module docstring: that
+        # module no longer resolves or stores facility coordinates at
+        # all (Mappls' own category + distance_m is sufficient for
+        # every existing and planned nearby-facility query - see
+        # services/search_orchestration.py's build_mongo_filter()),
+        # so this index is intentionally not recreated.
 
 
     # ========================================================

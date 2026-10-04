@@ -3,11 +3,14 @@ Unit tests for services/nearby_facility_service.py (Phase 4.0: nearby-
 facility enrichment).
 
 No network access needed - services.mappls_service.find_nearby_places
-is patched, and osm_service is a fake with a scripted
-resolve_coordinates(), matching test_search_orchestration.py's
-convention. PropertyService is a fake in-memory store (no real
+is patched. PropertyService is a fake in-memory store (no real
 MongoDB), matching the FakeCollection pattern used across this
 project's test suite.
+
+Mappls is the SOLE discovery/distance provider - there is no OSM/
+coordinate-resolution step (see services/nearby_facility_service.py's
+module docstring for the architecture decision and why the OSM step
+was removed). NoCoordinateResolutionTests below proves this directly.
 """
 
 import unittest
@@ -62,23 +65,6 @@ class FakePropertyService:
         return True
 
 
-class FakeOSMService:
-    """Scripted resolve_coordinates() - returns whatever is queued next
-    in .results (a list consumed in call order), or .next_result for
-    every call if .results is empty."""
-
-    def __init__(self):
-        self.results = []
-        self.next_result = None
-        self.calls = []
-
-    def resolve_coordinates(self, mappls_poi):
-        self.calls.append(mappls_poi)
-        if self.results:
-            return self.results.pop(0)
-        return self.next_result
-
-
 def property_with_coordinates(lat=12.8406, lon=80.1538):
     return {
         "_id": "p1",
@@ -107,14 +93,6 @@ def raw_place(name="Test Gym", eloc="ABC123", distance_m=500, address="Some Rd",
     }
 
 
-def osm_matched(lat=12.84, lon=80.15):
-    return {"status": "matched", "latitude": lat, "longitude": lon, "confidence": 0.8, "error": None}
-
-
-def osm_status(status):
-    return {"status": status, "latitude": None, "longitude": None, "confidence": 0.3, "error": "reason"}
-
-
 # ============================================================
 # PROPERTY-LEVEL GATING: coordinates present/absent
 # ============================================================
@@ -127,7 +105,7 @@ class PropertyGatingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
         )
 
         self.assertTrue(mock_find_nearby.called)
@@ -139,7 +117,7 @@ class PropertyGatingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": {"_id": "p1", "location": {}}})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
         )
 
         mock_find_nearby.assert_not_called()
@@ -152,7 +130,7 @@ class PropertyGatingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": prop})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
         )
 
         mock_find_nearby.assert_not_called()
@@ -162,7 +140,7 @@ class PropertyGatingTests(unittest.TestCase):
         prop_service = FakePropertyService({})
 
         result = nfs.enrich_property_nearby_facilities(
-            "missing", prop_service, "key", FakeOSMService(),
+            "missing", prop_service, "key",
         )
 
         self.assertEqual(result["status"], "skipped")
@@ -172,7 +150,7 @@ class PropertyGatingTests(unittest.TestCase):
         prop_service.raise_on_get = RuntimeError("mongo down")
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
         )
 
         self.assertEqual(result["status"], "failed")
@@ -196,7 +174,7 @@ class NormalizationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym", "hospital": "hospital"},
         )
 
@@ -218,7 +196,7 @@ class NormalizationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym"},
         )
 
@@ -228,81 +206,70 @@ class NormalizationTests(unittest.TestCase):
 
 
 # ============================================================
-# COORDINATE VALIDATION / OSM RESOLUTION
+# NO COORDINATE RESOLUTION (architecture decision: Mappls is the sole
+# discovery/distance provider - see services/nearby_facility_service.py's
+# module docstring)
 # ============================================================
 
-class CoordinateResolutionTests(unittest.TestCase):
+class NoCoordinateResolutionTests(unittest.TestCase):
+
+    def test_enrich_property_nearby_facilities_has_no_osm_parameter(self):
+        import inspect
+        params = inspect.signature(nfs.enrich_property_nearby_facilities).parameters
+        self.assertNotIn("osm_service", params)
+        self.assertNotIn("coordinate_resolution_limit_per_category", params)
+
+    def test_start_background_enrichment_has_no_osm_parameter(self):
+        import inspect
+        params = inspect.signature(nfs.start_background_enrichment).parameters
+        self.assertNotIn("osm_service", params)
+        self.assertNotIn("coordinate_resolution_limit_per_category", params)
+
+    def test_module_has_no_osm_location_service_dependency(self):
+        import services.nearby_facility_service as module
+        self.assertFalse(hasattr(module, "osm_location_service"))
+        self.assertFalse(hasattr(module, "OSMLocationService"))
+        self.assertFalse(hasattr(module, "_resolve_coordinates_for_place"))
+        self.assertFalse(hasattr(module, "DEFAULT_COORDINATE_RESOLUTION_LIMIT_PER_CATEGORY"))
 
     @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
-    def test_matched_osm_result_populates_coordinates(self, mock_find_nearby):
-        mock_find_nearby.return_value = mappls_matched([raw_place(name="Test Gym", eloc="G1")])
-        osm = FakeOSMService()
-        osm.next_result = osm_matched(lat=12.84, lon=80.15)
+    def test_stored_facility_has_no_coordinate_fields(self, mock_find_nearby):
+        mock_find_nearby.return_value = mappls_matched(
+            [raw_place(name="Test Gym", eloc="G1", distance_m=750)]
+        )
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", osm, categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         stored = prop_service.properties["p1"]["nearby_facilities"][0]
-        self.assertEqual(stored["latitude"], 12.84)
-        self.assertEqual(stored["longitude"], 80.15)
-        self.assertEqual(stored["coordinates"], {"type": "Point", "coordinates": [80.15, 12.84]})
-        self.assertEqual(stored["coordinate_source"], "osm")
+        for key in ("latitude", "longitude", "coordinates", "coordinate_source"):
+            self.assertNotIn(key, stored)
+        self.assertEqual(stored["distance_m"], 750.0)
+        self.assertEqual(stored["name"], "Test Gym")
+        self.assertEqual(stored["provider_id"], "G1")
 
     @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
-    def test_ambiguous_osm_result_leaves_coordinates_null_but_keeps_distance(self, mock_find_nearby):
-        mock_find_nearby.return_value = mappls_matched([raw_place(name="Test Gym", eloc="G1", distance_m=900)])
-        osm = FakeOSMService()
-        osm.next_result = osm_status("ambiguous")
-        prop_service = FakePropertyService({"p1": property_with_coordinates()})
-
-        nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", osm, categories={"gym": "gym"},
-        )
-
-        stored = prop_service.properties["p1"]["nearby_facilities"][0]
-        self.assertIsNone(stored["latitude"])
-        self.assertIsNone(stored["coordinates"])
-        self.assertIsNone(stored["coordinate_source"])
-        self.assertEqual(stored["distance_m"], 900.0)  # still valid - came from Mappls directly
-
-    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
-    def test_osm_service_none_skips_resolution_without_crashing(self, mock_find_nearby):
-        mock_find_nearby.return_value = mappls_matched([raw_place(name="Test Gym", eloc="G1")])
-        prop_service = FakePropertyService({"p1": property_with_coordinates()})
-
-        result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", None, categories={"gym": "gym"},
-        )
-
-        self.assertEqual(result["status"], "completed")
-        stored = prop_service.properties["p1"]["nearby_facilities"][0]
-        self.assertIsNone(stored["coordinates"])
-
-    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
-    def test_coordinate_resolution_limited_per_category(self, mock_find_nearby):
+    def test_only_mappls_is_ever_called_not_any_other_provider(self, mock_find_nearby):
+        """Belt-and-braces: even with multiple facilities across
+        multiple categories, mappls_service.find_nearby_places is the
+        only external call this module ever makes - one call per
+        category, nothing else."""
         mock_find_nearby.return_value = mappls_matched([
             raw_place(name="Gym A", eloc="A", distance_m=100),
             raw_place(name="Gym B", eloc="B", distance_m=200),
-            raw_place(name="Gym C", eloc="C", distance_m=300),
         ])
-        osm = FakeOSMService()
-        osm.next_result = osm_matched()
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
-        nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", osm,
-            categories={"gym": "gym"},
-            coordinate_resolution_limit_per_category=1,
+        result = nfs.enrich_property_nearby_facilities(
+            "p1", prop_service, "key", categories={"gym": "gym", "hospital": "hospital"},
         )
 
-        # Only the closest (Gym A) should have triggered an OSM call.
-        self.assertEqual(len(osm.calls), 1)
+        self.assertEqual(mock_find_nearby.call_count, 2)  # one per category, nothing more
+        self.assertEqual(result["status"], "completed")
         stored = prop_service.properties["p1"]["nearby_facilities"]
-        resolved = [f for f in stored if f["coordinates"] is not None]
-        self.assertEqual(len(resolved), 1)
-        self.assertEqual(resolved[0]["name"], "Gym A")
+        self.assertTrue(all("coordinates" not in f for f in stored))
 
 
 # ============================================================
@@ -330,7 +297,7 @@ class DistanceAndValidationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         stored = prop_service.properties["p1"]["nearby_facilities"][0]
@@ -352,7 +319,7 @@ class DeduplicationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         self.assertEqual(result["facility_count"], 1)
@@ -366,7 +333,7 @@ class DeduplicationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         # Different businesses (different eLoc) must never be merged
@@ -376,12 +343,10 @@ class DeduplicationTests(unittest.TestCase):
     def test_dedupe_falls_back_to_normalized_name_when_no_provider_id(self):
         places = [
             {"name": "Same Place", "category": "gym", "provider_id": None,
-             "distance_m": 100, "address": None, "latitude": None, "longitude": None,
-             "coordinates": None, "source": "mappls", "coordinate_source": None,
+             "distance_m": 100, "address": None, "source": "mappls",
              "provider_type": None, "fetched_at": None, "search_radius_m": 2000},
             {"name": "same place", "category": "gym", "provider_id": None,
-             "distance_m": 100, "address": None, "latitude": None, "longitude": None,
-             "coordinates": None, "source": "mappls", "coordinate_source": None,
+             "distance_m": 100, "address": None, "source": "mappls",
              "provider_type": None, "fetched_at": None, "search_radius_m": 2000},
         ]
         deduped = nfs._dedupe_places(places)
@@ -400,7 +365,7 @@ class EmptyResultTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         self.assertEqual(result["status"], "completed")
@@ -422,7 +387,7 @@ class FailureHandlingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym", "hospital": "hospital"},
         )
 
@@ -445,7 +410,7 @@ class FailureHandlingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym", "hospital": "hospital"},
         )
 
@@ -461,7 +426,7 @@ class FailureHandlingTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": {"_id": "p1"}})  # no "location" key at all
         try:
             result = nfs.enrich_property_nearby_facilities(
-                "p1", prop_service, "key", FakeOSMService(),
+                "p1", prop_service, "key",
             )
         except Exception as exc:  # pragma: no cover - the whole point is this must not happen
             self.fail(f"enrich_property_nearby_facilities raised: {exc}")
@@ -474,7 +439,7 @@ class FailureHandlingTests(unittest.TestCase):
         prop_service.raise_on_update = RuntimeError("mongo write failed")
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         self.assertEqual(result["status"], "failed")
@@ -493,7 +458,7 @@ class MetadataTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym"}, radius_km=1.5,
         )
 
@@ -512,7 +477,7 @@ class MetadataTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym"}, radius_km=3.0,
         )
 
@@ -531,10 +496,10 @@ class RepeatedEnrichmentTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         mock_find_nearby.return_value = mappls_matched([raw_place(name="Gym A", eloc="A", distance_m=100)])
-        nfs.enrich_property_nearby_facilities("p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"})
+        nfs.enrich_property_nearby_facilities("p1", prop_service, "key", categories={"gym": "gym"})
 
         mock_find_nearby.return_value = mappls_matched([raw_place(name="Gym B", eloc="B", distance_m=200)])
-        result = nfs.enrich_property_nearby_facilities("p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"})
+        result = nfs.enrich_property_nearby_facilities("p1", prop_service, "key", categories={"gym": "gym"})
 
         stored = prop_service.properties["p1"]["nearby_facilities"]
         self.assertEqual(len(stored), 1)  # replaced, not appended to the first run's result
@@ -554,7 +519,7 @@ class RadiusConfigurationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym"}, radius_km=4.0,
         )
 
@@ -569,7 +534,7 @@ class RadiusConfigurationTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         self.assertEqual(result["radius_m"], nfs.DEFAULT_RADIUS_KM * 1000.0)
@@ -589,7 +554,7 @@ class ProviderIdentityTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         stored = prop_service.properties["p1"]["nearby_facilities"][0]
@@ -605,7 +570,7 @@ class ProviderIdentityTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         result = nfs.enrich_property_nearby_facilities(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
 
         self.assertEqual(result["facility_count"], 1)
@@ -654,7 +619,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
         with patch("services.nearby_facility_service.enrich_property_nearby_facilities", side_effect=slow_enrichment):
 
             thread = nfs.start_background_enrichment(
-                "p1", prop_service, "key", FakeOSMService(),
+                "p1", prop_service, "key",
             )
 
             # start_background_enrichment() must already have returned here,
@@ -679,7 +644,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
 
         with patch("services.nearby_facility_service.enrich_property_nearby_facilities", side_effect=slow_enrichment):
 
-            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+            thread = nfs.start_background_enrichment("p1", prop_service, "key")
 
             # Pending must already be visible - written by
             # start_background_enrichment() itself, synchronously,
@@ -694,11 +659,10 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
     @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
     def test_worker_receives_the_required_dependencies_and_transitions_pending_to_completed(self, mock_find_nearby):
         mock_find_nearby.return_value = mappls_matched([raw_place(name="Test Gym", eloc="G1")])
-        osm = FakeOSMService()
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         thread = nfs.start_background_enrichment(
-            "p1", prop_service, "real-key", osm, categories={"gym": "gym"},
+            "p1", prop_service, "real-key", categories={"gym": "gym"},
         )
         thread.join(timeout=5)
 
@@ -721,7 +685,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         thread = nfs.start_background_enrichment(
-            "p1", prop_service, "key", FakeOSMService(),
+            "p1", prop_service, "key",
             categories={"gym": "gym", "hospital": "hospital"},
         )
         thread.join(timeout=5)
@@ -735,7 +699,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
         prop_service = FakePropertyService({"p1": property_with_coordinates()})
 
         thread = nfs.start_background_enrichment(
-            "p1", prop_service, "key", FakeOSMService(), categories={"gym": "gym"},
+            "p1", prop_service, "key", categories={"gym": "gym"},
         )
         thread.join(timeout=5)
 
@@ -753,7 +717,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
             "services.nearby_facility_service.enrich_property_nearby_facilities",
             side_effect=RuntimeError("boom - totally unexpected crash"),
         ):
-            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+            thread = nfs.start_background_enrichment("p1", prop_service, "key")
             # The exception must not propagate out of thread.join() / crash the test process.
             thread.join(timeout=5)
 
@@ -768,7 +732,7 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
 
         with patch("services.nearby_facility_service.enrich_property_nearby_facilities") as mock_enrich:
 
-            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+            thread = nfs.start_background_enrichment("p1", prop_service, "key")
 
             self.assertIsNone(thread)
             mock_enrich.assert_not_called()
@@ -779,10 +743,213 @@ class StartBackgroundEnrichmentTests(unittest.TestCase):
 
         with patch("services.nearby_facility_service.enrich_property_nearby_facilities") as mock_enrich:
 
-            thread = nfs.start_background_enrichment("p1", prop_service, "key", FakeOSMService())
+            thread = nfs.start_background_enrichment("p1", prop_service, "key")
 
             self.assertIsNone(thread)
             mock_enrich.assert_not_called()
+
+
+# ============================================================
+# PROPERTY-DETAILS "NEARBY AMENITIES" DISPLAY
+# ============================================================
+
+def stored_facility(name="Tiger Gym", category="gym", distance_m=134.0, address="Gandhi Road, Chennai", **overrides):
+    """A realistic stored nearby_facilities[] entry - matches
+    _normalize_place()'s actual output shape (no coordinate fields,
+    confirmed by NoCoordinateResolutionTests above)."""
+    facility = {
+        "name": name, "category": category, "address": address, "distance_m": distance_m,
+        "source": "mappls", "provider_id": "ABC123", "provider_type": "POI",
+        "fetched_at": None, "search_radius_m": 2000.0,
+    }
+    facility.update(overrides)
+    return facility
+
+
+class FormatDistanceTests(unittest.TestCase):
+
+    def test_meters_shown_for_sub_kilometer_distances(self):
+        self.assertEqual(nfs._format_distance(134), "134 m")
+        self.assertEqual(nfs._format_distance(780), "780 m")
+
+    def test_kilometers_shown_at_or_above_one_thousand_meters(self):
+        self.assertEqual(nfs._format_distance(1200), "1.2 km")
+        self.assertEqual(nfs._format_distance(2000), "2 km")  # never "2.0 km"
+
+    def test_missing_or_invalid_distance_returns_none(self):
+        self.assertIsNone(nfs._format_distance(None))
+        self.assertIsNone(nfs._format_distance("not a number"))
+        self.assertIsNone(nfs._format_distance(-50))
+
+
+class BuildNearbyFacilitiesDisplayTests(unittest.TestCase):
+
+    def _property(self, nearby_facilities=None, metadata_status="completed", **metadata_overrides):
+        metadata = {"status": metadata_status, "source": "mappls", "radius_m": 2000.0}
+        metadata.update(metadata_overrides)
+        return {
+            "_id": "p1",
+            "nearby_facilities": nearby_facilities if nearby_facilities is not None else [],
+            "nearby_facilities_metadata": metadata,
+        }
+
+    # ---- Case 1: multiple facilities in one category ----
+
+    def test_multiple_facilities_in_one_category_are_all_returned(self):
+        prop = self._property([
+            stored_facility(name="Tiger Gym", distance_m=134),
+            stored_facility(name="Gold's Gym", distance_m=600),
+            stored_facility(name="Cult Fit", distance_m=1200),
+        ])
+
+        result = nfs.build_nearby_facilities_display(prop)
+
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(len(result["groups"]), 1)
+        gym_group = result["groups"][0]
+        self.assertEqual(gym_group["category"], "gym")
+        self.assertEqual(len(gym_group["facilities"]), 3)
+        # closest first
+        self.assertEqual([f["name"] for f in gym_group["facilities"]], ["Tiger Gym", "Gold's Gym", "Cult Fit"])
+
+    # ---- Case 2: multiple categories grouped correctly ----
+
+    def test_multiple_categories_are_grouped_separately_in_canonical_order(self):
+        prop = self._property([
+            stored_facility(name="ABC Hospital", category="hospital", distance_m=700),
+            stored_facility(name="Tiger Gym", category="gym", distance_m=134),
+            stored_facility(name="XYZ School", category="school", distance_m=1100),
+        ])
+
+        result = nfs.build_nearby_facilities_display(prop)
+
+        self.assertEqual(result["status"], "ready")
+        categories = [g["category"] for g in result["groups"]]
+        self.assertEqual(set(categories), {"gym", "hospital", "school"})
+        # FACILITY_CATEGORIES' own declared order, not insertion order
+        expected_order = [c for c in nfs.FACILITY_CATEGORIES if c in categories]
+        self.assertEqual(categories, expected_order)
+        for group in result["groups"]:
+            self.assertEqual(len(group["facilities"]), 1)
+
+    def test_a_category_with_zero_facilities_is_never_rendered(self):
+        prop = self._property([stored_facility(name="Tiger Gym", category="gym")])
+        result = nfs.build_nearby_facilities_display(prop)
+        categories = [g["category"] for g in result["groups"]]
+        self.assertNotIn("hospital", categories)
+        self.assertEqual(categories, ["gym"])
+
+    # ---- Case 3: no nearby facilities ----
+
+    def test_no_metadata_at_all_is_unavailable_not_broken(self):
+        prop = {"_id": "p1"}  # legacy property, never enriched
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "unavailable")
+        self.assertEqual(result["groups"], [])
+
+    def test_completed_with_zero_facilities_is_empty_not_unavailable(self):
+        prop = self._property([], metadata_status="completed")
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "empty")
+        self.assertEqual(result["groups"], [])
+
+    def test_none_property_item_is_unavailable(self):
+        result = nfs.build_nearby_facilities_display(None)
+        self.assertEqual(result["status"], "unavailable")
+
+    # ---- Case 4: missing address ----
+
+    def test_facility_with_missing_address_still_renders_with_name_and_distance(self):
+        prop = self._property([stored_facility(name="Tiger Gym", address=None, distance_m=134)])
+        result = nfs.build_nearby_facilities_display(prop)
+        facility = result["groups"][0]["facilities"][0]
+        self.assertEqual(facility["name"], "Tiger Gym")
+        self.assertIsNone(facility["address"])
+        self.assertEqual(facility["distance_label"], "134 m")
+
+    # ---- Case 5: missing distance ----
+
+    def test_facility_with_missing_distance_has_no_distance_label_but_still_renders(self):
+        prop = self._property([stored_facility(name="Tiger Gym", distance_m=None)])
+        result = nfs.build_nearby_facilities_display(prop)
+        facility = result["groups"][0]["facilities"][0]
+        self.assertEqual(facility["name"], "Tiger Gym")
+        self.assertIsNone(facility["distance_m"])
+        self.assertIsNone(facility["distance_label"])
+
+    def test_facilities_with_missing_distance_sort_after_resolved_ones(self):
+        prop = self._property([
+            stored_facility(name="No Distance Gym", distance_m=None),
+            stored_facility(name="Tiger Gym", distance_m=134),
+        ])
+        result = nfs.build_nearby_facilities_display(prop)
+        names = [f["name"] for f in result["groups"][0]["facilities"]]
+        self.assertEqual(names, ["Tiger Gym", "No Distance Gym"])
+
+    # ---- pending / failed / skipped enrichment status ----
+
+    def test_pending_status_is_reported_not_treated_as_empty(self):
+        prop = self._property([], metadata_status="pending")
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "pending")
+        self.assertEqual(result["groups"], [])
+
+    def test_failed_status_is_reported_not_shown_as_fake_empty_success(self):
+        prop = self._property([], metadata_status="failed")
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["groups"], [])
+
+    def test_skipped_status_is_reported_distinctly(self):
+        prop = self._property([], metadata_status="skipped")
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "skipped")
+
+    def test_partial_status_still_shows_the_successful_facilities(self):
+        prop = self._property(
+            [stored_facility(name="Tiger Gym", category="gym")],
+            metadata_status="partial",
+        )
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["groups"][0]["category"], "gym")
+
+    # ---- defensive / malformed-data handling ----
+
+    def test_facility_with_missing_name_is_skipped_not_fatal(self):
+        prop = self._property([
+            {"name": "", "category": "gym", "distance_m": 100},
+            stored_facility(name="Valid Gym"),
+        ])
+        result = nfs.build_nearby_facilities_display(prop)
+        names = [f["name"] for f in result["groups"][0]["facilities"]]
+        self.assertEqual(names, ["Valid Gym"])
+
+    def test_facility_with_unknown_category_is_skipped_not_fatal(self):
+        prop = self._property([
+            stored_facility(name="Mystery Place", category="not_a_real_category"),
+            stored_facility(name="Tiger Gym", category="gym"),
+        ])
+        result = nfs.build_nearby_facilities_display(prop)
+        categories = [g["category"] for g in result["groups"]]
+        self.assertEqual(categories, ["gym"])
+
+    def test_non_list_nearby_facilities_does_not_crash(self):
+        prop = self._property(None, metadata_status="completed")
+        prop["nearby_facilities"] = "not a list"
+        result = nfs.build_nearby_facilities_display(prop)
+        self.assertEqual(result["status"], "empty")
+
+    def test_internal_fields_never_appear_in_the_display_output(self):
+        """The display layer must never leak source/provider_id/
+        provider_type/fetched_at/search_radius_m - only what the
+        frontend needs."""
+        prop = self._property([stored_facility(name="Tiger Gym")])
+        result = nfs.build_nearby_facilities_display(prop)
+        facility = result["groups"][0]["facilities"][0]
+        self.assertEqual(
+            set(facility.keys()), {"name", "address", "distance_m", "distance_label"}
+        )
 
 
 if __name__ == "__main__":

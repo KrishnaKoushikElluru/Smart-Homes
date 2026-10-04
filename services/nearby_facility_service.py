@@ -13,36 +13,44 @@ Phase 4.0: nearby-facility enrichment for a registered property.
        distance_m from the property's coordinates - verified live
        against this account (Sep 2026): this endpoint does NOT return
        latitude/longitude for a result (same limitation already
-       documented in services/mappls_service.py and
-       services/osm_location_service.py for Phase 1's text-search flow)
+       documented in services/mappls_service.py)
             |
             v
     normalize + de-duplicate (by Mappls eLoc within each category)
-            |
-            v
-    for the closest few candidates per category (bounded - see
-    COORDINATE_RESOLUTION_LIMIT_PER_CATEGORY), best-effort resolve
-    actual coordinates via the EXISTING Phase 1 OSM chain
-    (services.osm_location_service.OSMLocationService.resolve_coordinates) -
-    reused exactly as Phase 1/3 already use it, never re-implemented.
-    A facility whose coordinates couldn't be resolved (ambiguous/
-    no_match/rejected/error, or simply not attempted because of the
-    per-category cap) still keeps its Mappls-provided distance_m -
-    "we don't know exactly where this is on a map" is not the same
-    fact as "we don't know how far it is", and the latter is what
-    Mappls already told us directly.
             |
             v
     persist nearby_facilities[] + nearby_facilities_metadata on the
     property document via the EXISTING PropertyService.get_property()/
     update_property() methods - no new MongoDB access pattern
 
+ARCHITECTURE DECISION (superseding an earlier version of this module):
+Mappls Nearby is the SOLE discovery/distance provider for nearby
+facilities - there is no OSM/Nominatim coordinate-resolution step. An
+earlier version of this module best-effort-resolved each facility's
+lat/lon via services.osm_location_service.OSMLocationService, on the
+theory that a future "property within 1 km of a school" geospatial
+query might want it. That capability was never built: every existing
+and planned nearby-facility search (see
+services/search_orchestration.py's build_mongo_filter() and
+_attach_matched_nearby_facilities()) filters and ranks purely on
+`category` + Mappls' own `distance_m`, never on coordinates - "we
+don't know exactly where this is on a map" was never actually a
+problem anywhere downstream, only "how far is it", and Mappls already
+tells us that directly. The OSM step also turned out to be actively
+harmful: a facility OSM couldn't resolve was stored with a literal
+`coordinates: None`, which breaks MongoDB's 2dsphere index key
+extraction for the WHOLE nearby_facilities[] array on write (confirmed
+live - see this module's git history). Removing the step removes that
+failure mode entirely, not just works around it. This module's own
+required inputs are unchanged: property_service and mappls_api_key -
+no osm_service parameter anywhere in this file anymore.
+
 This module NEVER raises. Property registration must succeed
-regardless of what happens here (Mappls down, OSM down, malformed
-provider data, zero results) - every failure mode is caught and
-recorded in nearby_facilities_metadata instead, never silently
-swallowed and never allowed to look like a real "no facilities found"
-result. See enrich_property_nearby_facilities()'s docstring.
+regardless of what happens here (Mappls down, malformed provider data,
+zero results) - every failure mode is caught and recorded in
+nearby_facilities_metadata instead, never silently swallowed and never
+allowed to look like a real "no facilities found" result. See
+enrich_property_nearby_facilities()'s docstring.
 
 NOT implemented here (deliberately, per this phase's scope): natural-
 language "gym nearby" search, ranking/recommendation, road/walking/
@@ -145,23 +153,6 @@ DEFAULT_RADIUS_KM = 2.0
 # options) without silently dropping category coverage.
 DEFAULT_MAX_RESULTS_PER_CATEGORY = 5
 
-# How many of those (closest-first) get an actual OSM coordinate lookup
-# per category. Mappls' Nearby call itself is cheap (one HTTP request
-# per category, no documented rate limit) - the real cost is
-# Nominatim's OWN 1 request/second policy (see
-# services/osm_location_service.py's MIN_REQUEST_INTERVAL_SECONDS),
-# enforced per resolve_coordinates() call and shared across this whole
-# app. Resolving coordinates for every candidate in every category
-# (up to DEFAULT_MAX_RESULTS_PER_CATEGORY x len(FACILITY_CATEGORIES))
-# would make a single property's enrichment take minutes. Keeping this
-# small and bounding it PER CATEGORY (not globally) guarantees every
-# category gets a fair shot at at least one resolved-coordinate result,
-# while keeping worst-case latency proportional to the category count,
-# not the per-category result count. See docs/PHASE_4_0_NEARBY_FACILITY_ENRICHMENT.md
-# for the latency tradeoff this implies and why it's an accepted,
-# disclosed limitation for this phase rather than a background job.
-DEFAULT_COORDINATE_RESOLUTION_LIMIT_PER_CATEGORY = 1
-
 
 # ============================================================
 # NORMALIZATION / VALIDATION
@@ -216,12 +207,8 @@ def _normalize_place(raw_place: dict, category: str, radius_m: float) -> Optiona
         "name": name,
         "category": category,
         "address": raw_place.get("place_address") or None,
-        "latitude": None,
-        "longitude": None,
-        "coordinates": None,
         "distance_m": distance_m,
         "source": "mappls",
-        "coordinate_source": None,
         "provider_id": raw_place.get("eloc") or None,
         "provider_type": raw_place.get("type") or None,
         "fetched_at": datetime.now(timezone.utc),
@@ -259,50 +246,6 @@ def _dedupe_places(places: list) -> list:
     return deduped
 
 
-def _resolve_coordinates_for_place(place: dict, osm_service) -> None:
-    """Best-effort: mutates `place` in place, setting latitude/longitude/
-    coordinates/coordinate_source if the existing Phase 1 OSM chain can
-    resolve them. Leaves the place completely unchanged (still valid,
-    still carrying its Mappls-provided distance_m) on ANY non-matched
-    OSM status - ambiguous/no_match/rejected/error are all treated the
-    same way here: no coordinates, no exception, no retry. This mirrors
-    services/search_orchestration.py's resolve_poi_location() use of
-    the exact same underlying resolve_coordinates() call."""
-
-    if osm_service is None:
-        return
-
-    try:
-
-        osm_result = osm_service.resolve_coordinates({
-            "place_name": place["name"],
-            "address": place.get("address") or "",
-        })
-
-    except Exception:
-        # resolve_coordinates() is documented never to raise, but this
-        # module's own "never raises" guarantee must hold even if that
-        # contract is ever violated by a future change there.
-        return
-
-    if not isinstance(osm_result, dict) or osm_result.get("status") != "matched":
-        return
-
-    latitude = osm_result.get("latitude")
-    longitude = osm_result.get("longitude")
-
-    if not _is_valid_coordinate(latitude, longitude):
-        return
-
-    place["latitude"] = float(latitude)
-    place["longitude"] = float(longitude)
-    place["coordinates"] = {
-        "type": "Point",
-        "coordinates": [float(longitude), float(latitude)],
-    }
-    place["coordinate_source"] = "osm"
-
-
 # ============================================================
 # PER-CATEGORY DISCOVERY
 # ============================================================
@@ -313,9 +256,7 @@ def _discover_category(
     ref_location: str,
     radius_m: float,
     mappls_api_key,
-    osm_service,
     max_results: int,
-    coordinate_resolution_limit: int,
 ) -> tuple:
     """Returns (places, error). `error` is a short human-readable
     string if the Mappls call for THIS category failed outright (never
@@ -345,12 +286,7 @@ def _discover_category(
     # even if that assumption ever changes.
     deduped.sort(key=lambda p: (p["distance_m"] is None, p["distance_m"] or 0))
 
-    kept = deduped[:max_results]
-
-    for place in kept[:coordinate_resolution_limit]:
-        _resolve_coordinates_for_place(place, osm_service)
-
-    return kept, None
+    return deduped[:max_results], None
 
 
 # ============================================================
@@ -361,11 +297,9 @@ def enrich_property_nearby_facilities(
     property_id,
     property_service,
     mappls_api_key,
-    osm_service,
     categories: Optional[dict] = None,
     radius_km: Optional[float] = None,
     max_results_per_category: Optional[int] = None,
-    coordinate_resolution_limit_per_category: Optional[int] = None,
 ) -> dict:
     """
     Enriches ONE property with nearby-facility data and persists it via
@@ -397,11 +331,6 @@ def enrich_property_nearby_facilities(
         max_results_per_category
         if max_results_per_category is not None
         else DEFAULT_MAX_RESULTS_PER_CATEGORY
-    )
-    coordinate_resolution_limit_per_category = (
-        coordinate_resolution_limit_per_category
-        if coordinate_resolution_limit_per_category is not None
-        else DEFAULT_COORDINATE_RESOLUTION_LIMIT_PER_CATEGORY
     )
 
     radius_m = radius_km * 1000.0
@@ -457,9 +386,7 @@ def enrich_property_nearby_facilities(
             ref_location,
             radius_m,
             mappls_api_key,
-            osm_service,
             max_results_per_category,
-            coordinate_resolution_limit_per_category,
         )
 
         all_facilities.extend(places)
@@ -539,11 +466,9 @@ def _run_enrichment_in_background(
     property_id,
     property_service,
     mappls_api_key,
-    osm_service,
     categories,
     radius_km,
     max_results_per_category,
-    coordinate_resolution_limit_per_category,
 ) -> None:
     """The actual thread target. enrich_property_nearby_facilities() is
     already documented never to raise - this try/except is an
@@ -564,11 +489,9 @@ def _run_enrichment_in_background(
             property_id,
             property_service,
             mappls_api_key,
-            osm_service,
             categories=categories,
             radius_km=radius_km,
             max_results_per_category=max_results_per_category,
-            coordinate_resolution_limit_per_category=coordinate_resolution_limit_per_category,
         )
 
     except Exception as exc:
@@ -603,16 +526,14 @@ def start_background_enrichment(
     property_id,
     property_service,
     mappls_api_key,
-    osm_service,
     categories: Optional[dict] = None,
     radius_km: Optional[float] = None,
     max_results_per_category: Optional[int] = None,
-    coordinate_resolution_limit_per_category: Optional[int] = None,
 ):
     """
     Stage 1 entry point: starts nearby-facility enrichment for
     property_id on a plain daemon thread and returns IMMEDIATELY,
-    without waiting for Mappls/OSM/MongoDB. The caller (typically
+    without waiting for Mappls/MongoDB. The caller (typically
     routes/property_routes.py, right after create_property()) should
     call this and then proceed straight to its own response - it never
     needs to await anything here.
@@ -631,14 +552,14 @@ def start_background_enrichment(
     pass can look for stuck "pending" entries older than some
     threshold and re-run them; not built in this stage).
 
-    EXPLICIT DEPENDENCY INJECTION, NOT FLASK CONTEXT: property_service,
-    mappls_api_key, and osm_service are passed in as plain arguments
-    (matching enrich_property_nearby_facilities()'s own existing
-    convention) and are the ONLY things the spawned thread touches -
-    it never reads current_app, request, g, or any other
-    request-scoped Flask object, which would not exist by the time a
-    background thread actually runs its work (the request that spawned
-    it may well have already finished and its context been torn down).
+    EXPLICIT DEPENDENCY INJECTION, NOT FLASK CONTEXT: property_service
+    and mappls_api_key are passed in as plain arguments (matching
+    enrich_property_nearby_facilities()'s own existing convention) and
+    are the ONLY things the spawned thread touches - it never reads
+    current_app, request, g, or any other request-scoped Flask object,
+    which would not exist by the time a background thread actually
+    runs its work (the request that spawned it may well have already
+    finished and its context been torn down).
     property_service wraps a single shared pymongo Collection/MongoClient
     that the whole app (across concurrent requests) already relies on
     being safe to use concurrently - pymongo's MongoClient is documented
@@ -684,11 +605,9 @@ def start_background_enrichment(
             property_id,
             property_service,
             mappls_api_key,
-            osm_service,
             categories,
             radius_km,
             max_results_per_category,
-            coordinate_resolution_limit_per_category,
         ),
         daemon=True,
         name=f"nearby-facility-enrichment-{property_id}",
@@ -696,3 +615,186 @@ def start_background_enrichment(
     thread.start()
 
     return thread
+
+
+# ============================================================
+# DISPLAY (property-details "Nearby Amenities" section -
+# routes/property_routes.py's property_details())
+#
+# Presentation-only: groups a property's ALREADY-STORED
+# nearby_facilities[] (written by enrich_property_nearby_facilities()
+# above) for display. Never calls Mappls/any provider, never touches
+# MongoDB, never invents a facility. Reuses FACILITY_CATEGORIES as the
+# ONLY taxonomy - FACILITY_CATEGORY_LABELS below is purely a display
+# label for each of those same 17 keys, not a second taxonomy.
+# ============================================================
+
+FACILITY_CATEGORY_LABELS: dict = {
+    "gym": "Gyms",
+    "hospital": "Hospitals",
+    "school": "Schools",
+    "college": "Colleges",
+    "supermarket": "Supermarkets",
+    "pharmacy": "Pharmacies",
+    "restaurant": "Restaurants",
+    "bank": "Banks",
+    "atm": "ATMs",
+    "metro_station": "Metro Stations",
+    "railway_station": "Railway Stations",
+    "bus_stop": "Bus Stops",
+    "shopping_mall": "Shopping Malls",
+    "park": "Parks",
+    "police_station": "Police Stations",
+    "fire_station": "Fire Stations",
+    "petrol_station": "Petrol Stations",
+}
+
+
+def _format_distance(distance_m) -> Optional[str]:
+    """Human-friendly distance label from a stored distance_m - "134 m"
+    below 1 km, "1.2 km" / "2 km" at or above (never ".0" on a whole
+    number of km). Returns None for missing/invalid/negative input -
+    callers must never render a fabricated or misleading distance for
+    that case (this feature's own explicit requirement), not "0 m" or
+    "unknown"."""
+
+    try:
+        distance_m = float(distance_m)
+    except (TypeError, ValueError):
+        return None
+
+    if distance_m < 0:
+        return None
+
+    rounded_m = round(distance_m)
+
+    if rounded_m < 1000:
+        return f"{rounded_m} m"
+
+    km = round(distance_m / 1000.0, 1)
+
+    if km == int(km):
+        return f"{int(km)} km"
+
+    return f"{km:g} km"
+
+
+def build_nearby_facilities_display(property_item: Optional[dict]) -> dict:
+    """Builds the property-details page's "Nearby Amenities" view model
+    from a property document's own stored nearby_facilities[] /
+    nearby_facilities_metadata (never re-fetches anything). Never
+    raises - a malformed/legacy document simply produces the most
+    benign result it can.
+
+    Returns {"status": ..., "groups": [...]}:
+
+      "status" is one of:
+        "unavailable" - no nearby_facilities_metadata at all (a
+          property registered before this feature existed, or
+          otherwise never enriched). The caller should render NOTHING
+          - this is not an error state, just "no data to show".
+        "pending" - enrichment is queued/in progress (STATUS_PENDING).
+        "failed" - enrichment was attempted and failed for every
+          category (STATUS_FAILED). Never rendered as if it were an
+          empty-but-successful result.
+        "skipped" - enrichment was never attempted (e.g. the property
+          had no valid coordinates at the time) - STATUS_SKIPPED.
+        "empty" - enrichment genuinely succeeded (completed/partial)
+          but found zero facilities in any category.
+        "ready" - enrichment succeeded and there is at least one
+          facility to show; see "groups".
+
+      "groups" (only non-empty when status == "ready"): a list of
+        {"category": key, "label": display label, "facilities": [...]}
+        - one entry per category that has at least one stored
+        facility, in FACILITY_CATEGORIES' own canonical order (a
+        category with zero facilities is omitted entirely, never
+        rendered as an empty heading - this feature's own explicit
+        requirement). Facilities within a category are sorted closest
+        first (missing distance sorts last, never dropped). Each
+        facility is {"name", "address" (may be None), "distance_m"
+        (may be None), "distance_label" (human string, or None when
+        distance_m is missing/invalid - the caller must not show a
+        distance in that case)}. Never includes source/provider_id/
+        provider_type/fetched_at/search_radius_m - internal fields
+        this display layer has no use for."""
+
+    if not isinstance(property_item, dict):
+        return {"status": "unavailable", "groups": []}
+
+    metadata = property_item.get("nearby_facilities_metadata")
+
+    if not isinstance(metadata, dict) or not metadata.get("status"):
+        return {"status": "unavailable", "groups": []}
+
+    enrichment_status = metadata["status"]
+
+    if enrichment_status == STATUS_PENDING:
+        return {"status": "pending", "groups": []}
+
+    if enrichment_status == STATUS_FAILED:
+        return {"status": "failed", "groups": []}
+
+    if enrichment_status == STATUS_SKIPPED:
+        return {"status": "skipped", "groups": []}
+
+    # STATUS_COMPLETED or STATUS_PARTIAL from here - group whatever was
+    # actually stored (a "partial" run's successful categories are
+    # still genuine, real data, just not every category was attempted).
+    nearby_facilities = property_item.get("nearby_facilities")
+
+    if not isinstance(nearby_facilities, list):
+        nearby_facilities = []
+
+    by_category: dict = {}
+
+    for facility in nearby_facilities:
+
+        if not isinstance(facility, dict):
+            continue
+
+        name = (facility.get("name") or "").strip()
+
+        if not name:
+            continue
+
+        category = facility.get("category")
+
+        if category not in FACILITY_CATEGORIES:
+            continue
+
+        distance_m = facility.get("distance_m")
+
+        try:
+            distance_m = float(distance_m) if distance_m is not None else None
+        except (TypeError, ValueError):
+            distance_m = None
+
+        by_category.setdefault(category, []).append({
+            "name": name,
+            "address": facility.get("address") or None,
+            "distance_m": distance_m,
+            "distance_label": _format_distance(distance_m),
+        })
+
+    groups = []
+
+    for category in FACILITY_CATEGORIES:  # canonical, stable display order
+
+        facilities = by_category.get(category)
+
+        if not facilities:
+            continue
+
+        facilities.sort(key=lambda f: (f["distance_m"] is None, f["distance_m"] or 0))
+
+        groups.append({
+            "category": category,
+            "label": FACILITY_CATEGORY_LABELS.get(category, category),
+            "facilities": facilities,
+        })
+
+    if not groups:
+        return {"status": "empty", "groups": []}
+
+    return {"status": "ready", "groups": groups}

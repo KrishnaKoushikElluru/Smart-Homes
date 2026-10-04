@@ -43,7 +43,6 @@ def make_test_property(property_service, suffix):
 def main():
     flask_app = app_module.app
     property_service = flask_app.extensions["property_service"]
-    osm_service = flask_app.extensions["osm_location_service"]
     mappls_api_key = flask_app.config.get("MAPPLS_API_KEY")
     radius_km = flask_app.config.get("NEARBY_FACILITY_RADIUS_KM")
 
@@ -56,7 +55,7 @@ def main():
 
     t0 = time.perf_counter()
     thread = nfs.start_background_enrichment(
-        property_id_after, property_service, mappls_api_key, osm_service,
+        property_id_after, property_service, mappls_api_key,
         radius_km=radius_km,
     )
     after_latency = time.perf_counter() - t0
@@ -84,7 +83,7 @@ def main():
 
     t2 = time.perf_counter()
     before_result = nfs.enrich_property_nearby_facilities(
-        property_id_before, property_service, mappls_api_key, osm_service,
+        property_id_before, property_service, mappls_api_key,
         radius_km=radius_km,
     )
     before_latency = time.perf_counter() - t2

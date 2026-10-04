@@ -148,7 +148,6 @@ def main():
 
     flask_app = app_module.app
     property_service = flask_app.extensions["property_service"]
-    osm_service = flask_app.extensions["osm_location_service"]
     mappls_api_key = flask_app.config.get("MAPPLS_API_KEY")
     radius_km = flask_app.config.get("NEARBY_FACILITY_RADIUS_KM")
 
@@ -177,7 +176,6 @@ def main():
             property_id,
             property_service,
             mappls_api_key,
-            osm_service,
             radius_km=radius_km,
         )
 
