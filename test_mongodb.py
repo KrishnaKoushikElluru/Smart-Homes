@@ -12,199 +12,185 @@ from services.property_services import (
 
 
 # ============================================================
-# LOAD ENVIRONMENT
+# MANUAL SMOKE TEST - NOT a unittest.TestCase (no `def test_*`
+# methods), so `unittest discover -p "test_*.py"` finds nothing to
+# run here. Everything below is gated behind `if __name__ ==
+# "__main__"` specifically so that DISCOVERY (which imports every
+# matching file) never triggers it - this file's body used to run at
+# IMPORT time, which meant every `unittest discover` invocation
+# silently performed a real insert/read/delete against the live
+# MongoDB configured in secret.env. This script is still fully usable
+# exactly as before - run it directly:
+#
+#     .venv/Scripts/python.exe test_mongodb.py
+#
+# to manually verify the real Mongo connection end to end.
 # ============================================================
 
-load_dotenv("secret.env")
+def main():
 
+    load_dotenv("secret.env")
 
-mongo_uri = os.getenv(
-    "MONGO_URI"
-)
-
-if not mongo_uri:
-
-    raise RuntimeError(
-        "MONGO_URI is missing."
+    mongo_uri = os.getenv(
+        "MONGO_URI"
     )
 
+    if not mongo_uri:
 
-# ============================================================
-# CONNECT
-# ============================================================
+        raise RuntimeError(
+            "MONGO_URI is missing."
+        )
 
-mongo_service = MongoService(
-    mongo_uri
-)
+    mongo_service = MongoService(
+        mongo_uri
+    )
 
-mongo_service.ping()
+    mongo_service.ping()
 
-print(
-    "[OK] MongoDB connection successful!"
-)
+    print(
+        "[OK] MongoDB connection successful!"
+    )
 
+    property_service = PropertyService(
+        mongo_service
+    )
 
-# ============================================================
-# PROPERTY SERVICE
-# ============================================================
+    test_property = {
 
-property_service = PropertyService(
-    mongo_service
-)
+        "property_id": 999999,
 
+        "seller": {
 
-# ============================================================
-# TEST PROPERTY
-# ============================================================
+            "user_id": 1,
 
-test_property = {
+            "username": "_krishna_koushik"
+        },
 
-    "property_id": 999999,
+        "listing": {
 
-    "seller": {
+            "type": "rent",
 
-        "user_id": 1,
+            "price": 45000,
 
-        "username": "_krishna_koushik"
-    },
+            "currency": "INR",
 
-    "listing": {
+            "status": "active"
+        },
 
-        "type": "rent",
+        "property": {
 
-        "price": 45000,
+            "type": "house",
 
-        "currency": "INR",
+            "bhk": 3,
 
-        "status": "active"
-    },
+            "area_sqft": None,
 
-    "property": {
+            "furnishing": "fully_furnished",
 
-        "type": "house",
+            "facing": "east"
+        },
 
-        "bhk": 3,
+        "location": {
 
-        "area_sqft": None,
+            "address": (
+                "Kurnool, pandipadu, "
+                "518002, near indus school"
+            ),
 
-        "furnishing": "fully_furnished",
+            "city": "Kurnool",
 
-        "facing": "east"
-    },
+            "locality": "pandipadu",
 
-    "location": {
+            "pincode": "518002",
 
-        "address": (
-            "Kurnool, pandipadu, "
-            "518002, near indus school"
-        ),
+            "coordinates": None
+        },
 
-        "city": "Kurnool",
+        "features": [
 
-        "locality": "pandipadu",
+            "garden",
 
-        "pincode": "518002",
+            "east_facing"
+        ],
 
-        "coordinates": None
-    },
+        "description": {
 
-    "features": [
+            "text": (
+                "Very spacious and wide "
+                "garden area facing east side "
+                "3BHK, fully furnished"
+            ),
 
-        "garden",
+            "language": "en"
+        },
 
-        "east_facing"
-    ],
+        "media": {
 
-    "description": {
+            "images": [],
 
-        "text": (
-            "Very spacious and wide "
-            "garden area facing east side "
-            "3BHK, fully furnished"
-        ),
+            "videos": [
+                "sample_video_2.mp4"
+            ]
+        },
 
-        "language": "en"
-    },
+        "source": {
 
-    "media": {
+            "type": "owner",
 
-        "images": [],
+            "url": None
+        },
 
-        "videos": [
-            "sample_video_2.mp4"
-        ]
-    },
+        "search": {
 
-    "source": {
+            "keywords": [],
 
-        "type": "owner",
-
-        "url": None
-    },
-
-    "search": {
-
-        "keywords": [],
-
-        "embedding": None
+            "embedding": None
+        }
     }
-}
 
-
-# ============================================================
-# INSERT
-# ============================================================
-
-property_id = (
-    property_service.create_property(
-        test_property
+    property_id = (
+        property_service.create_property(
+            test_property
+        )
     )
-)
 
-print(
-    "[OK] Property inserted!"
-)
+    print(
+        "[OK] Property inserted!"
+    )
 
-print(
-    "MongoDB ID:",
-    property_id
-)
-
-
-# ============================================================
-# READ
-# ============================================================
-
-property_document = (
-    property_service.get_property(
+    print(
+        "MongoDB ID:",
         property_id
     )
-)
 
-print(
-    "[OK] Property retrieved!"
-)
+    property_document = (
+        property_service.get_property(
+            property_id
+        )
+    )
 
-print(
-    property_document
-)
+    print(
+        "[OK] Property retrieved!"
+    )
+
+    print(
+        property_document
+    )
+
+    property_service.delete_property(
+        property_id
+    )
+
+    print(
+        "[OK] Test property deleted."
+    )
+
+    mongo_service.close()
+
+    print(
+        "[OK] MongoDB test completed successfully!"
+    )
 
 
-# ============================================================
-# CLEANUP
-# ============================================================
-
-property_service.delete_property(
-    property_id
-)
-
-print(
-    "[OK] Test property deleted."
-)
-
-
-mongo_service.close()
-
-print(
-    "[OK] MongoDB test completed successfully!"
-)
+if __name__ == "__main__":
+    main()

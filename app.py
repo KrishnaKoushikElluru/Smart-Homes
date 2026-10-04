@@ -2,8 +2,14 @@ import os
 
 from flask import (
     Flask,
-    render_template
+    render_template,
+    flash,
+    redirect,
+    request,
+    url_for
 )
+
+from flask_wtf.csrf import CSRFError
 
 from dotenv import load_dotenv
 
@@ -11,11 +17,13 @@ from extensions import (
     db,
     bcrypt,
     migrate,
-    login_manager
+    login_manager,
+    csrf
 )
 
 import extensions
 
+from config_flags import flask_debug_enabled
 from models import User
 from services.mongo_service import MongoService
 from services.property_services import PropertyService
@@ -173,6 +181,34 @@ login_manager.init_app(app)
 
 login_manager.login_view = "auth.login"
 
+# WTF_CSRF_CHECK_DEFAULT = False (set BEFORE init_app, which only
+# setdefault()s it) turns off CSRFProtect's own automatic check on
+# every request - this app has several JS/fetch POST endpoints
+# (search, location autocomplete, image upload/generation) with no
+# CSRF token today, and those must keep working completely unchanged.
+# Only routes explicitly decorated with extensions.require_csrf (the
+# 4 property-mutation routes) are actually checked - see
+# extensions.py's own module note for the full reasoning.
+app.config["WTF_CSRF_CHECK_DEFAULT"] = False
+
+csrf.init_app(app)
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    # One shared, friendly response for every require_csrf-protected
+    # route, instead of Flask-WTF's raw 400 page - mirrors this
+    # project's existing flash-message + redirect convention (e.g.
+    # routes/property_routes.py's own validation-error handling)
+    # rather than introducing a new error-page style.
+    flash(
+        "Your session could not be verified, so this request was not "
+        "completed. Please try again.",
+        "danger"
+    )
+    return redirect(request.referrer or url_for("home")), 400
+
+
 # ============================================================
 # MONGODB
 # ============================================================
@@ -185,7 +221,15 @@ if not mongo_uri:
     )
 
 mongo_service = MongoService(
-    mongo_uri
+    mongo_uri,
+    server_selection_timeout_ms=int(os.getenv(
+        "MONGO_SERVER_SELECTION_TIMEOUT_MS",
+        "5000"
+    )),
+    connect_timeout_ms=int(os.getenv(
+        "MONGO_CONNECT_TIMEOUT_MS",
+        "5000"
+    )),
 )
 
 property_service = PropertyService(
@@ -265,10 +309,23 @@ app.register_blueprint(
 
 # ============================================================
 # RUN
+#
+# debug mode is OFF unless FLASK_DEBUG is explicitly set to a truthy
+# value - a hardcoded debug=True here would expose Werkzeug's
+# interactive debugger (arbitrary code execution from the browser on
+# any unhandled exception) to anything that can reach this process.
+# Local development still works exactly as before: set FLASK_DEBUG=true
+# in secret.env (or the shell environment) to re-enable it.
+#
+# flask_debug_enabled() itself lives in config_flags.py, a tiny module
+# with zero dependencies beyond os - importing app.py triggers a real
+# MongoDB connection (see "MONGODB" section above), so the debug-flag
+# logic needs to be testable WITHOUT importing this file at all. See
+# test_app_config.py.
 # ============================================================
 
 if __name__ == "__main__":
 
     app.run(
-        debug=True
+        debug=flask_debug_enabled()
     )
