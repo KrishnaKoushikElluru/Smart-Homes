@@ -63,6 +63,13 @@ def make_property_doc(property_id, images=None, **overrides):
 def make_test_app(tmp_static_folder, property_service=None):
     app = Flask(__name__, static_folder=tmp_static_folder, static_url_path="/static")
     app.config["SECRET_KEY"] = "test-secret"
+    # Square Yards must never participate in image similarity (see
+    # SquareYardsExcludedFromImageSimilarityTests below) - this route
+    # no longer imports square_yards_service at all, so this flag is
+    # purely for parity with test_search_routes_integration.py's
+    # make_test_app(), which DOES still use Square Yards for NLP
+    # search.
+    app.config["SQUARE_YARDS_ENABLED"] = False
     app.testing = True
 
     app.extensions["property_service"] = property_service or FakePropertyService()
@@ -626,6 +633,29 @@ class FindSimilarRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertFalse(response.get_json()["success"])
 
+    def test_encoder_failure_is_logged_with_traceback_not_printed(self):
+        """Regression test: find_similar()'s unexpected-failure path
+        used to use print() (invisible to any log aggregator/level
+        filtering); it must now go through the standard logging
+        module with a real traceback, while the user-facing response
+        stays byte-for-byte the same safe 503."""
+        self._save_fake_cache([("real_prop_1", "real_prop_1/a.jpg", [1.0, 0.0])])
+
+        class FailingEncoder:
+            def encode_image(self, image):
+                raise RuntimeError("model exploded")
+
+        with self._production_paths_patch(), \
+             patch("services.image_similarity.siglip2_encoder.get_default_encoder", return_value=FailingEncoder()), \
+             self.assertLogs("routes.design_routes", level="ERROR") as logs:
+            response = self.client.post("/design/find_similar", json=self._reference_body())
+
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(response.get_json()["success"])
+        self.assertIn("Similarity search failed", "\n".join(logs.output))
+        # The traceback (not just the message) must actually be captured.
+        self.assertIn("RuntimeError: model exploded", "\n".join(logs.output))
+
     def test_never_exposes_raw_embeddings_or_model_internals(self):
         from services.image_similarity.similarity import l2_normalize
 
@@ -1059,6 +1089,202 @@ class CombinedNlpImageSearchTests(unittest.TestCase):
             response = self.client.post("/design/find_similar", json=self._reference_body(query="apartment"))
 
         self.assertEqual(response.get_json()["results"], [])
+
+    def test_candidate_filtering_failure_is_logged_with_traceback_not_printed(self):
+        """Regression test for the OTHER unexpected-failure path in
+        find_similar() (the NLP/candidate-filtering stage, before any
+        SigLIP2 work) - must log via the standard logging module with
+        a real traceback, same as the similarity-search failure path,
+        while the user-facing response stays the same safe 503."""
+        with patch(
+            "services.search_orchestration.orchestrate_search",
+            side_effect=RuntimeError("orchestration exploded"),
+        ), self.assertLogs("routes.design_routes", level="ERROR") as logs:
+            response = self.client.post(
+                "/design/find_similar", json=self._reference_body(query="2 bhk apartment")
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(response.get_json()["success"])
+        self.assertIn("Combined search candidate filtering failed", "\n".join(logs.output))
+        self.assertIn("RuntimeError: orchestration exploded", "\n".join(logs.output))
+
+
+class SquareYardsExcludedFromImageSimilarityTests(unittest.TestCase):
+    """Architecture decision: Square Yards is used ONLY for NLP/
+    property search (routes/search_routes.py) and must NEVER
+    participate in image similarity (routes/design_routes.py's
+    find_similar()) - no MCP call, no image download, no SigLIP2
+    embedding of a Square Yards image, and no "squareyards"-provider
+    result from this route, ever - even when a text query is also
+    supplied. routes/design_routes.py no longer imports
+    square_yards_service at all (the old
+    _square_yards_candidates_with_image_similarity() helper was
+    removed entirely, not just disconnected); these tests patch
+    services.external_property_sources.square_yards_service's module-
+    level functions directly and assert they are NEVER called -  a spy
+    check, not just a response-shape check, so a regression that
+    re-introduces the integration fails these tests immediately.
+    Reuses the exact same fixtures as CombinedNlpImageSearchTests above
+    (copied rather than subclassed so this class's own test_* methods
+    don't also inherit and re-run every CombinedNlpImageSearchTests
+    test under a second name)."""
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.property_service = FakePropertyService()
+        self.app = make_test_app(self._tmpdir.name, property_service=self.property_service)
+        self.client = logged_in_client(self.app)
+        self._cache_tmpdir = tempfile.TemporaryDirectory()
+        self._npz_path = os.path.join(self._cache_tmpdir.name, "production_index.npz")
+        self._meta_path = os.path.join(self._cache_tmpdir.name, "production_index_meta.json")
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
+        self._cache_tmpdir.cleanup()
+
+    def _production_paths_patch(self):
+        return patch.multiple(
+            "services.image_similarity.production_indexer",
+            PRODUCTION_NPZ_PATH=self._npz_path,
+            PRODUCTION_META_PATH=self._meta_path,
+        )
+
+    def _save_fake_cache(self, records):
+        from services.image_similarity.embedding_cache import EmbeddingCache
+        cache = EmbeddingCache()
+        for property_id, image_id, embedding in records:
+            cache.add(property_id, image_id, f"/fake/{image_id}", "fake-model", embedding, source="mongodb_production")
+        cache.save(self._npz_path, self._meta_path)
+
+    def _reference_body(self, query=None):
+        png_b64 = base64.b64encode(_real_png_bytes()).decode("ascii")
+        body = {"reference_image_url": f"data:image/png;base64,{png_b64}", "source": "generated"}
+        if query is not None:
+            body["query"] = query
+        return body
+
+    def _patch_orchestration(self, property_docs, applied_filters=None):
+        return patch(
+            "services.search_orchestration.orchestrate_search",
+            return_value={
+                "parsed_query": {}, "location_resolution": None,
+                "applied_filters": applied_filters or {}, "properties": property_docs,
+                "nearby_facility_enrichment_caveat": None,
+            },
+        )
+
+    APPLIED_FILTERS = {"listing_type": "rent", "area_or_city_text": "Chennai", "bhk": 2}
+
+    def _assert_square_yards_never_touched(self, *mocks):
+        for m in mocks:
+            m.assert_not_called()
+
+    def test_query_plus_image_search_never_calls_square_yards(self):
+        """The case that USED to merge Square Yards in (a text query
+        present alongside the reference image) must now return
+        SmartHomes-only results and never touch Square Yards at all."""
+        from services.image_similarity.similarity import l2_normalize
+
+        self._save_fake_cache([("sh_prop", "sh_prop/a.jpg", l2_normalize([1.0, 0.0]))])
+        self.property_service.documents["sh_prop"] = make_property_doc("sh_prop", images=["a.jpg"])
+
+        class FakeEncoder:
+            def encode_image(self, image):
+                return l2_normalize([1.0, 0.0])
+
+        with self._production_paths_patch(), \
+             self._patch_orchestration([self.property_service.documents["sh_prop"]], self.APPLIED_FILTERS), \
+             patch("services.image_similarity.siglip2_encoder.get_default_encoder", return_value=FakeEncoder()), \
+             patch("services.external_property_sources.square_yards_service.search_rental_properties") as mock_search, \
+             patch("services.external_property_sources.square_yards_service.get_listing_images") as mock_images, \
+             patch("services.external_property_sources.square_yards_service.fetch_listing_image_bytes") as mock_fetch:
+            response = self.client.post("/design/find_similar", json=self._reference_body(query="2 BHK apartment for rent in Chennai"))
+
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(len(data["results"]), 1)
+        self.assertEqual(data["results"][0]["provider"], "smarthomes")
+        self._assert_square_yards_never_touched(mock_search, mock_images, mock_fetch)
+
+    def test_zero_smarthomes_candidates_returns_empty_without_touching_square_yards(self):
+        """Previously, zero SmartHomes NLP candidates still tried
+        Square Yards as a fallback source for this route - that
+        fallback is now gone entirely. A zero-candidate query simply
+        returns empty image-similarity results."""
+        self._save_fake_cache([])
+
+        with self._production_paths_patch(), self._patch_orchestration([], self.APPLIED_FILTERS), \
+             patch("services.external_property_sources.square_yards_service.search_rental_properties") as mock_search, \
+             patch("services.external_property_sources.square_yards_service.get_listing_images") as mock_images, \
+             patch("services.external_property_sources.square_yards_service.fetch_listing_image_bytes") as mock_fetch:
+            response = self.client.post("/design/find_similar", json=self._reference_body(query="2 BHK apartment for rent in Chennai"))
+
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data["candidate_count"], 0)
+        self.assertEqual(data["results"], [])
+        self._assert_square_yards_never_touched(mock_search, mock_images, mock_fetch)
+
+    def test_image_only_search_never_calls_square_yards(self):
+        """A pure image-only query (no "query" text at all) has no
+        applied_filters to search Square Yards by - existing
+        image-only behavior stays byte-for-byte unchanged."""
+        from services.image_similarity.similarity import l2_normalize
+
+        self._save_fake_cache([("sh_prop", "sh_prop/a.jpg", l2_normalize([1.0, 0.0]))])
+        self.property_service.documents["sh_prop"] = make_property_doc("sh_prop", images=["a.jpg"])
+
+        class FakeEncoder:
+            def encode_image(self, image):
+                return l2_normalize([1.0, 0.0])
+
+        with self._production_paths_patch(), \
+             patch("services.image_similarity.siglip2_encoder.get_default_encoder", return_value=FakeEncoder()), \
+             patch("services.external_property_sources.square_yards_service.search_rental_properties") as mock_search:
+            response = self.client.post("/design/find_similar", json=self._reference_body())  # no "query" key at all
+
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(len(data["results"]), 1)
+        self.assertEqual(data["results"][0]["provider"], "smarthomes")
+        mock_search.assert_not_called()
+
+    def test_no_result_ever_has_squareyards_provider(self):
+        """Belt-and-braces response-shape check, independent of the
+        call-spy tests above."""
+        from services.image_similarity.similarity import l2_normalize
+
+        self._save_fake_cache([("sh_prop", "sh_prop/a.jpg", l2_normalize([1.0, 0.0]))])
+        self.property_service.documents["sh_prop"] = make_property_doc("sh_prop", images=["a.jpg"])
+
+        class FakeEncoder:
+            def encode_image(self, image):
+                return l2_normalize([1.0, 0.0])
+
+        with self._production_paths_patch(), \
+             self._patch_orchestration([self.property_service.documents["sh_prop"]], self.APPLIED_FILTERS), \
+             patch("services.image_similarity.siglip2_encoder.get_default_encoder", return_value=FakeEncoder()):
+            response = self.client.post("/design/find_similar", json=self._reference_body(query="2 BHK apartment for rent in Chennai"))
+
+        data = response.get_json()
+        providers = {r["provider"] for r in data["results"]}
+        self.assertNotIn("squareyards", providers)
+
+    def test_square_yards_helper_function_was_removed_not_just_disconnected(self):
+        """The old _square_yards_candidates_with_image_similarity()
+        helper must be gone entirely - a dangling unused function would
+        be dead production code."""
+        import routes.design_routes as design_routes_module
+        self.assertFalse(
+            hasattr(design_routes_module, "_square_yards_candidates_with_image_similarity"),
+            "_square_yards_candidates_with_image_similarity should be removed entirely, "
+            "not just disconnected",
+        )
+        self.assertFalse(
+            hasattr(design_routes_module, "square_yards_service"),
+            "routes.design_routes should no longer import square_yards_service at all",
+        )
 
 
 class ProductionEmbeddingIndexerTests(unittest.TestCase):

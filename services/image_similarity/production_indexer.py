@@ -168,6 +168,53 @@ def embed_property_images(
     return report
 
 
+def remove_property_image_embeddings(
+    property_id,
+    image_filenames,
+    npz_path: Optional[str] = None,
+    meta_path: Optional[str] = None,
+):
+    """
+    Edit Listing's "remove/replace an existing image" counterpart to
+    embed_property_images() above - deletes the production-index
+    records for exactly the given filenames of `property_id` (e.g. an
+    image the owner removed, or the OLD file of a replaced image),
+    leaving every other embedding (this property's remaining images,
+    and every other property) completely untouched.
+
+    Synchronous and fast (no model involved, just a cache edit) - the
+    caller (routes/property_routes.py's update_listing()) runs this
+    directly in the request, not on a background thread, since there
+    is no SigLIP2 inference here to keep off the request path - only
+    NEW images need the background worker (start_background_embedding()
+    below).
+
+    Safe no-op if the production index hasn't been built yet, or if a
+    given image was never embedded in the first place (e.g. it failed
+    embedding originally, or the index just hasn't caught up yet) -
+    removing a non-existent record is not an error.
+    """
+
+    from services.image_similarity.embedding_cache import EmbeddingCache
+
+    npz_path = npz_path or PRODUCTION_NPZ_PATH
+    meta_path = meta_path or PRODUCTION_META_PATH
+
+    if not image_filenames:
+        return
+
+    if not (os.path.isfile(npz_path) and os.path.isfile(meta_path)):
+        return
+
+    with _CACHE_LOCK:
+        cache = EmbeddingCache.load(npz_path, meta_path)
+
+        for filename in image_filenames:
+            cache.remove(f"{property_id}/{filename}")
+
+        cache.save(npz_path, meta_path)
+
+
 def _run_embedding_in_background(property_id, image_filenames, static_folder, npz_path, meta_path):
     """The actual thread target. embed_property_images() already never
     raises for a per-image failure - this try/except is an intentional

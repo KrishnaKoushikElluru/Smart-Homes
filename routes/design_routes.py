@@ -1,5 +1,6 @@
 import base64
 import io
+import logging
 import os
 
 from flask import (
@@ -27,6 +28,8 @@ design_bp = Blueprint(
 )
 
 image_service = ImageGenerationService()
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -368,7 +371,17 @@ def find_similar():
     function, not at module load time) so torch/transformers are only
     ever loaded into the Flask process the first time this specific
     endpoint is actually called - never at app startup, and never on
-    any other request path."""
+    any other request path.
+
+    ARCHITECTURE DECISION: image similarity is SmartHomes-only. Square
+    Yards (services/external_property_sources/square_yards_service.py)
+    is used ELSEWHERE for NLP/property search
+    (routes/search_routes.py), but must never be reached from this
+    route - no Square Yards MCP call, no Square Yards image download,
+    no SigLIP2 embedding of a Square Yards image, ever, from here. A
+    zero-SmartHomes-candidate query (see "candidate_count == 0" below)
+    simply returns empty results rather than falling back to any other
+    source."""
 
     data = request.get_json(silent=True) or {}
     reference_image_url = data.get("reference_image_url")
@@ -406,8 +419,12 @@ def find_similar():
     if query:
         try:
             candidate_ids, orchestration_result = _candidate_property_ids_from_query(query)
-        except Exception as error:
-            print(f"Combined search candidate filtering error: {error}")
+        except Exception:
+            # Unexpected failure (never the documented/handled cases
+            # below, which don't raise here at all) - log the full
+            # traceback for diagnosis, but the user-facing response
+            # stays the same generic, safe message as before.
+            logger.exception("Combined search candidate filtering failed for query=%r", query)
             return jsonify({
                 "success": False,
                 "error": "Search is currently unavailable.",
@@ -418,8 +435,12 @@ def find_similar():
         candidate_count = len(candidate_ids)
 
         if candidate_count == 0:
-            # Step 12.A: zero NLP candidates - never run SigLIP2 against
-            # unrelated properties as a fallback.
+            # Step 12.A: zero SmartHomes NLP candidates - never run
+            # SigLIP2 against unrelated SmartHomes properties as a
+            # fallback, and never load SigLIP2 at all for this request
+            # (Step 13). Image similarity is SmartHomes-only (see this
+            # route's module-level architecture note) - there is no
+            # other source to fall back to, so this is simply empty.
             return jsonify({
                 "success": True,
                 "source": PRODUCTION_SOURCE,
@@ -452,9 +473,16 @@ def find_similar():
     except InvalidImageError:
         return jsonify({"success": False, "error": "Reference image could not be processed."}), 400
 
-    except Exception as error:
+    except Exception:
 
-        print(f"Similarity search error: {error}")
+        # Unexpected failure (cache load, SigLIP2/torch model load, or
+        # inference) - log the full traceback for diagnosis (never a
+        # secret/credential here - this block never touches API keys),
+        # but the user-facing response stays the same generic, safe
+        # 503 as before. InvalidImageError above is the one EXPECTED
+        # failure mode (bad user-supplied image) and is handled
+        # separately without logging - this is for genuine regressions.
+        logger.exception("Similarity search failed")
 
         return jsonify({
             "success": False,
@@ -462,10 +490,18 @@ def find_similar():
         }), 503
 
     property_service = current_app.extensions["property_service"]
-    enriched_results = _enrich_similarity_results(results, property_service)
+    enriched_results = [
+        {**r, "provider": "smarthomes"} for r in _enrich_similarity_results(results, property_service)
+    ]
+
+    # Image similarity is SmartHomes-only (see this route's module-
+    # level architecture note) - search_similar_properties() above
+    # already returns every result scored and sorted, so there is
+    # nothing left to merge or re-sort here.
+    combined_results = enriched_results
 
     message = None
-    if candidate_count is not None and candidate_count > 0 and not enriched_results:
+    if candidate_count is not None and candidate_count > 0 and not combined_results:
         # Step 12.B: candidates exist but none have usable similarity
         # images yet (e.g. registered without photos, or embedding
         # still queued in the background).
@@ -477,7 +513,7 @@ def find_similar():
     return jsonify({
         "success": True,
         "source": PRODUCTION_SOURCE,
-        "results": enriched_results,
+        "results": combined_results,
         "query_used": query or None,
         "candidate_count": candidate_count,
         "applied_filters": applied_filters,

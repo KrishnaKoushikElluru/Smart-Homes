@@ -410,6 +410,42 @@
         padding: 7px 0;
     }
 
+    /* ====================================================
+       EXTERNAL (SQUARE YARDS) RESULT - Phase 8/10/17. A distinct
+       color from .design-similarity-card-cta's SmartHomes blue, and
+       the card itself is a plain <div> (not an <a>) since there is no
+       internal detail page to link the whole card to - only the CTA
+       below opens the external site.
+    ==================================================== */
+
+    .design-similarity-card-external {
+        cursor: default;
+    }
+
+    .external-source-badge {
+        display: inline-block;
+        margin: 10px 0 0 10px;
+        padding: 2px 8px;
+        background-color: #666;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 4px;
+    }
+
+    .design-similarity-badge-unscored {
+        color: #666;
+        background-color: rgba(0, 0, 0, 0.06);
+        border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .design-similarity-card-cta[href] {
+        text-decoration: none;
+        background-color: #555;
+    }
+
     .design-similarity-empty {
         font-size: 0.9rem;
         color: #666;
@@ -974,6 +1010,12 @@
             }
 
             resultsEl.innerHTML = results.map(function (result) {
+
+                // Image similarity is SmartHomes-only (see
+                // routes/design_routes.py's find_similar() architecture
+                // note) - every result here is always a SmartHomes
+                // property with a real score, never an external card.
+
                 const scorePercent = (result.score * 100).toFixed(1);
 
                 const imageHTML = result.image_url
