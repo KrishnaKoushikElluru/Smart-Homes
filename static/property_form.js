@@ -171,7 +171,16 @@
         const mapContainer = document.getElementById("pfPropertyMap");
         if (!mapContainer || typeof L === "undefined") return;
 
-        map = L.map("pfPropertyMap").setView([DEFAULT_LAT, DEFAULT_LON], 14);
+        // Edit Listing seeds the map at the property's CURRENT
+        // coordinates instead of the hardcoded default, so opening the
+        // edit form doesn't silently reset an existing property's
+        // location to the default campus marker. Unset (create flow)
+        // falls through to DEFAULT_LAT/DEFAULT_LON exactly as before.
+        const initialCoords = window.PROPERTY_EDIT_INITIAL_COORDS;
+        const startLat = (initialCoords && typeof initialCoords.lat === "number") ? initialCoords.lat : DEFAULT_LAT;
+        const startLon = (initialCoords && typeof initialCoords.lon === "number") ? initialCoords.lon : DEFAULT_LON;
+
+        map = L.map("pfPropertyMap").setView([startLat, startLon], 14);
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
@@ -182,7 +191,9 @@
             setMarker(event.latlng.lat, event.latlng.lng, true);
         });
 
-        setMarker(DEFAULT_LAT, DEFAULT_LON, false);
+        // reverseGeocode=false here too: a pre-filled edit form's
+        // address fields must not be silently overwritten on load.
+        setMarker(startLat, startLon, false);
     }
 
     function setMarker(lat, lon, reverseGeocode) {

@@ -646,6 +646,47 @@ class PropertyService:
 
 
     # ========================================================
+    # UPDATE, SCOPED TO OWNER (Edit Listing - defense in depth)
+    #
+    # Same as update_property() above, except the MongoDB filter
+    # itself also requires "seller.user_id": owner_user_id - the
+    # update can never modify a document matching the property_id but
+    # a DIFFERENT owner, even if a caller's earlier Python-level
+    # ownership check were ever skipped or raced. This is the same
+    # "let MongoDB's own atomic single-document match be the real
+    # guarantee" principle claim_nearby_facilities_enrichment() below
+    # already uses, applied to ownership instead of enrichment status.
+    # ========================================================
+
+    def update_property_for_owner(
+        self,
+        property_id,
+        owner_user_id,
+        updates
+    ):
+
+        updates["updated_at"] = (
+            datetime.utcnow()
+        )
+
+        result = self.collection.update_one(
+
+            {
+                "_id": ObjectId(property_id),
+                "seller.user_id": owner_user_id
+            },
+
+            {
+                "$set": updates
+            }
+        )
+
+        return (
+            result.modified_count > 0
+        )
+
+
+    # ========================================================
     # CLAIM NEARBY-FACILITY ENRICHMENT (Stage 1 - thread safety)
     #
     # An atomic, single-document conditional update: sets

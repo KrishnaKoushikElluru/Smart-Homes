@@ -1,5 +1,5 @@
 
-{% macro render_field(field) -%}
+{% macro render_field(field, value=none) -%}
 <div
     class="pf-field"
     data-field="{{ field.name }}"
@@ -13,6 +13,7 @@
                 type="checkbox"
                 id="pf_{{ field.name }}"
                 name="{{ field.name }}"
+                {{ "checked" if value else "" }}
             >
             {{ field.label }}
         </label>
@@ -30,6 +31,7 @@
                 id="pf_{{ field.name }}"
                 name="{{ field.name }}"
                 maxlength="{{ field.maxlen or 255 }}"
+                value="{{ value if value is not none else '' }}"
                 {{ "required" if field.required else "" }}
             >
 
@@ -40,7 +42,7 @@
                 name="{{ field.name }}"
                 rows="4"
                 maxlength="{{ field.maxlen or 5000 }}"
-            ></textarea>
+            >{{- value if value is not none else '' -}}</textarea>
 
         {% elif field.kind == "int" %}
 
@@ -49,6 +51,7 @@
                 step="1"
                 id="pf_{{ field.name }}"
                 name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
                 {% if field.min is not none %}min="{{ field.min }}"{% endif %}
                 {% if field.max is not none %}max="{{ field.max }}"{% endif %}
                 {{ "required" if field.required else "" }}
@@ -61,6 +64,7 @@
                 step="any"
                 id="pf_{{ field.name }}"
                 name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
                 {% if field.min is not none %}min="{{ field.min }}"{% endif %}
                 {% if field.max is not none %}max="{{ field.max }}"{% endif %}
                 {{ "required" if field.required else "" }}
@@ -69,9 +73,9 @@
         {% elif field.kind == "tribool" %}
 
             <select id="pf_{{ field.name }}" name="{{ field.name }}">
-                <option value="">Not specified</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
+                <option value="" {{ "selected" if value is none else "" }}>Not specified</option>
+                <option value="yes" {{ "selected" if value == true else "" }}>Yes</option>
+                <option value="no" {{ "selected" if value == false else "" }}>No</option>
             </select>
 
         {% elif field.kind == "select" %}
@@ -83,8 +87,13 @@
             >
                 <option value="">Select {{ field.label }}</option>
 
-                {% for value, label in field.options %}
-                    <option value="{{ value }}">{{ label }}</option>
+                {% for option_value, option_label in field.options %}
+                    <option
+                        value="{{ option_value }}"
+                        {{ "selected" if value is not none and (option_value | string) == (value | string) else "" }}
+                    >
+                        {{ option_label }}
+                    </option>
                 {% endfor %}
 
             </select>
@@ -95,6 +104,7 @@
                 type="date"
                 id="pf_{{ field.name }}"
                 name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
                 {{ "required" if field.required else "" }}
             >
 
@@ -106,6 +116,7 @@
                 name="{{ field.name }}"
                 pattern="[0-9]{6}"
                 maxlength="6"
+                value="{{ value if value is not none else '' }}"
                 placeholder="e.g. 500001"
             >
 
@@ -117,10 +128,10 @@
 {%- endmacro %}
 
 
-{% macro render_group(fields) -%}
+{% macro render_group(fields, values={}) -%}
 
     {% for field in fields %}
-        {{ render_field(field) }}
+        {{ render_field(field, values.get(field.name)) }}
     {% endfor %}
 
 {%- endmacro %}

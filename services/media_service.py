@@ -203,6 +203,29 @@ def save_images(files, categories, cover_index, static_root):
     return saved_filenames, meta
 
 
+def delete_image_file(filename, static_root):
+    """Deletes one previously-saved property image file (Edit Listing's
+    "remove an existing image" action - routes/property_routes.py's
+    update_listing()). Safe no-op if the file is already gone - never
+    raises for a missing file, since the caller's job (the MongoDB
+    media.images array no longer references it) is what actually
+    matters; a second removal attempt or an already-cleaned-up file
+    must not fail the request.
+
+    `filename` must be a bare filename (no path separators) - this
+    function only ever looks inside IMAGE_DIRECTORY, the same
+    convention save_images() itself uses, so there is no path-
+    traversal surface here regardless of what the caller passes."""
+
+    safe_name = os.path.basename(filename)
+    path = os.path.join(static_root, IMAGE_DIRECTORY, safe_name)
+
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
+
+
 # ============================================================
 # DESIGN REFERENCE IMAGE (single, user-uploaded - separate from the
 # FLUX-generated design image; never sent to Gemini/FLUX in this phase)

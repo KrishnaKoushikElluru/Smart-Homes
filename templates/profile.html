@@ -721,6 +721,34 @@
         }
 
 
+        .edit-button {
+
+            display: inline-block;
+
+            background-color: #6c757d;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 11px 18px;
+
+            border-radius: 6px;
+
+            font-size: 14px;
+
+            border: none;
+
+        }
+
+
+        .edit-button:hover {
+
+            background-color: #5a6268;
+
+        }
+
+
         .delete-button {
 
             background-color: #dc3545;
@@ -1046,6 +1074,16 @@
                                 View Property
                             </a>
 
+                            <a
+                                href="{{ url_for(
+                                    'property.edit_listing',
+                                    property_id=listing._id
+                                ) }}"
+                                class="edit-button"
+                            >
+                                Edit Listing
+                            </a>
+
                             {% if listing.listing.status == "active" %}
 
                                 <form
@@ -1060,6 +1098,8 @@
                                         );
                                     "
                                 >
+
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                     <button
                                         type="submit"
@@ -1084,6 +1124,8 @@
                                         );
                                     "
                                 >
+
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                     <button
                                         type="submit"

@@ -19,6 +19,7 @@ from unittest.mock import patch
 from flask import Flask
 from flask_login import LoginManager, UserMixin
 
+from extensions import csrf
 from routes.property_routes import property_bp
 
 
@@ -41,6 +42,13 @@ class FakeOSMService:
 def make_test_app(osm_service=None, ola_key="ola-test-key", mappls_key="mappls-test-key"):
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "test-secret"
+    # These tests exercise business logic, not CSRF itself - see
+    # CSRFProtectionTests below for dedicated CSRF coverage (its own
+    # app fixture leaves this enabled). Disabling it here is the
+    # standard Flask-WTF testing convention, matching how
+    # extensions.require_csrf itself checks this same flag.
+    app.config["WTF_CSRF_ENABLED"] = False
+    csrf.init_app(app)  # registers the csrf_token() Jinja global these templates call
     app.config["OLA_MAPS_API_KEY"] = ola_key
     app.config["MAPPLS_API_KEY"] = mappls_key
     app.testing = True
@@ -369,6 +377,27 @@ class FakePropertyServiceForSubmit:
         self.updates.append((property_id, {"listing.status": status}))
         return True
 
+    def update_property_for_owner(self, property_id, owner_user_id, updates):
+        """Mirrors the real PropertyService.update_property_for_owner()'s
+        OWNERSHIP-SCOPED semantics: only applies `updates` (a flat
+        dotted-key dict, same shape MongoDB $set would receive) if the
+        stored document's seller.user_id matches `owner_user_id` - the
+        same guarantee the real method gets from putting both
+        conditions directly in its update filter."""
+        document = self.documents.get(property_id)
+        if document is None:
+            return False
+        if (document.get("seller") or {}).get("user_id") != owner_user_id:
+            return False
+        for dotted_key, value in updates.items():
+            parts = dotted_key.split(".")
+            target = document
+            for part in parts[:-1]:
+                target = target.setdefault(part, {})
+            target[parts[-1]] = value
+        self.updates.append((property_id, updates))
+        return True
+
 
 def _real_png_bytes(color=(10, 20, 30), size=(4, 4)):
     from PIL import Image
@@ -380,6 +409,13 @@ def _real_png_bytes(color=(10, 20, 30), size=(4, 4)):
 def _make_submit_app(property_service, tmp_static_folder):
     app = Flask(__name__, static_folder=tmp_static_folder, static_url_path="/static")
     app.config["SECRET_KEY"] = "test-secret"
+    # These tests exercise business logic, not CSRF itself - see
+    # CSRFProtectionTests below for dedicated CSRF coverage (its own
+    # app fixture leaves this enabled). Disabling it here is the
+    # standard Flask-WTF testing convention, matching how
+    # extensions.require_csrf itself checks this same flag.
+    app.config["WTF_CSRF_ENABLED"] = False
+    csrf.init_app(app)  # registers the csrf_token() Jinja global these templates call
     app.testing = True
     app.extensions["property_service"] = property_service
     app.extensions["osm_location_service"] = FakeOSMService()
@@ -553,6 +589,13 @@ class PropertyDetailsRouteTests(unittest.TestCase):
     def _make_app(self, property_service):
         app = Flask(__name__)
         app.config["SECRET_KEY"] = "test-secret"
+        # These tests exercise business logic, not CSRF itself - see
+        # CSRFProtectionTests below for dedicated CSRF coverage (its
+        # own app fixture leaves this enabled). Disabling it here is
+        # the standard Flask-WTF testing convention, matching how
+        # extensions.require_csrf itself checks this same flag.
+        app.config["WTF_CSRF_ENABLED"] = False
+        csrf.init_app(app)  # registers the csrf_token() Jinja global these templates call
         app.testing = True
         app.extensions["property_service"] = property_service
 
@@ -605,6 +648,119 @@ class PropertyDetailsRouteTests(unittest.TestCase):
         response = client.get("/property/does_not_exist", follow_redirects=False)
 
         self.assertEqual(response.status_code, 302)
+
+    def test_property_with_no_nearby_facilities_metadata_renders_without_the_section(self):
+        """A legacy property (never enriched) must still render the
+        page cleanly - no broken/empty "Nearby Amenities" block. This
+        doubles as the existing-behavior-is-intact check: _make_doc()
+        above has no nearby_facilities key at all, same as every other
+        test in this class, and the page still renders fully (see
+        test_existing_property_renders_the_real_details_page)."""
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc("p1")  # no nearby_facilities key
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        response = client.get("/property/p1")
+
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertNotIn("Nearby Amenities", html)
+
+    def test_property_with_multiple_facilities_across_categories_renders_them_all(self):
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc(
+            "p1",
+            nearby_facilities=[
+                {"name": "Tiger Gym", "category": "gym", "address": "Gandhi Road", "distance_m": 134},
+                {"name": "Gold's Gym", "category": "gym", "address": "2nd Street", "distance_m": 600},
+                {"name": "ABC Hospital", "category": "hospital", "address": "Main Road", "distance_m": 700},
+            ],
+            nearby_facilities_metadata={"status": "completed", "source": "mappls", "radius_m": 2000.0},
+        )
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        response = client.get("/property/p1")
+        html = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Nearby Amenities", html)
+        self.assertIn("Tiger Gym", html)
+        self.assertIn("Gold&#39;s Gym", html)  # BOTH gyms, not just the closest (Jinja-escaped apostrophe)
+        self.assertIn("ABC Hospital", html)
+        self.assertIn("134 m", html)
+        self.assertIn("700 m", html)
+        # Category labels are CSS-uppercased for display, not
+        # uppercased in the markup itself - assert the real text.
+        self.assertIn("Gyms", html)
+        self.assertIn("Hospitals", html)
+
+    def test_facility_with_missing_address_still_renders(self):
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc(
+            "p1",
+            nearby_facilities=[
+                {"name": "Tiger Gym", "category": "gym", "address": None, "distance_m": 134},
+            ],
+            nearby_facilities_metadata={"status": "completed", "source": "mappls", "radius_m": 2000.0},
+        )
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        html = client.get("/property/p1").get_data(as_text=True)
+        self.assertIn("Tiger Gym", html)
+        self.assertIn("134 m", html)
+
+    def test_facility_with_missing_distance_does_not_show_a_misleading_distance(self):
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc(
+            "p1",
+            nearby_facilities=[
+                {"name": "Tiger Gym", "category": "gym", "address": "Gandhi Road", "distance_m": None},
+            ],
+            nearby_facilities_metadata={"status": "completed", "source": "mappls", "radius_m": 2000.0},
+        )
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        html = client.get("/property/p1").get_data(as_text=True)
+        self.assertIn("Tiger Gym", html)
+        self.assertNotIn("None away", html)
+        self.assertNotIn("0 m away", html)
+
+    def test_pending_enrichment_shows_a_preparing_message_not_empty_section(self):
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc(
+            "p1", nearby_facilities=[],
+            nearby_facilities_metadata={"status": "pending", "source": "mappls", "radius_m": 2000.0},
+        )
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        html = client.get("/property/p1").get_data(as_text=True)
+        self.assertIn("Nearby Amenities", html)
+        self.assertIn("being prepared", html)
+
+    def test_failed_enrichment_does_not_pretend_to_be_an_empty_success(self):
+        property_service = FakePropertyServiceForSubmit()
+        property_service.documents["p1"] = self._make_doc(
+            "p1", nearby_facilities=[],
+            nearby_facilities_metadata={"status": "failed", "source": "mappls", "radius_m": 2000.0},
+        )
+
+        app = self._make_app(property_service)
+        client = logged_in_client(app)
+
+        html = client.get("/property/p1").get_data(as_text=True)
+        self.assertIn("Nearby Amenities", html)
+        self.assertIn("could not be checked", html)
+        self.assertNotIn("No nearby facilities were found", html)
 
 
 class PropertyServiceGetPropertyTests(unittest.TestCase):
@@ -659,6 +815,13 @@ class PropertyUnlistRelistTests(unittest.TestCase):
     def _make_app(self, property_service):
         app = Flask(__name__)
         app.config["SECRET_KEY"] = "test-secret"
+        # These tests exercise business logic, not CSRF itself - see
+        # CSRFProtectionTests below for dedicated CSRF coverage (its
+        # own app fixture leaves this enabled). Disabling it here is
+        # the standard Flask-WTF testing convention, matching how
+        # extensions.require_csrf itself checks this same flag.
+        app.config["WTF_CSRF_ENABLED"] = False
+        csrf.init_app(app)  # registers the csrf_token() Jinja global these templates call
         app.testing = True
         app.extensions["property_service"] = property_service
 
@@ -801,6 +964,631 @@ class PropertyUnlistRelistTests(unittest.TestCase):
         self.assertIn("Relist Property", html)
         self.assertIn("View Property", html)
         self.assertIn("status-badge-inactive", html)
+
+
+class CSRFProtectionTests(unittest.TestCase):
+    """Dedicated coverage for extensions.require_csrf, applied to the 4
+    property-mutation routes (submit_listing/update_listing/
+    delete_listing/relist_listing). Unlike every other test class in
+    this file, CSRF is left ENABLED here (no WTF_CSRF_ENABLED=False) -
+    this is the one place that actually exercises the real Flask-WTF
+    token generation/validation path end to end."""
+
+    OWNER_ID = "1"  # matches StubUser.id
+
+    def _make_doc(self, property_id, status="active"):
+        return {
+            "_id": property_id,
+            "seller": {"user_id": self.OWNER_ID, "username": "owner"},
+            "listing": {"type": "rent", "status": status, "price": 15000, "title": "Test Flat"},
+            "property": {"type": "apartment", "bhk": 2},
+            "location": {"city": "Chennai"},
+            "media": {"images": []},
+        }
+
+    def _make_app(self, property_service):
+        app = Flask(__name__)
+        app.config["SECRET_KEY"] = "test-secret"
+        app.testing = True
+        app.extensions["property_service"] = property_service
+        app.extensions["osm_location_service"] = FakeOSMService()
+
+        csrf.init_app(app)  # CSRF genuinely enabled - this is the point of this class
+
+        login_manager = LoginManager()
+        login_manager.init_app(app)
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            return StubUser()
+
+        @app.route("/")
+        def home():
+            return "home"
+
+        from flask import Blueprint
+
+        design_bp_stub = Blueprint("design", __name__)
+
+        @design_bp_stub.route("/design")
+        def design():
+            return "design"
+
+        auth_bp_stub = Blueprint("auth", __name__)
+
+        @auth_bp_stub.route("/logout")
+        def logout():
+            return "logout"
+
+        app.register_blueprint(design_bp_stub)
+        app.register_blueprint(auth_bp_stub)
+        app.register_blueprint(property_bp)
+        return app
+
+    def _valid_token_and_session_seed(self, app):
+        """Generates a REAL, correctly-signed Flask-WTF CSRF token
+        (via the same generate_csrf() the templates call), plus the
+        raw per-session seed value it was signed against - both are
+        needed: the signed token goes in the request's form field, the
+        raw seed must already be in the test client's session for
+        validate_csrf() to successfully verify it (this is the
+        standard way to test a Flask-WTF-protected endpoint - see
+        Flask-WTF's own test suite for the identical pattern)."""
+        from flask_wtf.csrf import generate_csrf
+        from flask import session
+
+        with app.test_request_context():
+            token = generate_csrf()
+            seed = session["csrf_token"]
+
+        return token, seed
+
+    def test_valid_csrf_token_allows_the_request_to_succeed(self):
+        service = FakePropertyServiceForSubmit()
+        service.documents["p1"] = self._make_doc("p1")
+        app = self._make_app(service)
+        token, seed = self._valid_token_and_session_seed(app)
+        client = logged_in_client(app)
+
+        with client.session_transaction() as sess:
+            sess["csrf_token"] = seed
+
+        response = client.post(
+            "/delete_listing/p1", data={"csrf_token": token}, follow_redirects=False
+        )
+
+        # A normal successful unlist redirects to /profile - the ROUTE'S
+        # OWN logic ran, proving CSRF validation passed (a CSRF failure
+        # would be a 400 from handle_csrf_error, never a 302).
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(service.documents["p1"]["listing"]["status"], "inactive")
+
+    def test_missing_csrf_token_is_rejected(self):
+        service = FakePropertyServiceForSubmit()
+        service.documents["p1"] = self._make_doc("p1")
+        app = self._make_app(service)
+        client = logged_in_client(app)
+
+        response = client.post("/delete_listing/p1", data={})
+
+        self.assertEqual(response.status_code, 400)
+        # The route's own logic must NEVER have run - status unchanged.
+        self.assertEqual(service.documents["p1"]["listing"]["status"], "active")
+
+    def test_invalid_csrf_token_is_rejected(self):
+        service = FakePropertyServiceForSubmit()
+        service.documents["p1"] = self._make_doc("p1")
+        app = self._make_app(service)
+        _, seed = self._valid_token_and_session_seed(app)
+        client = logged_in_client(app)
+
+        with client.session_transaction() as sess:
+            sess["csrf_token"] = seed
+
+        response = client.post(
+            "/delete_listing/p1", data={"csrf_token": "not-a-real-token"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(service.documents["p1"]["listing"]["status"], "active")
+
+    def test_get_routes_remain_completely_unaffected(self):
+        """GET requests are never in Flask-WTF's own WTF_CSRF_METHODS
+        set (POST/PUT/PATCH/DELETE only) - a GET route must keep
+        working with no token at all, CSRF enabled or not."""
+        service = FakePropertyServiceForSubmit()
+        service.documents["p1"] = self._make_doc("p1")
+        app = self._make_app(service)
+        client = logged_in_client(app)
+
+        response = client.get("/profile")
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_all_four_mutation_routes_require_csrf(self):
+        """Sweep proving EVERY one of the 4 named routes is actually
+        decorated, not just delete_listing (tested in isolation
+        above). CSRF validation happens before any of the route's own
+        business logic, so an otherwise-empty/invalid body still
+        reaches the CSRF check first and is rejected the same way."""
+        service = FakePropertyServiceForSubmit()
+        service.documents["p1"] = self._make_doc("p1", status="inactive")
+        app = self._make_app(service)
+        client = logged_in_client(app)
+
+        for path in (
+            "/submit_listing",
+            "/update_listing/p1",
+            "/delete_listing/p1",
+            "/relist_listing/p1",
+        ):
+            with self.subTest(path=path):
+                response = client.post(path, data={})
+                self.assertEqual(response.status_code, 400)
+
+
+class EditListingTestsBase(unittest.TestCase):
+    """Shared fixtures for GET /edit_listing/<id> and POST
+    /update_listing/<id> - routes/property_routes.py's edit_listing()
+    and update_listing(). Mirrors PropertyUnlistRelistTests' and
+    SubmitListingProductionEmbeddingTests' established conventions
+    (FakePropertyServiceForSubmit standing in for MongoDB, a tmp
+    static folder so media_service's real save/delete file operations
+    have somewhere safe to write)."""
+
+    OWNER_ID = "1"  # matches StubUser.id
+    OTHER_USER_ID = "2"
+
+    def _make_doc(self, property_id, owner_id=None, status="active",
+                  price=25000, bhk="2", lat=12.84, lon=80.15,
+                  images=None, image_meta=None):
+        # Defaults to one existing image - a real property being
+        # edited already has images, and update_listing() (like
+        # submit_listing()) requires at least one image across
+        # existing-kept + newly-added. Tests specifically about image
+        # add/remove/replace behavior pass their own images/image_meta.
+        images = ["default.jpg"] if images is None else images
+        image_meta = (
+            [{"filename": "default.jpg", "category": "other", "is_cover": True}]
+            if image_meta is None else image_meta
+        )
+        return {
+            "_id": property_id,
+            "seller": {"user_id": owner_id if owner_id is not None else self.OWNER_ID, "username": "owner"},
+            "listing": {"type": "rent", "status": status, "price": price,
+                        "price_negotiable": False, "title": "Test Flat", "posted_by": "owner"},
+            "property": {"type": "apartment", "bhk": bhk, "area_sqft": 950, "bathrooms": 2,
+                         "balconies": 1, "furnishing": "semi_furnished", "facing": "east",
+                         "property_age": 3, "floor_number": 3, "total_floors": 8},
+            "rooms": {"bhk": str(bhk), "bathrooms": 2, "balconies": 1},
+            "area": {"built_up_sqft": 950},
+            "building": {"furnishing": "semi_furnished", "facing": "east",
+                         "floor_number": 3, "total_floors": 8, "property_age": 3},
+            "project": None, "parking": None, "type_details": None, "legal": None, "pg_details": None,
+            "amenities": {}, "features": [],
+            "rental": {"security_deposit": 50000}, "sale": None,
+            "location": {"address": "123 Test St", "state": "Tamil Nadu", "city": "Chennai",
+                         "locality": "Velachery", "sub_locality": None, "landmark": None,
+                         "pincode": "600042",
+                         "coordinates": {"type": "Point", "coordinates": [lon, lat]}},
+            "contact": {"name": "Test Owner", "phone": "9999999999", "whatsapp": None,
+                        "preferred_contact_method": "phone"},
+            "description": {"text": "A nice flat.", "language": "en"},
+            "media": {"images": images, "image_meta": image_meta, "videos": [],
+                      "floor_plan": None, "brochure": None, "virtual_tour_url": None},
+            "source": {"type": "owner", "url": None},
+        }
+
+    def _make_app(self, property_service, tmp_static_folder):
+        app = Flask(__name__, static_folder=tmp_static_folder, static_url_path="/static")
+        app.config["SECRET_KEY"] = "test-secret"
+        # These tests exercise business logic, not CSRF itself - see
+        # CSRFProtectionTests below for dedicated CSRF coverage (its
+        # own app fixture leaves this enabled). Disabling it here is
+        # the standard Flask-WTF testing convention, matching how
+        # extensions.require_csrf itself checks this same flag.
+        app.config["WTF_CSRF_ENABLED"] = False
+        csrf.init_app(app)  # registers the csrf_token() Jinja global these templates call
+        app.testing = True
+        app.extensions["property_service"] = property_service
+        app.extensions["osm_location_service"] = FakeOSMService()
+
+        login_manager = LoginManager()
+        login_manager.init_app(app)
+
+        @login_manager.user_loader
+        def load_user(user_id):
+            return StubUser()
+
+        @app.route("/")
+        def home():
+            return "home"
+
+        from flask import Blueprint
+
+        design_bp_stub = Blueprint("design", __name__)
+
+        @design_bp_stub.route("/design")
+        def design():
+            return "design"
+
+        auth_bp_stub = Blueprint("auth", __name__)
+
+        @auth_bp_stub.route("/logout")
+        def logout():
+            return "logout"
+
+        app.register_blueprint(design_bp_stub)
+        app.register_blueprint(auth_bp_stub)
+        app.register_blueprint(property_bp)
+        return app
+
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.property_service = FakePropertyServiceForSubmit()
+        self.app = self._make_app(self.property_service, self._tmpdir.name)
+        self.client = logged_in_client(self.app)
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
+
+    def _minimal_apartment_rent_form(self, **overrides):
+        base = {
+            "listing_type": "rent",
+            "property_type": "apartment",
+            "title": "Test Apartment",
+            "price": "25000",
+            "address": "123 Test Street",
+            "city": "Chennai",
+            "latitude": "12.84",
+            "longitude": "80.15",
+            "contact_name": "Test Owner",
+            "contact_phone": "9876543210",
+            "bhk": "2",
+            "built_up_sqft": "950",
+            "floor_number": "3",
+            "total_floors": "8",
+        }
+        base.update(overrides)
+        return base
+
+
+class EditListingGetRouteTests(EditListingTestsBase):
+    """1) owner can open the edit form; 2) it pre-fills current values;
+    plus the ownership and not-found safety checks GET must also have."""
+
+    def test_owner_can_open_edit_form(self):
+        self.property_service.documents["p1"] = self._make_doc("p1")
+
+        response = self.client.get("/edit_listing/p1")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Edit Listing", response.get_data(as_text=True))
+
+    def test_values_populate_correctly(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", price=25000)
+
+        html = self.client.get("/edit_listing/p1").get_data(as_text=True)
+
+        # The price input must carry the CURRENT stored value, not an
+        # empty "create" form - this is the actual pre-fill contract
+        # _property_field_values() + _field_macros.html's value-aware
+        # render_field() exist for.
+        self.assertIn('value="25000"', html)
+        self.assertIn('value="123 Test St"', html)
+        self.assertIn('value="Test Owner"', html)
+
+    def test_unauthorized_user_cannot_open_another_users_edit_form(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", owner_id=self.OTHER_USER_ID)
+
+        response = self.client.get("/edit_listing/p1", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"do not have permission", response.data.lower())
+
+    def test_invalid_property_id_handled_safely(self):
+        response = self.client.get("/edit_listing/does_not_exist", follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"not found", response.data.lower())
+
+
+class UpdateListingRouteTests(EditListingTestsBase):
+    """3-13 and 15-17 of the 19 explicitly required behaviors: basic
+    field updates actually reach the stored document and Profile,
+    ownership/validation safety, and the image <-> similarity-index
+    and location <-> nearby-enrichment synchronization rules."""
+
+    def test_owner_can_update_basic_fields_and_mongo_reflects_it(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", price=25000, bhk="2")
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"):
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000", bhk="3"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        updated_doc = self.property_service.documents["p1"]
+        self.assertEqual(updated_doc["listing"]["price"], 30000.0)
+        self.assertEqual(updated_doc["property"]["bhk"], 3)
+
+    def test_profile_reflects_updated_values_immediately(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", price=25000)
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"):
+            self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        html = self.client.get("/profile").get_data(as_text=True)
+        self.assertIn("30000", html)
+        self.assertNotIn("25000", html)
+
+    def test_unauthorized_user_cannot_update_another_users_property(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", owner_id=self.OTHER_USER_ID, price=25000)
+
+        response = self.client.post(
+            "/update_listing/p1",
+            data=self._minimal_apartment_rent_form(price="99999"),
+            content_type="multipart/form-data",
+            follow_redirects=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"do not have permission", response.data.lower())
+        self.assertEqual(self.property_service.documents["p1"]["listing"]["price"], 25000)
+
+    def test_update_scoped_to_owner_at_the_service_layer(self):
+        # Structural proof, not just behavioral: update_listing() must
+        # call the OWNER-SCOPED method, not the unscoped update_property()
+        # whose MongoDB filter is _id-only (see PropertyService.
+        # update_property_for_owner()'s own docstring for why that
+        # distinction is the real security boundary, not just the
+        # app-level seller.user_id check above it).
+        self.property_service.documents["p1"] = self._make_doc("p1")
+
+        with patch.object(
+            self.property_service, "update_property_for_owner",
+            wraps=self.property_service.update_property_for_owner,
+        ) as mock_update:
+            with patch("services.image_similarity.production_indexer.start_background_embedding"):
+                self.client.post(
+                    "/update_listing/p1",
+                    data=self._minimal_apartment_rent_form(),
+                    content_type="multipart/form-data",
+                )
+
+        mock_update.assert_called_once()
+        call_args = mock_update.call_args.args
+        self.assertEqual(call_args[0], "p1")
+        self.assertEqual(call_args[1], self.OWNER_ID)
+
+    def test_invalid_property_id_handled_safely_on_update(self):
+        response = self.client.post(
+            "/update_listing/does_not_exist",
+            data=self._minimal_apartment_rent_form(),
+            content_type="multipart/form-data",
+            follow_redirects=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"not found", response.data.lower())
+
+    def test_validation_errors_handled_correctly(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", price=25000)
+
+        with patch(
+            "services.image_similarity.production_indexer.start_background_embedding"
+        ) as mock_start:
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="not-a-number"),
+                content_type="multipart/form-data",
+                follow_redirects=True,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        # Invalid data must never reach the stored document.
+        self.assertEqual(self.property_service.documents["p1"]["listing"]["price"], 25000)
+        mock_start.assert_not_called()
+
+    def test_metadata_only_update_does_not_trigger_reembedding(self):
+        self.property_service.documents["p1"] = self._make_doc(
+            "p1", price=25000, images=["existing.jpg"],
+            image_meta=[{"filename": "existing.jpg", "category": "other", "is_cover": True}],
+        )
+
+        with patch(
+            "services.image_similarity.production_indexer.start_background_embedding"
+        ) as mock_start, patch(
+            "services.image_similarity.production_indexer.remove_property_image_embeddings"
+        ) as mock_remove:
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_start.assert_not_called()
+        mock_remove.assert_not_called()
+        self.assertEqual(
+            self.property_service.documents["p1"]["media"]["images"], ["existing.jpg"]
+        )
+
+    def test_adding_an_image_triggers_background_embedding_for_the_new_image_only(self):
+        self.property_service.documents["p1"] = self._make_doc(
+            "p1", images=["existing.jpg"],
+            image_meta=[{"filename": "existing.jpg", "category": "other", "is_cover": True}],
+        )
+
+        with patch(
+            "services.image_similarity.production_indexer.start_background_embedding"
+        ) as mock_start:
+            response = self.client.post(
+                "/update_listing/p1",
+                data={
+                    **self._minimal_apartment_rent_form(),
+                    "images": (io.BytesIO(_real_png_bytes()), "new.png"),
+                },
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_start.assert_called_once()
+        call_args = mock_start.call_args.args
+        self.assertEqual(call_args[0], "p1")
+        self.assertEqual(len(call_args[1]), 1)  # only the NEW image, never "existing.jpg"
+        self.assertNotIn("existing.jpg", call_args[1])
+
+        updated_images = self.property_service.documents["p1"]["media"]["images"]
+        self.assertIn("existing.jpg", updated_images)
+        self.assertEqual(len(updated_images), 2)
+
+    def test_removing_an_image_removes_its_similarity_index_entry(self):
+        self.property_service.documents["p1"] = self._make_doc(
+            "p1",
+            images=["keep.jpg", "remove_me.jpg"],
+            image_meta=[
+                {"filename": "keep.jpg", "category": "other", "is_cover": True},
+                {"filename": "remove_me.jpg", "category": "other", "is_cover": False},
+            ],
+        )
+
+        with patch(
+            "services.image_similarity.production_indexer.remove_property_image_embeddings"
+        ) as mock_remove, patch(
+            "services.image_similarity.production_indexer.start_background_embedding"
+        ) as mock_start:
+            response = self.client.post(
+                "/update_listing/p1",
+                data={
+                    **self._minimal_apartment_rent_form(),
+                    "remove_images": "remove_me.jpg",
+                },
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_remove.assert_called_once_with("p1", ["remove_me.jpg"])
+        mock_start.assert_not_called()  # no NEW image here - metadata+removal only
+
+        updated_images = self.property_service.documents["p1"]["media"]["images"]
+        self.assertEqual(updated_images, ["keep.jpg"])
+
+    def test_replacing_an_image_updates_the_similarity_index_both_ways(self):
+        self.property_service.documents["p1"] = self._make_doc(
+            "p1",
+            images=["old.jpg"],
+            image_meta=[{"filename": "old.jpg", "category": "other", "is_cover": True}],
+        )
+
+        with patch(
+            "services.image_similarity.production_indexer.remove_property_image_embeddings"
+        ) as mock_remove, patch(
+            "services.image_similarity.production_indexer.start_background_embedding"
+        ) as mock_start:
+            response = self.client.post(
+                "/update_listing/p1",
+                data={
+                    **self._minimal_apartment_rent_form(),
+                    "remove_images": "old.jpg",
+                    "images": (io.BytesIO(_real_png_bytes()), "new.png"),
+                },
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_remove.assert_called_once_with("p1", ["old.jpg"])
+        mock_start.assert_called_once()
+
+        updated_images = self.property_service.documents["p1"]["media"]["images"]
+        self.assertEqual(len(updated_images), 1)
+        self.assertNotIn("old.jpg", updated_images)
+
+    def test_existing_images_remain_intact_when_not_removed(self):
+        self.property_service.documents["p1"] = self._make_doc(
+            "p1",
+            images=["a.jpg", "b.jpg"],
+            image_meta=[
+                {"filename": "a.jpg", "category": "other", "is_cover": True},
+                {"filename": "b.jpg", "category": "other", "is_cover": False},
+            ],
+        )
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"):
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            sorted(self.property_service.documents["p1"]["media"]["images"]),
+            ["a.jpg", "b.jpg"],
+        )
+
+    def test_location_change_triggers_nearby_enrichment(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", lat=12.84, lon=80.15)
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"), \
+             patch("services.nearby_facility_service.start_background_enrichment") as mock_enrich:
+
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(latitude="13.0", longitude="81.0"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_enrich.assert_called_once()
+        self.assertEqual(mock_enrich.call_args.args[0], "p1")
+
+    def test_no_location_change_does_not_trigger_enrichment(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", lat=12.84, lon=80.15)
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"), \
+             patch("services.nearby_facility_service.start_background_enrichment") as mock_enrich:
+
+            response = self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(latitude="12.84", longitude="80.15", price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(response.status_code, 302)
+        mock_enrich.assert_not_called()
+
+    def test_editing_does_not_change_unlisted_status(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", status="inactive", price=25000)
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"):
+            self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        updated_doc = self.property_service.documents["p1"]
+        self.assertEqual(updated_doc["listing"]["status"], "inactive")
+        self.assertEqual(updated_doc["listing"]["price"], 30000.0)
+
+    def test_editing_does_not_change_an_active_listed_status(self):
+        self.property_service.documents["p1"] = self._make_doc("p1", status="active", price=25000)
+
+        with patch("services.image_similarity.production_indexer.start_background_embedding"):
+            self.client.post(
+                "/update_listing/p1",
+                data=self._minimal_apartment_rent_form(price="30000"),
+                content_type="multipart/form-data",
+            )
+
+        self.assertEqual(self.property_service.documents["p1"]["listing"]["status"], "active")
 
 
 if __name__ == "__main__":
