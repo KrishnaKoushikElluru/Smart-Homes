@@ -34,6 +34,7 @@ from routes.auth_routes import auth_bp
 from routes.property_routes import property_bp
 from routes.search_routes import search_bp
 from routes.design_routes import design_bp
+from routes.comparison_routes import comparison_bp
 
 
 
@@ -326,6 +327,10 @@ app.register_blueprint(
 
 app.register_blueprint(
     design_bp
+)
+
+app.register_blueprint(
+    comparison_bp
 )
 
 

@@ -482,6 +482,55 @@
 
 
         /* ====================================================
+           PROPERTY COMPARISON (new feature) - see static/comparison.js
+        ==================================================== */
+
+        .compare-checkbox-label {
+            display: block;
+            margin: 10px 0;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .compare-floating-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 10px 18px;
+            background-color: #222;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .compare-floating-bar button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #compareFloatingBarGo {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        #compareFloatingBarClear {
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+        }
+
+
+        /* ====================================================
            AMENITIES
         ==================================================== */
 
@@ -895,6 +944,22 @@
             ← Back
         </a>
 
+        <label class="compare-checkbox-label">
+            <input
+                type="checkbox"
+                class="compare-checkbox"
+                data-provider="smarthomes"
+                data-id="{{ property._id }}"
+            >
+            Add to Compare
+        </label>
+
+        <div id="compareFloatingBar" class="compare-floating-bar" style="display: none;">
+            <span id="compareFloatingBarCount">Compare (0)</span>
+            <button type="button" id="compareFloatingBarGo">Compare Now</button>
+            <button type="button" id="compareFloatingBarClear">Clear</button>
+        </div>
+
 
         <div class="property-container">
 
@@ -1100,6 +1165,7 @@
 
     </div>
 
+    <script src="{{ url_for('static', filename='comparison.js') }}"></script>
 
 </body>
 

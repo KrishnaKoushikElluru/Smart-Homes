@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Compare Properties - SmartHomes
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f5f5f5;
+            color: #222;
+        }
+
+        .top-nav {
+            background-color: #222;
+            padding: 16px 24px;
+        }
+
+        .top-nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+
+        .page-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        #compareLoading, #compareError {
+            padding: 20px;
+            font-size: 1.1em;
+        }
+
+        #compareError {
+            color: #a00;
+            display: none;
+        }
+
+        #compareFailed {
+            margin-bottom: 20px;
+        }
+
+        .compare-failed-item {
+            background: #fff3f3;
+            border: 1px solid #e0b4b4;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+        }
+
+        table.compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table.compare-table th,
+        table.compare-table td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        table.compare-table th.dimension-label {
+            background: #f0f0f0;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        table.compare-table th.property-column-header {
+            background: #222;
+            color: white;
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .source-badge.smarthomes {
+            background: #0066cc;
+            color: white;
+        }
+
+        .source-badge.squareyards {
+            background: #e67e22;
+            color: white;
+        }
+
+        .compare-image {
+            max-width: 160px;
+            max-height: 120px;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .not-available {
+            color: #999;
+            font-style: italic;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .rating-bar-track {
+            flex: 1;
+            background: #eee;
+            border-radius: 4px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .rating-bar-fill {
+            height: 100%;
+            background: #2ecc71;
+        }
+
+        .rating-score {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .rating-reason {
+            font-size: 0.8em;
+            color: #555;
+            margin: 0 0 10px 0;
+        }
+
+        .overall-rating {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .overall-basis {
+            font-size: 0.8em;
+            color: #555;
+        }
+
+        .clear-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: #0066cc;
+            cursor: pointer;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            font-size: 1em;
+            padding: 0;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="top-nav">
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('property.rentals') }}">Rentals</a>
+        <a href="{{ url_for('design.design') }}">Design Your Home</a>
+    </div>
+
+    <div class="page-wrap">
+
+        <h1>Compare Properties</h1>
+
+        <div id="compareLoading">Loading comparison&hellip;</div>
+
+        <div id="compareError"></div>
+
+        <div id="compareFailed"></div>
+
+        <div id="compareTableWrap"></div>
+
+        <button type="button" class="clear-link" id="compareClearLink">
+            Clear comparison and start over
+        </button>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='comparison.js') }}"></script>
+    <script src="{{ url_for('static', filename='compare_page.js') }}"></script>
+
+</body>
+
+</html>
