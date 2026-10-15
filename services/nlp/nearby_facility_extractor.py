@@ -88,6 +88,24 @@ CORRECTNESS-PASS ADDITIONS (post-Phase-4-Stage-2 bug fixes):
     exactly the amenity/nearby-facility confusion this whole module
     exists to prevent. "pool"/"swimming pool" is a generic category
     keyword, not a business-name alias.
+
+SEMANTIC FALLBACK (cosine similarity, opt-in only on an exact miss):
+  _FACILITY_NOUNS above is a closed, hand-maintained vocabulary - a
+  genuine paraphrase ("near an educational institution" instead of
+  "near a school") matches none of it and previously just produced no
+  requirement at all, silently. extract_nearby_facilities() now runs a
+  SECOND pass, _extract_semantic_fallback(), strictly AFTER the exact
+  pass above: it looks for the same "near/close to/... a <phrase>"
+  shape with an UNRECOGNIZED noun, and only for those hands the phrase
+  to services/nlp/facility_semantic_matcher.py (cosine similarity
+  against each category's canonical description, self-hosted, no
+  generative model). The exact pass always runs first and always wins
+  when it matches - this is a fallback for a miss, never a competing
+  second opinion on a hit. A fallback match gets a visibly lower
+  confidence (0.55 vs 0.8/0.85) than an exact match, and an
+  unrecognized phrase whose best cosine score still falls under the
+  calibrated threshold produces nothing at all - same "never guess"
+  posture as the rest of this module.
 """
 
 from __future__ import annotations
@@ -275,6 +293,104 @@ def _extract_coordinated_group(text: str, already_found_categories: set):
     return new_requirements, new_unsupported, group_text
 
 
+# ================================================================
+# SEMANTIC FALLBACK - see this module's docstring ("SEMANTIC FALLBACK").
+# A generic 1-2 word capture after the SAME preposition/article used by
+# the exact patterns above (every known facility noun is itself 1-2
+# words - "metro station", "bus stop", "petrol station" - so this cap
+# keeps the fallback from over-capturing into an unrelated later
+# clause while still covering realistic paraphrases like "educational
+# institution" or "grocery store"). The second word is only consumed
+# when it is NOT one of these common query-glue words - otherwise a
+# plain greedy `[a-z]+` would happily swallow "under"/"within"/etc.
+# from the REST of the query ("near a school under 20000" must capture
+# "school", not "school under") and send a needless, slower fallback
+# lookup for a phrase the exact pass already resolved.
+# ================================================================
+
+_GLUE_WORD = (
+    r"(?:under|above|below|within|near|nearby|for|with|without|and|or|"
+    r"should|is|are|in|at|on|the|a|an|of|to|from|per|per-month|bhk|"
+    r"rent|sale|sell|buy|month|monthly)"
+)
+
+_GENERIC_NOUN = rf"([a-z]+(?:\s+(?!{_GLUE_WORD}\b)[a-z]+)?)"
+
+# The article is MANDATORY here (unlike _ARTICLE, which is optional for
+# the exact-noun patterns above) - this is what keeps the fallback from
+# firing on a POI/proper-noun reference. "near a school"/"near an
+# educational institution" (genuine facility-category mentions) always
+# carry an indefinite article in natural English; "near Apollo Hospital
+# Chennai"/"near VIT Chennai" (proper nouns, handled by
+# location_extractor.py, not this module) never do. Losing this
+# distinction once sent "Apollo Hospital" straight into the semantic
+# matcher, which scored it a plausible "hospital" and masked the whole
+# POI name out of the location query - see test_nlp_parser.py's
+# test_comma_boundary_apollo_hospital, which is exactly what caught it.
+_MANDATORY_ARTICLE = r"(?:a\s+|an\s+|the\s+)"
+
+_GENERIC_PATTERNS = [
+    # "near/around/... a <phrase> within N km"
+    re.compile(rf"{_PREP}\s+{_MANDATORY_ARTICLE}{_GENERIC_NOUN}\s+within\s+{_RADIUS_NUM}\s*{_RADIUS_UNIT}\b"),
+    # "near/around/... a <phrase>"  (no radius)
+    re.compile(rf"{_PREP}\s+{_MANDATORY_ARTICLE}{_GENERIC_NOUN}\b"),
+]
+
+
+def _is_known_noun_phrase(phrase: str) -> bool:
+    """True if `phrase` already matches one of the EXACT facility nouns
+    (supported or explicitly-unsupported) - the semantic fallback must
+    never second-guess a phrase the exact pass already owns."""
+
+    all_entries = _FACILITY_NOUNS + _UNSUPPORTED_FACILITY_NOUNS
+    return any(re.fullmatch(rf"(?:{noun_pattern})", phrase) for noun_pattern, _ in all_entries)
+
+
+def _extract_semantic_fallback(text: str, already_found_categories: set) -> list:
+    """Strictly a fallback - only called by extract_nearby_facilities()
+    AFTER the exact pass above, and only ever asked about a phrase the
+    exact pass did not already resolve. See this module's docstring
+    ("SEMANTIC FALLBACK") and services/nlp/facility_semantic_matcher.py."""
+
+    from services.nlp import facility_semantic_matcher
+
+    results = []
+    seen_categories = set(already_found_categories)
+    claimed_spans = []
+
+    for pattern_index, pattern in enumerate(_GENERIC_PATTERNS):
+        for match in pattern.finditer(text):
+
+            phrase = match.group(1).strip()
+            span = match.span()
+
+            if not phrase or _is_known_noun_phrase(phrase):
+                continue  # the exact pass already covers (or will cover) this
+
+            if any(start <= span[0] < end for start, end in claimed_spans):
+                continue  # already matched by the radius-qualified variant above
+
+            category = facility_semantic_matcher.match_facility_phrase(phrase)
+
+            if not category or category in seen_categories:
+                continue
+
+            radius_m = None
+            if pattern_index == 0:  # the "...within N km" variant
+                radius_m = _radius_to_meters(match.group(2), match.group(3))
+
+            results.append(NearbyFacilityRequirement(
+                category=category,
+                radius_m=radius_m,
+                raw_text=match.group(0),
+                confidence=0.55,  # below every exact-match confidence (0.75-0.85) - this is a fuzzy match
+            ))
+            seen_categories.add(category)
+            claimed_spans.append(span)
+
+    return results
+
+
 def extract_nearby_facilities(text: str) -> list:
     """`text` should already be normalize_query()'d (same convention as
     location_extractor.extract_location()). Returns a list of
@@ -309,6 +425,9 @@ def extract_nearby_facilities(text: str) -> list:
     already_found = {r.category for r in found}
     new_requirements, _unsupported, _raw = _extract_coordinated_group(text, already_found)
     found.extend(new_requirements)
+
+    already_found = {r.category for r in found}
+    found.extend(_extract_semantic_fallback(text, already_found))
 
     return found
 

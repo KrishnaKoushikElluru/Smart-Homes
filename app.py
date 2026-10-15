@@ -1,4 +1,6 @@
+import logging
 import os
+import threading
 
 from flask import (
     Flask,
@@ -324,6 +326,35 @@ if app.config["NEARBY_FACILITY_SWEEP_ENABLED"]:
         batch_limit=app.config["NEARBY_FACILITY_SWEEP_BATCH_LIMIT"],
     )
 
+
+# ============================================================
+# NEARBY-FACILITY SEMANTIC FALLBACK - BACKGROUND WARMUP
+#
+# services/nlp/facility_semantic_matcher.py (used by
+# services/nlp/nearby_facility_extractor.py when a query's facility
+# mention misses every exact pattern) lazy-loads its embedding model on
+# first use, same as SigLIP2 does - normally the right call so app
+# startup never pays for a model nobody ends up needing. But that first
+# load is a real multi-second stall (weight loading, not network - the
+# download itself is a one-time, already-cached cost), and a live demo
+# is exactly the setting where that stall mid-conversation is worse
+# than a slightly slower boot. Started in a background thread so it
+# never delays the app actually becoming ready; a query that reaches
+# the fallback before this finishes just pays the normal lazy-load cost
+# this once, same as if warmup were never added at all.
+# ============================================================
+
+def _warm_facility_semantic_matcher():
+    try:
+        from services.nlp import facility_semantic_matcher
+        facility_semantic_matcher.match_facility_phrase("warmup")
+    except Exception:
+        # Never let a warmup failure affect app startup - the fallback
+        # simply lazy-loads (or keeps failing gracefully) on first real use.
+        logging.getLogger(__name__).exception("Facility semantic matcher warmup failed")
+
+
+threading.Thread(target=_warm_facility_semantic_matcher, daemon=True).start()
 
 
 # ============================================================
