@@ -24,30 +24,86 @@
             margin: 0;
             padding: 0;
             font-family: Arial, Helvetica, sans-serif;
-            background-color: #f5f5f5;
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+                url("{{ url_for('static', filename='rental.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: #222;
         }
 
+        /* ====================================================
+           TOP NAVIGATION (matches rentals.html / property_details.html)
+        ==================================================== */
+
         .top-nav {
-            background-color: #222;
-            padding: 16px 24px;
+            background-color: rgba(51, 51, 51, 0.95);
+            padding: 20px 0;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
         }
 
-        .top-nav a {
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .brand {
+            color: #00aaff;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
             color: white;
             text-decoration: none;
-            margin-right: 20px;
-            font-weight: bold;
+            padding: 10px 16px;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
         }
+
+        .nav-links a:hover {
+            background-color: #444;
+        }
+
+        /* ====================================================
+           PAGE PANEL
+        ==================================================== */
 
         .page-wrap {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px;
+            margin: 112px auto 40px;
+            padding: 32px 36px;
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         h1 {
             margin-top: 0;
+            text-align: center;
+            color: #0066cc;
+            font-size: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         #compareLoading, #compareError {
@@ -67,16 +123,28 @@
         .compare-failed-item {
             background: #fff3f3;
             border: 1px solid #e0b4b4;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 10px 14px;
             margin-bottom: 8px;
         }
 
+        /* ====================================================
+           COMPARISON TABLE
+           (kept solid and dense on purpose: this is a data-comparison
+           grid, not a decorative surface - readability over glass.)
+        ==================================================== */
+
+        .compare-table-scroll {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
         table.compare-table {
             width: 100%;
+            min-width: 520px;
             border-collapse: collapse;
             background: white;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
 
         table.compare-table th,
@@ -88,14 +156,21 @@
         }
 
         table.compare-table th.dimension-label {
-            background: #f0f0f0;
+            background: #f0f4fa;
             font-weight: bold;
             white-space: nowrap;
+            color: #333;
         }
 
         table.compare-table th.property-column-header {
-            background: #222;
+            background: rgba(51, 51, 51, 0.95);
             color: white;
+        }
+
+        table.compare-table th.category-ratings-header {
+            text-align: center;
+            background: #d5e0ee;
+            color: #0066cc;
         }
 
         .source-badge {
@@ -122,6 +197,7 @@
             max-height: 120px;
             display: block;
             border-radius: 4px;
+            border: 1px solid #ddd;
         }
 
         .not-available {
@@ -163,6 +239,7 @@
         .overall-rating {
             font-size: 1.3em;
             font-weight: bold;
+            color: #0066cc;
             margin-bottom: 4px;
         }
 
@@ -173,14 +250,37 @@
 
         .clear-link {
             display: inline-block;
-            margin-top: 16px;
+            margin-top: 20px;
+            padding: 10px 20px;
             color: #0066cc;
             cursor: pointer;
-            text-decoration: underline;
-            background: none;
-            border: none;
-            font-size: 1em;
-            padding: 0;
+            background: rgba(0, 102, 204, 0.08);
+            border: 1px solid rgba(0, 102, 204, 0.4);
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .clear-link:hover {
+            background-color: rgba(0, 102, 204, 0.85);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .page-wrap {
+                margin: 100px 12px 24px;
+                padding: 20px 16px;
+            }
+
+            .nav-links {
+                gap: 8px;
+            }
+
+            .nav-links a {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
         }
 
     </style>
@@ -190,9 +290,17 @@
 <body>
 
     <div class="top-nav">
-        <a href="{{ url_for('home') }}">Home</a>
-        <a href="{{ url_for('property.rentals') }}">Rentals</a>
-        <a href="{{ url_for('design.design') }}">Design Your Home</a>
+        <div class="nav-content">
+
+            <a href="{{ url_for('home') }}" class="brand">SMART HOMES</a>
+
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('property.rentals') }}">Rentals</a>
+                <a href="{{ url_for('design.design') }}">Design Your Home</a>
+            </div>
+
+        </div>
     </div>
 
     <div class="page-wrap">
@@ -205,7 +313,7 @@
 
         <div id="compareFailed"></div>
 
-        <div id="compareTableWrap"></div>
+        <div class="compare-table-scroll" id="compareTableWrap"></div>
 
         <button type="button" class="clear-link" id="compareClearLink">
             Clear comparison and start over

@@ -48,7 +48,6 @@ live app uses, nothing reimplemented here).
 import argparse
 import sys
 import time
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -57,61 +56,37 @@ import app as app_module  # noqa: E402
 from services import nearby_facility_service  # noqa: E402
 
 
-# A property whose background worker (Stage 1 -
-# services/nearby_facility_service.start_background_enrichment())
-# started less than this long ago might still be legitimately running
-# right now - re-running it here too would race the live worker and
-# defeat the whole point of the atomic claim guard. Only a "pending"
-# entry OLDER than this is treated as abandoned/stuck (e.g. the process
-# restarted mid-run) and eligible for --retry-failed. Real enrichment
-# has been observed to finish in well under a minute even for all 17
-# categories (see docs/PHASE_4_0_NEARBY_FACILITY_ENRICHMENT.md) - 10
-# minutes is a generous, deliberately conservative margin, not a tuned
-# value.
-STALE_PENDING_THRESHOLD_MINUTES = 10
+# Shared with services/nearby_facility_service.py's automatic sweep
+# (run_enrichment_sweep()) - both this manual script's --retry-failed
+# and that periodic sweep delegate to the exact same
+# PropertyService.find_stale_nearby_facility_candidates() query below,
+# so "what counts as stale" can never drift between the two.
+STALE_PENDING_THRESHOLD_MINUTES = nearby_facility_service.STALE_PENDING_THRESHOLD_MINUTES
 
 
-def _select_properties(collection, retry_failed: bool, force: bool, limit, stale_pending_minutes: int) -> list:
+def _select_properties(property_service, retry_failed: bool, force: bool, limit, stale_pending_minutes: int) -> list:
 
     if force:
-        query = {}
+        cursor = property_service.collection.find({}, {"_id": 1})
+        if limit:
+            cursor = cursor.limit(limit)
+        return [str(doc["_id"]) for doc in cursor]
 
-    elif retry_failed:
-        # Also picks up "pending" entries (Stage 1) - but ONLY ones
-        # older than stale_pending_minutes, so this can never collide
-        # with a background worker that is genuinely still running
-        # right now (that would recreate exactly the duplicate-worker
-        # race the atomic claim in
-        # PropertyService.claim_nearby_facilities_enrichment() exists
-        # to prevent). A "pending" property with no queued_at at all
-        # (shouldn't happen via the real registration flow, but
-        # defensively handled) is treated as stale too - there's no
-        # way to tell how old it is, so it's safer to assume abandoned
-        # than to leave it stuck forever.
-        stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=stale_pending_minutes)
+    if retry_failed:
+        # See PropertyService.find_stale_nearby_facility_candidates()'s
+        # own docstring for exactly what "stale" means (never
+        # attempted / failed / pending-and-abandoned) and why a young
+        # "pending" entry is deliberately left alone (it may be a
+        # real, currently-running worker).
+        return property_service.find_stale_nearby_facility_candidates(
+            stale_pending_minutes, limit=limit
+        )
 
-        query = {
-            "$or": [
-                {"nearby_facilities_metadata": {"$exists": False}},
-                {"nearby_facilities_metadata.status": "failed"},
-                {
-                    "nearby_facilities_metadata.status": "pending",
-                    "$or": [
-                        {"nearby_facilities_metadata.queued_at": {"$lt": stale_cutoff}},
-                        {"nearby_facilities_metadata.queued_at": {"$exists": False}},
-                    ],
-                },
-            ]
-        }
-
-    else:
-        query = {"nearby_facilities_metadata": {"$exists": False}}
-
-    cursor = collection.find(query, {"_id": 1})
-
+    cursor = property_service.collection.find(
+        {"nearby_facilities_metadata": {"$exists": False}}, {"_id": 1}
+    )
     if limit:
         cursor = cursor.limit(limit)
-
     return [str(doc["_id"]) for doc in cursor]
 
 
@@ -152,7 +127,7 @@ def main():
     radius_km = flask_app.config.get("NEARBY_FACILITY_RADIUS_KM")
 
     property_ids = _select_properties(
-        property_service.collection, args.retry_failed, args.force,
+        property_service, args.retry_failed, args.force,
         args.limit, args.stale_pending_minutes,
     )
 

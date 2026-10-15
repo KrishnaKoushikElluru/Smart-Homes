@@ -225,7 +225,7 @@
             html += "</tr>";
         });
 
-        html += '<tr><th class="dimension-label" colspan="' + (properties.length + 1) + '" style="text-align:center; background:#ddd;">Category Ratings</th></tr>';
+        html += '<tr><th class="dimension-label category-ratings-header" colspan="' + (properties.length + 1) + '">Category Ratings</th></tr>';
 
         CATEGORY_ORDER.forEach(function (key) {
             var firstCategory = properties.length > 0 ? properties[0].ratings.categories[key] : null;

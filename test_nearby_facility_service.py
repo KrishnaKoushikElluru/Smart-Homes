@@ -28,7 +28,7 @@ class FakePropertyService:
     only the methods enrich_property_nearby_facilities() and (Stage 1)
     start_background_enrichment() actually call."""
 
-    def __init__(self, properties=None):
+    def __init__(self, properties=None, stale_candidate_ids=None):
         self.properties = properties or {}
         self.update_calls = []
         self.get_calls = []
@@ -36,6 +36,14 @@ class FakePropertyService:
         self.raise_on_get = None
         self.raise_on_update = None
         self.raise_on_claim = None
+        # run_enrichment_sweep() tests set this directly rather than
+        # re-deriving the real Mongo query - PropertyService's own
+        # find_stale_nearby_facility_candidates() is tested for real
+        # against its own fake collection in test_property_services.py;
+        # here we only need to prove run_enrichment_sweep() calls
+        # start_background_enrichment() for whatever candidates it's told about.
+        self._stale_candidate_ids = stale_candidate_ids or []
+        self.find_stale_calls = []
 
     def get_property(self, property_id):
         self.get_calls.append(property_id)
@@ -63,6 +71,11 @@ class FakePropertyService:
         self.properties.setdefault(property_id, {})["nearby_facilities_metadata"] = pending_metadata
         return True
         return True
+
+    def find_stale_nearby_facility_candidates(self, stale_pending_minutes, limit=None):
+        self.find_stale_calls.append((stale_pending_minutes, limit))
+        ids = list(self._stale_candidate_ids)
+        return ids[:limit] if limit else ids
 
 
 def property_with_coordinates(lat=12.8406, lon=80.1538):
@@ -122,7 +135,16 @@ class PropertyGatingTests(unittest.TestCase):
 
         mock_find_nearby.assert_not_called()
         self.assertEqual(result["status"], "skipped")
-        self.assertEqual(prop_service.update_calls, [])
+        # A "skipped" outcome must still be PERSISTED - this path is
+        # reachable via start_background_enrichment(), which already
+        # wrote a "pending" claim before this function ever ran;
+        # leaving that claim unresolved would strand the property at
+        # "pending" forever (see _persist_early_exit()'s docstring).
+        self.assertEqual(len(prop_service.update_calls), 1)
+        written_id, written_update = prop_service.update_calls[0]
+        self.assertEqual(written_id, "p1")
+        self.assertEqual(written_update["nearby_facilities"], [])
+        self.assertEqual(written_update["nearby_facilities_metadata"]["status"], "skipped")
 
     @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
     def test_property_with_invalid_coordinates_does_not_attempt_enrichment(self, mock_find_nearby):
@@ -135,6 +157,9 @@ class PropertyGatingTests(unittest.TestCase):
 
         mock_find_nearby.assert_not_called()
         self.assertEqual(result["status"], "skipped")
+        self.assertEqual(
+            prop_service.properties["p1"]["nearby_facilities_metadata"]["status"], "skipped"
+        )
 
     def test_nonexistent_property_is_skipped_not_failed(self):
         prop_service = FakePropertyService({})
@@ -144,6 +169,12 @@ class PropertyGatingTests(unittest.TestCase):
         )
 
         self.assertEqual(result["status"], "skipped")
+        # Persisted even though the property itself doesn't exist in
+        # this fake - update_property() on a non-matching id is a
+        # harmless no-op in the real PropertyService too, so this call
+        # is always safe to make regardless of whether anything exists
+        # to update.
+        self.assertEqual(len(prop_service.update_calls), 1)
 
     def test_get_property_raising_produces_failed_not_a_crash(self):
         prop_service = FakePropertyService({})
@@ -155,6 +186,21 @@ class PropertyGatingTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "failed")
         self.assertIn("mongo down", result["error"])
+        self.assertEqual(len(prop_service.update_calls), 1)
+
+    def test_persist_of_early_exit_failing_does_not_raise(self):
+        """_persist_early_exit() is itself best-effort - a transient
+        Mongo error while trying to record a "skipped" outcome must
+        never propagate out of enrich_property_nearby_facilities()
+        (its own documented "never raises" contract)."""
+        prop_service = FakePropertyService({})
+        prop_service.raise_on_update = RuntimeError("mongo down during write")
+
+        result = nfs.enrich_property_nearby_facilities(
+            "missing", prop_service, "key",
+        )
+
+        self.assertEqual(result["status"], "skipped")
 
 
 # ============================================================
@@ -950,6 +996,154 @@ class BuildNearbyFacilitiesDisplayTests(unittest.TestCase):
         self.assertEqual(
             set(facility.keys()), {"name", "address", "distance_m", "distance_label"}
         )
+
+
+# ============================================================
+# AUTOMATIC RETRY SWEEP (Stage 2)
+# ============================================================
+
+class RunEnrichmentSweepTests(unittest.TestCase):
+
+    def test_starts_a_worker_for_each_candidate(self):
+        prop_service = FakePropertyService(
+            {
+                "p1": property_with_coordinates(),
+                "p2": property_with_coordinates(),
+            },
+            stale_candidate_ids=["p1", "p2"],
+        )
+
+        with patch("services.nearby_facility_service.enrich_property_nearby_facilities", return_value={"status": "completed"}):
+            started = nfs.run_enrichment_sweep(prop_service, "key")
+
+        self.assertEqual(set(started), {"p1", "p2"})
+        self.assertEqual(prop_service.find_stale_calls, [(nfs.STALE_PENDING_THRESHOLD_MINUTES, nfs.DEFAULT_SWEEP_BATCH_LIMIT)])
+
+    def test_passes_through_custom_thresholds_and_limit(self):
+        prop_service = FakePropertyService(stale_candidate_ids=[])
+
+        nfs.run_enrichment_sweep(
+            prop_service, "key", stale_pending_minutes=30, limit=5
+        )
+
+        self.assertEqual(prop_service.find_stale_calls, [(30, 5)])
+
+    def test_candidate_already_claimed_by_someone_else_is_skipped_not_fatal(self):
+        """A candidate that raced a real registration-time worker
+        between selection and claim must be silently skipped - the
+        exact same contract start_background_enrichment() already
+        documents for a failed claim."""
+        prop_service = FakePropertyService(
+            {"p1": {"_id": "p1", "location": {"coordinates": {"type": "Point", "coordinates": [80.1538, 12.8406]}},
+                     "nearby_facilities_metadata": {"status": "pending"}}},
+            stale_candidate_ids=["p1"],
+        )
+
+        started = nfs.run_enrichment_sweep(prop_service, "key")
+
+        self.assertEqual(started, [])
+
+    def test_no_candidates_returns_empty_list(self):
+        prop_service = FakePropertyService(stale_candidate_ids=[])
+        started = nfs.run_enrichment_sweep(prop_service, "key")
+        self.assertEqual(started, [])
+
+    def test_candidate_selection_failure_does_not_raise(self):
+        class RaisingPropertyService(FakePropertyService):
+            def find_stale_nearby_facility_candidates(self, *args, **kwargs):
+                raise RuntimeError("Mongo is down")
+
+        prop_service = RaisingPropertyService()
+
+        started = nfs.run_enrichment_sweep(prop_service, "key")
+
+        self.assertEqual(started, [])
+
+
+class StartPeriodicEnrichmentSweepTests(unittest.TestCase):
+
+    @patch("services.nearby_facility_service.mappls_service.find_nearby_places")
+    def test_runs_a_sweep_pass_after_the_startup_grace_period(self, mock_find_nearby):
+        import threading as threading_module
+
+        worker_done = threading_module.Event()
+
+        def fake_find_nearby(*args, **kwargs):
+            result = mappls_matched([raw_place(name="Test Gym", eloc="G1")])
+            worker_done.set()
+            return result
+
+        mock_find_nearby.side_effect = fake_find_nearby
+
+        prop_service = FakePropertyService(
+            {"p1": property_with_coordinates()},
+            stale_candidate_ids=["p1"],
+        )
+
+        with patch("services.nearby_facility_service.SWEEP_STARTUP_GRACE_SECONDS", 0):
+
+            thread, stop_event = nfs.start_periodic_enrichment_sweep(
+                prop_service, "key", interval_minutes=1000,
+            )
+
+            # Deterministically wait for the spawned per-property worker
+            # thread (started by start_background_enrichment() inside
+            # the sweep) to actually call out to Mappls, rather than a
+            # fixed sleep. The real enrich_property_nearby_facilities()
+            # runs unmocked here (only its external Mappls boundary is
+            # mocked), so it performs the real property_service.update_property()
+            # call that actually transitions "pending" to "completed".
+            self.assertTrue(worker_done.wait(timeout=5))
+            # Give the worker thread a moment to finish writing the
+            # final metadata after making its last Mappls call.
+            import time as time_module
+            time_module.sleep(0.2)
+
+            stop_event.set()
+            thread.join(timeout=5)
+
+        self.assertFalse(thread.is_alive())
+        self.assertIn("p1", prop_service.properties)
+        self.assertEqual(
+            prop_service.properties["p1"]["nearby_facilities_metadata"]["status"], "completed"
+        )
+
+    def test_a_sweep_pass_raising_does_not_kill_the_loop(self):
+        """A single pass's own exception (already caught inside
+        run_enrichment_sweep()) must never propagate out and kill the
+        periodic thread - the loop must still be alive and stoppable."""
+        class RaisingPropertyService(FakePropertyService):
+            def find_stale_nearby_facility_candidates(self, *args, **kwargs):
+                raise RuntimeError("boom")
+
+        prop_service = RaisingPropertyService()
+
+        with patch("services.nearby_facility_service.SWEEP_STARTUP_GRACE_SECONDS", 0):
+            thread, stop_event = nfs.start_periodic_enrichment_sweep(
+                prop_service, "key", interval_minutes=1000,
+            )
+
+            import time as time_module
+            time_module.sleep(0.2)
+            stop_event.set()
+            thread.join(timeout=5)
+
+        self.assertFalse(thread.is_alive())
+
+    def test_stop_event_during_startup_grace_period_exits_immediately(self):
+        prop_service = FakePropertyService(stale_candidate_ids=["p1"])
+
+        thread, stop_event = nfs.start_periodic_enrichment_sweep(
+            prop_service, "key", interval_minutes=1000,
+        )
+        # Stop it immediately, well before the real (non-patched)
+        # SWEEP_STARTUP_GRACE_SECONDS would elapse - proves the thread
+        # exits via the grace-period wait, not by running a sweep first.
+        stop_event.set()
+        thread.join(timeout=5)
+
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(prop_service.find_stale_calls, [])
 
 
 if __name__ == "__main__":

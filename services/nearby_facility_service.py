@@ -346,16 +346,40 @@ def enrich_property_nearby_facilities(
         "error": None,
     }
 
+    def _persist_early_exit(current_metadata):
+        # Every early return below (property couldn't be loaded, not
+        # found, or has no/invalid coordinates) used to return without
+        # writing anything to MongoDB - harmless for a direct
+        # synchronous caller (e.g. scripts/backfill_nearby_facilities.py),
+        # but start_background_enrichment() already writes a "pending"
+        # claim via claim_nearby_facilities_enrichment() BEFORE this
+        # function ever runs. Leaving that claim unresolved strands the
+        # property at "pending" forever - the exact stuck-forever
+        # symptom this module's own Stage 1 docstring exists to avoid.
+        # Persisting here (best-effort - this function must never
+        # raise) closes that gap for every caller uniformly, matching
+        # this function's own docstring: "Returns the same metadata
+        # dict that gets stored as the property's
+        # 'nearby_facilities_metadata' field."
+        try:
+            property_service.update_property(property_id, {
+                "nearby_facilities": [],
+                "nearby_facilities_metadata": current_metadata,
+            })
+        except Exception:
+            pass
+        return current_metadata
+
     try:
         property_document = property_service.get_property(property_id)
     except Exception as exc:
         metadata["error"] = f"Could not load property: {exc}"
-        return metadata
+        return _persist_early_exit(metadata)
 
     if not property_document:
         metadata["status"] = "skipped"
         metadata["error"] = "Property not found."
-        return metadata
+        return _persist_early_exit(metadata)
 
     location = property_document.get("location") or {}
     coordinates_field = location.get("coordinates") or {}
@@ -364,14 +388,14 @@ def enrich_property_nearby_facilities(
     if len(coordinate_values) != 2:
         metadata["status"] = "skipped"
         metadata["error"] = "Property has no coordinates to enrich from."
-        return metadata
+        return _persist_early_exit(metadata)
 
     longitude, latitude = coordinate_values[0], coordinate_values[1]
 
     if not _is_valid_coordinate(latitude, longitude):
         metadata["status"] = "skipped"
         metadata["error"] = "Property coordinates are invalid."
-        return metadata
+        return _persist_early_exit(metadata)
 
     ref_location = f"{latitude},{longitude}"
 
@@ -615,6 +639,158 @@ def start_background_enrichment(
     thread.start()
 
     return thread
+
+
+# ============================================================
+# STAGE 2: AUTOMATIC RETRY SWEEP
+#
+# start_background_enrichment()'s own docstring already disclosed this
+# gap: "if the whole process restarts while a thread is mid-run, that
+# one enrichment is abandoned (left at 'pending')... recoverable later
+# (a future pass can look for stuck 'pending' entries older than some
+# threshold and re-run them; not built in this stage)." That manual
+# recovery pass WAS built (scripts/backfill_nearby_facilities.py
+# --retry-failed), but it only runs when a human remembers to invoke
+# it. This section is the automatic version of the exact same idea -
+# a periodic sweep, started once at app startup, that finds the same
+# "never attempted / failed / stale pending" candidates
+# (PropertyService.find_stale_nearby_facility_candidates() - the
+# SAME query the manual script now also delegates to, so the two can
+# never disagree on what counts as stale) and retries each one via
+# the EXISTING start_background_enrichment() - every safety guarantee
+# that function already has (atomic per-property claim, never raises,
+# never blocks the caller) applies here unchanged. No new MongoDB
+# access pattern, no new task-queue dependency - still plain stdlib
+# threading, matching this module's existing convention.
+# ============================================================
+
+# How old a "pending" entry must be before it's treated as abandoned
+# rather than a real, currently-running worker. Shared by the manual
+# --retry-failed script and this automatic sweep - see
+# PropertyService.find_stale_nearby_facility_candidates()'s docstring
+# for why this matters (racing a genuinely-running worker would defeat
+# the atomic claim guard). Real enrichment finishes in well under a
+# minute even for all 17 categories (docs/PHASE_4_0_NEARBY_FACILITY_ENRICHMENT.md) -
+# 10 minutes is a generous, deliberately conservative margin, not a
+# tuned value.
+STALE_PENDING_THRESHOLD_MINUTES = 10
+
+# How often the periodic sweep runs, and how many stale candidates it
+# will start a worker for in a single pass - bounded so a sudden burst
+# of stale properties (e.g. right after a long outage) doesn't fire
+# off an unbounded number of concurrent Mappls calls at once. Neither
+# value is tuned against production data - both are configurable via
+# app.py's NEARBY_FACILITY_SWEEP_INTERVAL_MINUTES/_BATCH_LIMIT env
+# vars for exactly that reason.
+DEFAULT_SWEEP_INTERVAL_MINUTES = 15
+DEFAULT_SWEEP_BATCH_LIMIT = 20
+
+# Delay before the FIRST sweep pass after the thread starts - gives
+# the app's own startup (MongoDB connection, index creation) a moment
+# to finish before the sweep adds its own MongoDB query on top.
+SWEEP_STARTUP_GRACE_SECONDS = 30
+
+
+def run_enrichment_sweep(
+    property_service,
+    mappls_api_key,
+    radius_km: Optional[float] = None,
+    stale_pending_minutes: int = STALE_PENDING_THRESHOLD_MINUTES,
+    limit: int = DEFAULT_SWEEP_BATCH_LIMIT,
+) -> list:
+    """One pass of the automatic sweep. Returns the list of property_ids
+    a worker was actually started for - a candidate that got claimed by
+    someone/something else between selection and claim (e.g. a real
+    registration-time worker that started in that same instant) is
+    silently skipped, exactly as start_background_enrichment() already
+    documents; this never raises for that case or any other.
+
+    Never raises: a failure finding candidates (e.g. a transient Mongo
+    error) is treated the same as "nothing to do this pass" - the next
+    scheduled sweep will simply try again."""
+
+    try:
+        candidate_ids = property_service.find_stale_nearby_facility_candidates(
+            stale_pending_minutes, limit=limit
+        )
+    except Exception:
+        return []
+
+    started = []
+
+    for property_id in candidate_ids:
+
+        thread = start_background_enrichment(
+            property_id,
+            property_service,
+            mappls_api_key,
+            radius_km=radius_km,
+        )
+
+        if thread is not None:
+            started.append(property_id)
+
+    return started
+
+
+def start_periodic_enrichment_sweep(
+    property_service,
+    mappls_api_key,
+    radius_km: Optional[float] = None,
+    interval_minutes: int = DEFAULT_SWEEP_INTERVAL_MINUTES,
+    stale_pending_minutes: int = STALE_PENDING_THRESHOLD_MINUTES,
+    batch_limit: int = DEFAULT_SWEEP_BATCH_LIMIT,
+    stop_event: Optional[threading.Event] = None,
+):
+    """Starts a daemon thread that runs run_enrichment_sweep() once
+    (after SWEEP_STARTUP_GRACE_SECONDS) and then every interval_minutes,
+    for the lifetime of the process - the automatic counterpart to
+    manually re-running scripts/backfill_nearby_facilities.py
+    --retry-failed. Intended to be called once, at app startup (see
+    app.py's MONGODB section), never per-request.
+
+    stop_event: a threading.Event a caller can set() to stop the loop
+    cleanly - used by tests to avoid a real sleeping background thread
+    outliving the test. The real app never passes one; the thread is
+    daemon=True and simply dies with the process on shutdown.
+
+    Returns (thread, stop_event) - a caller that wants to stop the
+    sweep later (tests only) calls stop_event.set()."""
+
+    stop_event = stop_event if stop_event is not None else threading.Event()
+
+    def _loop():
+
+        if stop_event.wait(SWEEP_STARTUP_GRACE_SECONDS):
+            return
+
+        while True:
+
+            try:
+                run_enrichment_sweep(
+                    property_service,
+                    mappls_api_key,
+                    radius_km=radius_km,
+                    stale_pending_minutes=stale_pending_minutes,
+                    limit=batch_limit,
+                )
+            except Exception:
+                # A sweep pass failing entirely must never kill the
+                # periodic loop itself - the next scheduled pass will
+                # simply try again.
+                pass
+
+            if stop_event.wait(interval_minutes * 60):
+                return
+
+    thread = threading.Thread(
+        target=_loop,
+        daemon=True,
+        name="nearby-facility-enrichment-sweep",
+    )
+    thread.start()
+
+    return thread, stop_event
 
 
 # ============================================================

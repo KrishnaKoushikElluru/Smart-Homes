@@ -17,7 +17,7 @@ test_osm_location_service.py's FakeCollection).
 """
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from bson import ObjectId
@@ -341,6 +341,184 @@ class EditedPropertySearchConsistencyTests(unittest.TestCase):
         })
 
         self.assertEqual(results, [])
+
+
+# ============================================================
+# FIND STALE NEARBY-FACILITY CANDIDATES
+#
+# Single source of truth shared by scripts/backfill_nearby_facilities.py
+# --retry-failed and services/nearby_facility_service.py's automatic
+# sweep - see find_stale_nearby_facility_candidates()'s own docstring.
+# ============================================================
+
+class FakeFindCursor:
+
+    def __init__(self, docs):
+        self._docs = docs
+
+    def limit(self, n):
+        self._docs = self._docs[:n]
+        return self
+
+    def __iter__(self):
+        return iter(self._docs)
+
+
+class FakeFindCollection:
+    """Interprets the EXACT query shape
+    find_stale_nearby_facility_candidates() builds - a 3-way $or of
+    (no metadata at all) / (status == "failed") / (status == "pending"
+    AND queued_at older than the cutoff, or missing entirely) -
+    against plain stored docs. Not a generic Mongo query interpreter;
+    matches this project's existing small-purpose-built-fake
+    convention (see FakeCollection above)."""
+
+    def __init__(self, docs):
+        self.docs = docs  # list of plain dicts, each with "_id" and optionally "nearby_facilities_metadata"
+
+    def find(self, query, projection=None):
+        stale_cutoff = query["$or"][2]["$or"][0]["nearby_facilities_metadata.queued_at"]["$lt"]
+
+        matched = []
+        for doc in self.docs:
+            meta = doc.get("nearby_facilities_metadata")
+
+            if meta is None:
+                matched.append(doc)
+                continue
+
+            if meta.get("status") == "failed":
+                matched.append(doc)
+                continue
+
+            if meta.get("status") == "pending":
+                queued_at = meta.get("queued_at")
+                if queued_at is None or queued_at < stale_cutoff:
+                    matched.append(doc)
+
+        return FakeFindCursor(matched)
+
+
+def make_property_service_with_docs(docs):
+    service = PropertyService.__new__(PropertyService)
+    service.collection = FakeFindCollection(docs)
+    return service
+
+
+class FindStaleNearbyFacilityCandidatesTests(unittest.TestCase):
+
+    def test_property_with_no_metadata_at_all_is_a_candidate(self):
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {"_id": property_id},
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [property_id])
+
+    def test_property_with_failed_status_is_a_candidate(self):
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {"_id": property_id, "nearby_facilities_metadata": {"status": "failed"}},
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [property_id])
+
+    def test_stale_pending_older_than_threshold_is_a_candidate(self):
+        property_id = str(ObjectId())
+        old_queued_at = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        service = make_property_service_with_docs([
+            {
+                "_id": property_id,
+                "nearby_facilities_metadata": {"status": "pending", "queued_at": old_queued_at},
+            },
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [property_id])
+
+    def test_recent_pending_is_not_a_candidate(self):
+        """The critical safety guarantee: a worker that started seconds
+        ago must never be raced by this query - see claim_nearby_facilities_enrichment()'s
+        own atomic guard, which this must not defeat."""
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {
+                "_id": property_id,
+                "nearby_facilities_metadata": {"status": "pending", "queued_at": datetime.now(timezone.utc)},
+            },
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [])
+
+    def test_pending_with_no_queued_at_is_treated_as_stale(self):
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {"_id": property_id, "nearby_facilities_metadata": {"status": "pending"}},
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [property_id])
+
+    def test_completed_property_is_never_a_candidate(self):
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {"_id": property_id, "nearby_facilities_metadata": {"status": "completed"}},
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [])
+
+    def test_partial_property_is_never_a_candidate(self):
+        property_id = str(ObjectId())
+        service = make_property_service_with_docs([
+            {"_id": property_id, "nearby_facilities_metadata": {"status": "partial"}},
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(result, [])
+
+    def test_limit_is_applied(self):
+        docs = [{"_id": str(ObjectId())} for _ in range(5)]
+        service = make_property_service_with_docs(docs)
+
+        result = service.find_stale_nearby_facility_candidates(10, limit=2)
+
+        self.assertEqual(len(result), 2)
+
+    def test_mixed_set_returns_only_eligible_ones(self):
+        healthy_id = str(ObjectId())
+        never_id = str(ObjectId())
+        failed_id = str(ObjectId())
+        stale_pending_id = str(ObjectId())
+        fresh_pending_id = str(ObjectId())
+
+        service = make_property_service_with_docs([
+            {"_id": healthy_id, "nearby_facilities_metadata": {"status": "completed"}},
+            {"_id": never_id},
+            {"_id": failed_id, "nearby_facilities_metadata": {"status": "failed"}},
+            {
+                "_id": stale_pending_id,
+                "nearby_facilities_metadata": {"status": "pending", "queued_at": datetime(2000, 1, 1, tzinfo=timezone.utc)},
+            },
+            {
+                "_id": fresh_pending_id,
+                "nearby_facilities_metadata": {"status": "pending", "queued_at": datetime.now(timezone.utc)},
+            },
+        ])
+
+        result = service.find_stale_nearby_facility_candidates(10)
+
+        self.assertEqual(set(result), {never_id, failed_id, stale_pending_id})
 
 
 if __name__ == "__main__":

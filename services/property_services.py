@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -735,6 +735,59 @@ class PropertyService:
         return (
             result.modified_count > 0
         )
+
+
+    # ========================================================
+    # STALE NEARBY-FACILITY ENRICHMENT CANDIDATES
+    #
+    # Single source of truth for "which properties are eligible for a
+    # nearby-facility enrichment retry" - a property that was never
+    # attempted (no nearby_facilities_metadata at all), one whose last
+    # attempt ended in "failed", or a "pending" claim older than
+    # stale_pending_minutes (abandoned - e.g. the process restarted
+    # mid-run, see services/nearby_facility_service.py's
+    # start_background_enrichment() docstring for that tradeoff).
+    # A "pending" entry younger than the threshold is deliberately left
+    # alone - it may be a real, currently-running worker, and touching
+    # it here would race that worker and defeat the point of
+    # claim_nearby_facilities_enrichment()'s atomic guard above.
+    #
+    # Used by BOTH scripts/backfill_nearby_facilities.py's --retry-failed
+    # and services/nearby_facility_service.py's automatic periodic sweep
+    # (run_enrichment_sweep()) - one query, so the two can never drift
+    # apart on what counts as "stale".
+    # ========================================================
+
+    def find_stale_nearby_facility_candidates(
+        self,
+        stale_pending_minutes,
+        limit=None
+    ):
+
+        stale_cutoff = datetime.now(timezone.utc) - timedelta(
+            minutes=stale_pending_minutes
+        )
+
+        query = {
+            "$or": [
+                {"nearby_facilities_metadata": {"$exists": False}},
+                {"nearby_facilities_metadata.status": "failed"},
+                {
+                    "nearby_facilities_metadata.status": "pending",
+                    "$or": [
+                        {"nearby_facilities_metadata.queued_at": {"$lt": stale_cutoff}},
+                        {"nearby_facilities_metadata.queued_at": {"$exists": False}},
+                    ],
+                },
+            ]
+        }
+
+        cursor = self.collection.find(query, {"_id": 1})
+
+        if limit:
+            cursor = cursor.limit(limit)
+
+        return [str(doc["_id"]) for doc in cursor]
 
 
     # ========================================================

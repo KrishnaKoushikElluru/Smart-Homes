@@ -186,6 +186,38 @@ app.config["NEARBY_FACILITY_RADIUS_KM"] = float(os.getenv(
     str(nearby_facility_service.DEFAULT_RADIUS_KM)
 ))
 
+# ============================================================
+# PHASE 4.1 - AUTOMATIC NEARBY-FACILITY ENRICHMENT RETRY SWEEP
+#
+# Recovers properties left stuck ("pending", abandoned by a process
+# restart mid-run) or never enriched at all, without anyone having to
+# remember to run scripts/backfill_nearby_facilities.py --retry-failed
+# by hand - see services/nearby_facility_service.py's
+# start_periodic_enrichment_sweep() for the full design. Disabled
+# entirely via NEARBY_FACILITY_SWEEP_ENABLED=false (e.g. for a test/
+# throwaway database where you don't want background Mappls calls).
+# ============================================================
+
+app.config["NEARBY_FACILITY_SWEEP_ENABLED"] = os.getenv(
+    "NEARBY_FACILITY_SWEEP_ENABLED",
+    "true"
+).strip().lower() not in ("false", "0", "no")
+
+app.config["NEARBY_FACILITY_SWEEP_INTERVAL_MINUTES"] = int(os.getenv(
+    "NEARBY_FACILITY_SWEEP_INTERVAL_MINUTES",
+    str(nearby_facility_service.DEFAULT_SWEEP_INTERVAL_MINUTES)
+))
+
+app.config["NEARBY_FACILITY_SWEEP_STALE_PENDING_MINUTES"] = int(os.getenv(
+    "NEARBY_FACILITY_SWEEP_STALE_PENDING_MINUTES",
+    str(nearby_facility_service.STALE_PENDING_THRESHOLD_MINUTES)
+))
+
+app.config["NEARBY_FACILITY_SWEEP_BATCH_LIMIT"] = int(os.getenv(
+    "NEARBY_FACILITY_SWEEP_BATCH_LIMIT",
+    str(nearby_facility_service.DEFAULT_SWEEP_BATCH_LIMIT)
+))
+
 
 # ============================================================
 # EXTENSIONS
@@ -281,6 +313,16 @@ app.extensions[
 ] = osm_location_service
 
 osm_location_service.ensure_indexes()
+
+if app.config["NEARBY_FACILITY_SWEEP_ENABLED"]:
+    nearby_facility_service.start_periodic_enrichment_sweep(
+        property_service,
+        app.config["MAPPLS_API_KEY"],
+        radius_km=app.config["NEARBY_FACILITY_RADIUS_KM"],
+        interval_minutes=app.config["NEARBY_FACILITY_SWEEP_INTERVAL_MINUTES"],
+        stale_pending_minutes=app.config["NEARBY_FACILITY_SWEEP_STALE_PENDING_MINUTES"],
+        batch_limit=app.config["NEARBY_FACILITY_SWEEP_BATCH_LIMIT"],
+    )
 
 
 
