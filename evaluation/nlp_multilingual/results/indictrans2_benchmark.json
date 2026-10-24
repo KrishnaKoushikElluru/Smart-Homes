@@ -1,0 +1,182 @@
+{
+  "benchmark": "IndicTrans2 translation-then-parse feasibility benchmark",
+  "status": "executed",
+  "benchmark_completed": true,
+  "generated_at_utc": "2026-09-11T06:10:00Z",
+  "updated_at_utc": "2026-09-11T13:41:44Z",
+  "update_note": "This file now documents the ACTUAL EXECUTED benchmark, run inside the isolated WSL environment after the user supplied Hugging Face authentication. Earlier phases of this file (Windows-blocked, then WSL-platform-resolved-but-still-HF-gated) are preserved in history_of_this_investigation below rather than being deleted, since they are real, accurate records of what was true at each point. All numbers in real_run below come directly from evaluation/nlp_multilingual/results/indictrans2_run_20260911T134144Z.json, written by evaluation/nlp_multilingual/run_indictrans2_benchmark.py - nothing here is hand-typed or estimated.",
+
+  "history_of_this_investigation": {
+    "phase_1_windows": "Blocked before any translation: IndicTransToolkit has no Windows wheel (needs a Cython compile requiring MSVC Build Tools), and the model was gated on HuggingFace with no token available.",
+    "phase_2_wsl_no_token": "Windows/Cython blocker resolved by moving to WSL2 Ubuntu 24.04 (IndicTransToolkit installs from a pre-built manylinux wheel there; required pinning transformers<5 to fix a separate IndicTransToolkit/transformers-5.x import incompatibility). Still blocked: no HuggingFace token configured, so the gated model could not be downloaded. Benchmark remained not-executed.",
+    "phase_3_wsl_with_token_two_new_bugs_found_and_fixed": {
+      "note": "Once the user configured HF auth (`hf auth whoami` confirmed), two MORE previously-unknown compatibility bugs surfaced and were fixed before the benchmark could actually run - both are disclosed here, not hidden.",
+      "bug_a_huggingface_hub_version": "pip had resolved huggingface_hub to 1.31.0, which IndicTransToolkit's collator.py (via transformers' internal version check) rejects - transformers 4.57.6 requires huggingface_hub>=0.34.0,<1.0. Fixed by pinning huggingface_hub to that range, which resolved to 0.36.2. HF auth/login state survived this downgrade (re-verified via `hf auth whoami` and a live model_info() call after downgrading).",
+      "bug_b_xet_download_protocol": "The first full download attempt of the ~922MB model spent 35 minutes and then failed with `OSError: I/O error: error decoding response body` inside huggingface_hub's newer 'xet' transfer backend (xet_get). Fixed by setting HF_HUB_DISABLE_XET=1, which falls back to plain HTTP download - the retry succeeded (tokenizer in 18s, full model in ~16 minutes, 211,780,608 params confirmed matching the 200M-distilled checkpoint).",
+      "bug_c_legacy_kv_cache_incompatibility": "The first real translation attempt crashed on EVERY query (0/65, translation_success_rate=0.0) with `AttributeError: 'NoneType' object has no attribute 'shape'` at modeling_indictrans.py line 1360 (`past_key_values[0][0].shape[2]`). Root cause: AI4Bharat's custom remote model code (auto_map-loaded via trust_remote_code=True, internally pinned to transformers==4.32.1) assumes the legacy tuple-based KV-cache format; transformers==4.57.6's generate() now pre-populates an empty DynamicCache object instead of None even on the first decoding step, so that indexing breaks. Fixed by passing use_cache=False to model.generate() - this avoids the incompatible cache object entirely (verified: 100% failure with use_cache=True, 100% success with use_cache=False on this transformers version), at the cost of slower uncached decoding, an honestly-disclosed latency cost of the version mismatch, not hidden."
+    }
+  },
+
+  "environment": {
+    "platform": "WSL2, Ubuntu 24.04.4 LTS, isolated venv ~/smarthomes_benchmark/.venv (Python 3.12.3), entirely separate from the Windows production venv and requirements.txt",
+    "hf_auth": "Confirmed via `hf auth whoami` (user: chichu27) before any model access was attempted; token was configured directly by the user in their own WSL terminal, never seen or handled by this session",
+    "dependency_versions_final": {
+      "torch": "2.14.0+cpu",
+      "transformers": "4.57.6",
+      "huggingface_hub": "0.36.2 (downgraded from an initially-resolved 1.31.0 - see history_of_this_investigation.phase_3...bug_a)",
+      "IndicTransToolkit": "1.1.1",
+      "sentencepiece": "0.2.2",
+      "sacremoses": "0.2.0",
+      "indic-nlp-library-itt": "0.1.1"
+    },
+    "model": "ai4bharat/indictrans2-indic-en-dist-200M (confirmed 211,780,608 parameters, MIT license)",
+    "model_load_seconds_final_run": 8.1
+  },
+
+  "real_run": {
+    "run_file": "evaluation/nlp_multilingual/results/indictrans2_run_20260911T134144Z.json",
+    "dataset_path": "evaluation/nlp_multilingual/data/multilingual_dev_queries.json",
+    "dataset_size": 84,
+    "dataset_unchanged": true,
+
+    "translation": {
+      "n_queries_requiring_translation": 65,
+      "n_translation_failures": 0,
+      "translation_success_rate": 1.0,
+      "total_translation_wall_seconds": 46.97,
+      "avg_latency_ms_per_query": 722.57,
+      "min_latency_ms_per_query": 432.71,
+      "max_latency_ms_per_query": 1256.30,
+      "peak_rss_kb_before": 461624,
+      "peak_rss_kb_after": 1318272,
+      "peak_rss_MB_after": 1287.4,
+      "note": "Latency reflects use_cache=False decoding (see history_of_this_investigation.phase_3...bug_c) - a real, disclosed cost of the transformers-version/model-code mismatch, not the model's best-case CPU latency with a compatible transformers version."
+    },
+
+    "overall": {
+      "n_queries": 84,
+      "exact_match_accuracy": 0.548,
+      "intent_accuracy": 0.988,
+      "slot_precision": null,
+      "slot_recall": null,
+      "slot_f1": 0.817
+    },
+
+    "english_control": {"n": 19, "exact_match_accuracy": 0.6316, "intent_accuracy": 1.0,
+      "note": "Lower than the production 244-query held-out baseline (0.962) NOT because of anything in this phase - these 19 control queries were never translated or touched by IndicTrans2 at all. The gap is explained below: this smaller 84-query set's numeric_unit category deliberately includes bare '<number><unit> flat' queries with no comparison keyword ('20k flat', '30k flat', '50 lakh flat', '1.5 crore villa'), which the EXISTING English parser (services/nlp/numeric_parser.py, unmodified) does not treat as a price constraint without an explicit operator word like 'under'/'below'. This is a pre-existing production parser gap the new dataset happened to probe, surfaced honestly, not a multilingual-phase regression - services/nlp/ has zero diff (see files_changed)."},
+    "native_script_indic": {"n": 30, "exact_match_accuracy": 0.7333, "intent_accuracy": null,
+      "note": "ta=12 (0.583), hi=8 (0.875), te=10 (0.80) - genuine native Tamil/Hindi/Telugu script, the model's actual training distribution."},
+    "code_mixed": {"n": 35, "exact_match_accuracy": 0.3429, "intent_accuracy": null,
+      "note": "ta-en=11 (0.364), hi-en=13 (0.308), te-en=11 (0.364) - romanized code-mixed (Tanglish/Hinglish/Telugu-English), out-of-distribution for a model trained on native Indic scripts. See code_mixed_failure_analysis below for exactly why."},
+
+    "language_breakdown": {
+      "en":    {"n": 19, "exact_match_accuracy": 0.6316, "intent_accuracy": 1.0},
+      "ta":    {"n": 12, "exact_match_accuracy": 0.5833, "intent_accuracy": 0.9167},
+      "ta-en": {"n": 11, "exact_match_accuracy": 0.3636, "intent_accuracy": 1.0},
+      "hi":    {"n": 8,  "exact_match_accuracy": 0.875,  "intent_accuracy": 1.0},
+      "hi-en": {"n": 13, "exact_match_accuracy": 0.3077, "intent_accuracy": 1.0},
+      "te":    {"n": 10, "exact_match_accuracy": 0.80,   "intent_accuracy": 1.0},
+      "te-en": {"n": 11, "exact_match_accuracy": 0.3636, "intent_accuracy": 1.0}
+    },
+
+    "category_breakdown": {
+      "area_variant":       {"n": 4,  "exact_match_accuracy": 1.0,    "intent_accuracy": 1.0},
+      "simple_bhk":         {"n": 7,  "exact_match_accuracy": 1.0,    "intent_accuracy": 1.0},
+      "simple_multi":       {"n": 7,  "exact_match_accuracy": 0.8571, "intent_accuracy": 1.0},
+      "simple_furnishing":  {"n": 5,  "exact_match_accuracy": 0.80,   "intent_accuracy": 1.0},
+      "multi_constraint":   {"n": 9,  "exact_match_accuracy": 0.6667, "intent_accuracy": 1.0},
+      "price_variant":      {"n": 8,  "exact_match_accuracy": 0.625,  "intent_accuracy": 1.0},
+      "nearby_facility":    {"n": 12, "exact_match_accuracy": 0.50,   "intent_accuracy": 1.0},
+      "location_poi":       {"n": 22, "exact_match_accuracy": 0.3636, "intent_accuracy": 1.0},
+      "numeric_unit":       {"n": 10, "exact_match_accuracy": 0.0,    "intent_accuracy": 0.90}
+    },
+
+    "per_field_f1": {
+      "listing_type":  {"precision": 1.0,    "recall": 1.0,    "f1": 1.0,    "support": 8},
+      "bedrooms":      {"precision": 1.0,    "recall": 1.0,    "f1": 1.0,    "support": 32},
+      "area":          {"precision": 1.0,    "recall": 1.0,    "f1": 1.0,    "support": 16},
+      "furnishing":    {"precision": 1.0,    "recall": 0.8571, "f1": 0.9231, "support": 7},
+      "property_type": {"precision": 0.7778, "recall": 0.9333, "f1": 0.8485, "support": 60},
+      "location":      {"precision": 0.9032, "recall": 0.70,   "f1": 0.7887, "support": 80},
+      "price":         {"precision": 1.0,    "recall": 0.3023, "f1": 0.4643, "support": 43},
+      "amenities":     {"precision": 0.0,    "recall": null,   "f1": null,   "support": 0}
+    },
+
+    "poi_preservation": {
+      "n_poi_queries": 20,
+      "rate": 1.0,
+      "note": "Every proper noun (VIT Chennai, Tata Homes, Mambakkam, SRM University, SBIOA) survived translation VERBATIM in every language and script tested, native and code-mixed alike (100%). This is the single most positive finding of the benchmark - the exact failure mode this benchmark was designed to catch (silent mistranslation of proper nouns) did not occur even once."
+    },
+
+    "numeric_preservation": {
+      "n_numeric_queries": 18,
+      "rate": 0.9444,
+      "note": "17/18 numeric-bearing queries preserved their digits through translation. The BHK/price/area digit values themselves were not the problem in any observed failure - see price_field_failure_analysis for why price RECALL is still low despite numbers being preserved."
+    },
+
+    "price_field_failure_analysis": {
+      "recall": 0.3023,
+      "root_cause": "NOT a translation defect. Of the numeric_unit-category failures (the category driving this field's low recall), 7 of 10 are ENGLISH CONTROL queries that were never translated at all ('20k flat', '30k flat', '50k flat', '30 thousand rupees flat', '50 lakh flat', '1.5 crore villa', '1200 square feet flat'). The existing, unmodified services/nlp/numeric_parser.py does not classify a bare '<number><unit> <property_type>' phrase as a price constraint without an explicit comparison keyword ('under', 'below', 'within', etc). The 3 translated failures in the same category (hi-en '30 hazaar wala flat', ta '30 ஆயிரம் ரூபாய் பிளாட்', te '30 వేలు రూపాయలు ఫ్లాట్') show the identical missed-slot pattern for the identical reason - translation correctly rendered the number, the pre-existing parser gap is what drops it. This is a pre-existing production-parser limitation that this new dataset happened to probe more than the original 244-query set did; it is not introduced by or specific to IndicTrans2 or multilingual input.",
+      "verbatim_examples": [
+        {"language": "en", "query": "20k flat", "missed": ["price_operator=eq", "price_value=20000.0"]},
+        {"language": "en", "query": "1.5 crore villa", "missed": ["price_operator=eq", "price_value=15000000.0"]},
+        {"language": "hi-en", "query": "30 hazaar wala flat", "translated": "N/A (hi-en is code-mixed/romanized, translation barely alters postposition words)", "missed": ["price_operator=eq", "price_value=30000.0"]},
+        {"language": "ta", "query": "30 ஆயிரம் ரூபாய் பிளாட்", "translated": "(native-script Tamil, correctly translated the number, still missed price_operator due to the same bare-number parser gap)", "missed": ["price_operator=eq", "price_value=30000.0"]}
+      ]
+    },
+
+    "code_mixed_failure_analysis": {
+      "summary": "IndicTrans2's Indic->English model was trained on NATIVE-SCRIPT Indic text (Tamil/Devanagari/Telugu script), not romanized Latin-script code-mixed text. When fed romanized Tanglish/Hinglish/Telugu-English input, it behaves close to an identity pass-through: English words and proper nouns are left untouched (correctly), but the untranslated Indic postposition words (e.g. Tamil 'pakkathula'/'pakkam', Hindi 'ke paas', Telugu 'daggara' - all meaning 'near') are usually NOT converted to English 'near', and occasionally the model reorders the sentence in a garbled way.",
+      "verbatim_examples": [
+        {"language": "ta-en", "original": "VIT Chennai pakkathula flat venum", "translated": "VIT Chennai Pakkathula Flat Venum", "issue": "postposition 'pakkathula' (near) left untranslated"},
+        {"language": "hi-en", "original": "VIT Chennai ke paas flat chahiye", "translated": "Paas flat chaiye of VIT Chennai", "issue": "garbled reordering; 'ke paas' (near) partially rendered as 'Paas...of', not 'near'"},
+        {"language": "te-en", "original": "Tata Homes daggara flat kavali", "translated": "Tata Homes Daggara Flat Kavali", "issue": "postposition 'daggara' (near) left untranslated"}
+      ],
+      "downstream_effect": "services/nlp/location_extractor.py's POI-detection pattern (unmodified) expects an English preposition like 'near' immediately preceding a place name. When translation leaves the source-language postposition untranslated, that pattern never fires, so the extractor falls back to a generic area_or_city match on the trailing word - e.g. 'VIT Chennai Pakkathula Flat Venum' gets 'Chennai' extracted as a city rather than 'VIT Chennai' as a POI. This is a genuine, specific, actionable interaction between (a) IndicTrans2's poor handling of non-native-script code-mixed input and (b) the existing parser's preposition-dependent POI heuristic - not a bug in either component alone.",
+      "conclusion": "IndicTrans2's Indic-to-English checkpoint is a good fit for NATIVE-SCRIPT Indic queries (73.3% exact-match) but a poor fit for ROMANIZED CODE-MIXED queries (34.3% exact-match) as currently used. This is a real, testable, disclosed limitation, not a reputation-based guess."
+    },
+
+    "mistranslation_examples_verbatim": [
+      {"language": "ta", "original": "பாதி பர்னிஷ் செய்யப்பட்ட 2 BHK", "translated": "Half-burnished 2 BHK",
+       "issue": "'semi-furnished' mistranslated as 'Half-burnished' (a genuine, real IndicTrans2 translation error - not a parser bug). The existing furnishing lexicon (services/nlp/entity_extractor.py, unmodified) has no pattern for 'burnished', so furnishing extraction correctly returned nothing for this incorrect English string."},
+      {"language": "hi", "original": "किराए के लिए विला", "translated": "Villas for rent",
+       "issue": "Translation is fluent and correct, but pluralizes 'Villa' to 'Villas'. The existing property_type lexicon pattern is `\\bvilla\\b` (services/nlp/entity_extractor.py:53, unmodified, singular-only, word-boundary-anchored), which does not match 'Villas'. A genuine interaction effect: correct translation + a pre-existing singular-only lexicon gap = a missed slot."},
+      {"language": "te", "original": "Tata Homes అపార్ట్మెంట్ కావాలి", "translated": "i want a tata homes apartment",
+       "issue": "Translation is fluent and correct ('I want a Tata Homes apartment'), but structurally different from the 'near <POI>' pattern the existing POI extractor expects - the POI here directly modifies 'apartment' with no preposition. location stayed unextracted (None). Another genuine translation-fluency vs. existing-pattern-coverage interaction, not a translation defect."}
+    ],
+
+    "representative_translation_examples": [
+      {"language": "ta", "original": "சென்னையில் 2 BHK பிளாட் வேண்டும்", "translated": "Need a 2 BHK flat in Chennai", "quality": "excellent - fluent, fully correct"},
+      {"language": "hi", "original": "चेन्नई में 2 BHK फ्लैट चाहिए", "translated": "Need a 2 BHK flat in Chennai", "quality": "excellent - fluent, fully correct"},
+      {"language": "te", "original": "చెన్నైలో 2 BHK ఫ్లాట్ కావాలి", "translated": "i want a 2 bhk flat in chennai", "quality": "excellent - fluent, fully correct"},
+      {"language": "ta-en", "original": "Chennai la 2 BHK flat venum", "translated": "Chennai la 2 BHK Flat Venom", "quality": "poor - near-identity pass-through, 'venum' mistranslated as 'Venom'"},
+      {"language": "hi-en", "original": "Chennai mein 30k ke andar 2 BHK flat chahiye", "translated": "Chennai mein 30k ke andar 2 BHK flat chhaiye", "quality": "poor - almost entirely untranslated, only a spelling artifact changed"},
+      {"language": "te-en", "original": "Chennai lo 30k lopala 2 BHK flat kavali", "translated": "Chennai lo 30k lopala 2 BHK flat kavali", "quality": "none - completely unchanged, zero translation occurred"}
+    ]
+  },
+
+  "existing_test_suite": {
+    "command": "python -m pytest -q --ignore=osm_test --ignore=geo_coordinate_benchmark test_*.py",
+    "result": "392 passed",
+    "regression": false,
+    "run_after_benchmark": true
+  },
+  "english_244_query_baseline_unaffected": {
+    "existing_244_query_held_out_test_set_exact_match_accuracy": 0.962,
+    "existing_244_query_development_set_exact_match_accuracy": 1.000,
+    "note": "services/nlp/ and evaluation/nlp/ have zero diff - unaffected by this phase."
+  },
+
+  "files_changed_this_phase": [
+    "evaluation/nlp_multilingual/run_indictrans2_benchmark.py (new benchmark runner, WSL-only, never touches production)",
+    "evaluation/nlp_multilingual/results/indictrans2_run_20260911T134144Z.json (raw output, full per-query detail)",
+    "evaluation/nlp_multilingual/results/indictrans2_benchmark.json (this file)",
+    "evaluation/nlp_multilingual/results/indictrans2_benchmark.md (narrative report)"
+  ],
+  "production_code_touched": false,
+  "services_nlp_touched": false,
+  "dataset_touched": false,
+  "committed_or_pushed": false,
+
+  "recommendation": "IndicTrans2 (ai4bharat/indictrans2-indic-en-dist-200M) is a genuinely viable translation front-end for NATIVE-SCRIPT Tamil/Hindi/Telugu queries feeding the existing unmodified English NLP parser: 73.3% end-to-end exact-match, 100% proper-noun (POI) preservation, 94.4% numeric preservation, all with zero changes to services/nlp/. It is NOT currently viable for romanized code-mixed (Tanglish/Hinglish/Telugu-English) input as used here (34.3% exact-match) - the model largely fails to translate the non-English words in code-mixed queries, which breaks the existing parser's preposition-dependent POI extraction. Two of the three concrete failure modes found (mistranslation 'furnished'->'burnished', and 'near <POI>' vs '<POI> apartment' phrasing) are translation-quality/phrasing issues; two more (bare-number pricing, plural 'Villas') are pre-existing English-parser lexicon gaps that translated text happens to probe more than the original English dataset did - none are hidden or waved away. No production integration has been done or is recommended yet; if native-script support is desired, the next step would be a scoped, separate integration decision - not a continuation of this benchmark phase."
+}

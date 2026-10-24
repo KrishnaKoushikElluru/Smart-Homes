@@ -1,0 +1,32 @@
+query,mappls_entity,mappls_eloc,osm_status,osm_candidate_count,osm_best_name,osm_lat,osm_lon,osm_entity_verdict,osm_score,osm_dist_from_ref_m,overture_tested,overture_status,overture_candidate_count,overture_best_name,overture_lat,overture_lon,overture_entity_verdict,overture_score,overture_dist_from_ref_m,ground_truth_confidence
+VIT Chennai,VIT Chennai,2NB2R6,OK,5,VIT Chennai library Block,12.8410462,80.1540384,UNCERTAIN,0.4866,55.94359465187393,True,OK,221,Vit Chennai,12.844428,80.15234,PROBABLE,0.587,454.13182475702985,cross_source_agreement
+IIT Madras,"Indian Institute Of Technology, Madras",TSBB58,OK,1,Indian Institute of Technology - Madras,12.9941561,80.2366826,GOOD,0.7011,437.79098573965945,True,OK,13264,Indian Institute of Technology Madras,12.99147432,80.233666,GOOD,0.6928,4.6609717905699855,general_knowledge
+Anna University,"Anna University Chennai, Chennai",BSDF53,OK,3,Anna University,13.0083174,80.2334438,UNCERTAIN,0.4426,348.0263532409836,True,OK,9605,"College Of Engineering, Guindy, Anna University Chennai",13.010193408374,80.235410232544,PROBABLE,0.5655,67.45911430836419,general_knowledge
+SRM Kattankulathur,"SRM Medical College, Kancheepuram",CC1D8S,OK,1,Srm Medical College Hospital And Research Centre,12.8210402,80.0479585,PROBABLE,0.5066,,True,OK,852,S.R.M. Hosptial & Research Center,12.82088,80.048147,PROBABLE,0.5858,,unknown
+Sathyabama University,"Sathyabama Institute Of Science And Technology, Jeppiaar Nagar",3SS8S4,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Hindustan Institute of Technology,Hindustan Institute Of Technology,SXR7PQ,OK,5,Institute of Technology (Block D),23.1277287,72.5439099,REJECTED,0.3353,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Apollo Hospital Chennai,"Apollo Hospitals, Chennai",F28B45,OK,6,Apollo Hospital,13.0632248,80.2515817,PROBABLE,0.5136,380.4439182970394,True,OK,22433,Best Nephrologist - Dr. Rajeev | Apollo Hospitals | Chennai,13.0604673,80.2545099,PROBABLE,0.6075,531.8867004969354,general_knowledge
+MIOT Hospital,Mint Hospitals,ISHTDU,OK,1,Mint Hospitals,13.0013494,80.258796,PROBABLE,0.6582,7509.700695153152,True,OK,6666,Mint Hospitals,13.00129767,80.25724106,GOOD,0.7137,7342.244020811801,general_knowledge
+Fortis Malar Hospital,Sanchu Animal Hospital,N8I9MY,OK,1,Sanchu Animal Hospital,12.9558806,77.7308147,REJECTED,0.2883,,True,OK,9675,Sanchu Animal Hospital,13.00939127,80.25929301,PROBABLE,0.6671,,unknown
+MGM Healthcare Chennai,MGM Health Care,OAA1Y5,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Global Hospital Chennai,Global Hospitals Chennai Parking,9DAHE4,OK,1,Global Hospitals,13.0098023,80.2514702,UNCERTAIN,0.4517,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Phoenix Marketcity Chennai,"W, Phoenix Market City Chennai",RFAXTE,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Express Avenue,Express Avenue Mall,68SS43,OK,2,Express Avenue Mall,13.0588206,80.2641028,UNCERTAIN,0.4198,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+VR Chennai,VR Chennai Anna Nagar,TYMHDB,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Chennai Citi Centre,Chennai Citi Centre,4DTB7F,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Forum Vijaya Mall,Nexus Vijaya,WUOFTA,OK,1,Nexus Vijaya Mall,13.0507225,80.2095901,PROBABLE,0.5018,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Chennai Central,Chennai Central,7F71SB,OK,8,Chennai Central,13.0865507,80.274858,PROBABLE,0.502,621.4079477819967,True,OK,14341,Chennai Pattinam,13.083539,80.2823489,PROBABLE,0.6489,1265.1223550184636,cross_source_agreement
+Chennai Egmore,Ramada By Wyndham Chennai Egmore,QMXQEO,OK,3,Gandhi Irwin Bridge,13.0789758,80.2653154,WRONG,0.2369,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Tambaram Railway Station,Tambaram Railway Station,EECC4B,OK,2,Tambaram Railway Station,12.9254158,80.1169355,PROBABLE,0.592,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Koyambedu Bus Terminus,Chennai Mofussil Bus Terminal,542E65,OK,1,Koyambedu Mofussil Bus Terminal,13.0665289,80.2062855,PROBABLE,0.5548,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Marina Beach,Marina Beach,S3F411,OK,1,Marina Beach,13.0532752,80.2833106,UNCERTAIN,0.4825,377.30769277268826,True,OK,9047,Marina Beach,13.06026282,80.28515248,PROBABLE,0.6383,1179.4807781724635,general_knowledge
+Guindy National Park,Guindy National Park,ST7S58,OK,1,Guindy National Park,13.000005,80.2280448,UNCERTAIN,0.4057,,True,OK,14229,Guindy National Park,13.00487179,80.23785901,PROBABLE,0.5123,,unknown
+Chennai Airport,Chennai International Airport,39V8JK,OK,2,Chennai International Airport,12.993374,80.1725867,UNCERTAIN,0.4591,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+IIT Madras Research Park,IITM Research Park,25ZJ4F,OK,2,IITM Research Park,12.9908006,80.2423647,PROBABLE,0.6627,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Tidel Park Chennai,Tidel Park,AO9SND,OK,4,Tidel park,12.9893849,80.2508691,PROBABLE,0.6127,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+VIT,Visvesvaraya Industrial And Technological Museum,CQC28F,OK,1,Visvesvaraya Industrial and Technology Museum,12.9752028,77.5964268,PROBABLE,0.5568,,True,OK,27338,Visvesvaraya Industrial Trade Centre,12.97533638,77.59697472,UNCERTAIN,0.4842,,unknown
+SRM,SRM Institute For Medical Science,87DB21,OK,3,SRM Institutes For Medical Science,13.0515961,80.2114304,PROBABLE,0.5653,,True,OK,18020,Apollo White Dental Clinic,13.04529593,80.21259077,PROBABLE,0.5236,,unknown
+Apollo Hospital,Apollo Hospitals,HWTNC0,OK,10,Apollo Hospital,12.9630743,80.2457187,PROBABLE,0.5398,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Phoenix Mall,Phoenix Marketcity,2FGGV7,OK,4,Phoenix Marketcity Chennai,12.991551,80.2166235,PROBABLE,0.5298,41.18563587606044,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,cross_source_agreement
+Central Railway Station,Puratchi Thalaivar Dr MG Ramachandran Central Railway Station,28D1FC,NO_CANDIDATES,0,,,,N/A,,,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,unknown
+Vellore Institute of Technology Chennai,VIT Chennai,2NB2R6,OK,5,VIT Chennai library Block,12.8410462,80.1540384,UNCERTAIN,0.4866,55.94359465187393,False,NOT_TESTED_IN_SUBSET,0,,,,N/A,,,cross_source_agreement

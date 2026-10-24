@@ -1,0 +1,1888 @@
+[
+  {
+    "query": "builder floor for rent in Gurgaon",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "builder_floor",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Gurgaon"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "builder_floor never appears in dev set at all",
+    "id": 0
+  },
+  {
+    "query": "office space for rent in Bengaluru",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "commercial",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Bengaluru"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 1
+  },
+  {
+    "query": "shop for sale in Coimbatore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "commercial",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Coimbatore"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 2
+  },
+  {
+    "query": "warehouse for rent near the port",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "commercial",
+      "listing_type": "rent",
+      "location": {
+        "type": "poi",
+        "query": "the port"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 3
+  },
+  {
+    "query": "farmhouse for sale near Kanchipuram",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "farm_house",
+      "listing_type": "sell",
+      "location": {
+        "type": "poi",
+        "query": "Kanchipuram"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 4
+  },
+  {
+    "query": "farm house with garden and swimming pool",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "farm_house",
+      "amenities": [
+        "garden",
+        "swimming_pool"
+      ]
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 5
+  },
+  {
+    "query": "residential plot for sale in Hosur",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "plot",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Hosur"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "'Hosur' is not in the known-city gazetteer - tests area_or_city detection via bare 'in <place>' alone",
+    "id": 6
+  },
+  {
+    "query": "land for sale in Salem",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "plot",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Salem"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "'land' -> plot",
+    "id": 7
+  },
+  {
+    "query": "pg for boys near VIT Vellore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "pg_hostel",
+      "location": {
+        "type": "poi",
+        "query": "VIT Vellore"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 8
+  },
+  {
+    "query": "hostel for girls in Manipal",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "pg_hostel",
+      "location": {
+        "type": "area_or_city",
+        "query": "Manipal"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "Manipal not in known-city gazetteer",
+    "id": 9
+  },
+  {
+    "query": "paying guest accommodation near Infosys campus",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "pg_hostel",
+      "location": {
+        "type": "poi",
+        "query": "Infosys campus"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "'paying guest' phrasing, not 'pg'",
+    "id": 10
+  },
+  {
+    "query": "independent house for sale in Coimbatore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Coimbatore"
+      }
+    },
+    "category": "property_type_coverage",
+    "notes": "",
+    "id": 11
+  },
+  {
+    "query": "four bhk villa for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 4.0,
+      "property_type": "villa",
+      "listing_type": "sell"
+    },
+    "category": "bhk_variant",
+    "notes": "word number 'four', not in dev's word-number tests",
+    "id": 12
+  },
+  {
+    "query": "one bedroom flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "apartment",
+      "listing_type": "rent"
+    },
+    "category": "bhk_variant",
+    "notes": "",
+    "id": 13
+  },
+  {
+    "query": "1.5bhk apartment near Anna Nagar",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.5,
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Anna Nagar"
+      }
+    },
+    "category": "bhk_variant",
+    "notes": "glued 1.5bhk, dev only tests glued integer bhk",
+    "id": 14
+  },
+  {
+    "query": "5 bhk villa for sale in Mumbai",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 5.0,
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Mumbai"
+      }
+    },
+    "category": "bhk_variant",
+    "notes": "5 BHK not tested anywhere in dev",
+    "id": 15
+  },
+  {
+    "query": "flat below 25000",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "",
+    "id": 16
+  },
+  {
+    "query": "flat less than 25000",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'less than' phrasing, untested in dev",
+    "id": 17
+  },
+  {
+    "query": "flat less than ₹25,000",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'less than' + rupee symbol + comma combined",
+    "id": 18
+  },
+  {
+    "query": "apartment up to 25 thousand",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "lte",
+        "value": 25000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "",
+    "id": 19
+  },
+  {
+    "query": "villa below 75 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 7500000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "",
+    "id": 20
+  },
+  {
+    "query": "villa under 1 crore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 10000000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'under' + crore combo untested in dev (dev only tests under+k, below+crore)",
+    "id": 21
+  },
+  {
+    "query": "flat between 20 lakh and 30 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "between",
+        "value_min": 2000000.0,
+        "value_max": 3000000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'between' at lakh magnitude - dev only tests between at k magnitude",
+    "id": 22
+  },
+  {
+    "query": "villa above 50L",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 5000000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'above' + L short-form combo untested in dev (dev tests below+L and above+lakh separately, not above+L)",
+    "id": 23
+  },
+  {
+    "query": "flat around 80 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "price": {
+        "operator": "approx",
+        "value": 8000000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "approx at lakh magnitude, not just crore as in dev",
+    "id": 24
+  },
+  {
+    "query": "2 bhk flat starting from 15000",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "price": {
+        "operator": "gte",
+        "value": 15000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'starting from' gte phrasing, untested in dev",
+    "id": 25
+  },
+  {
+    "query": "villa over 2 crore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 20000000.0
+      }
+    },
+    "category": "price_variant",
+    "notes": "'over' gte phrasing at crore magnitude",
+    "id": 26
+  },
+  {
+    "query": "apartment with 1000 sqft",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "area": {
+        "operator": "eq",
+        "value": 1000.0,
+        "unit": "sqft"
+      }
+    },
+    "category": "area_variant",
+    "notes": "",
+    "id": 27
+  },
+  {
+    "query": "villa between 800 and 1200 sqft",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "area": {
+        "operator": "between",
+        "value_min": 800.0,
+        "value_max": 1200.0,
+        "unit": "sqft"
+      }
+    },
+    "category": "area_variant",
+    "notes": "",
+    "id": 28
+  },
+  {
+    "query": "independent house above 2000 square feet",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "area": {
+        "operator": "gte",
+        "value": 2000.0,
+        "unit": "sqft"
+      }
+    },
+    "category": "area_variant",
+    "notes": "",
+    "id": 29
+  },
+  {
+    "query": "plot up to 2400 sqft",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "plot",
+      "area": {
+        "operator": "lte",
+        "value": 2400.0,
+        "unit": "sqft"
+      }
+    },
+    "category": "area_variant",
+    "notes": "'up to' as area operator, untested in dev",
+    "id": 30
+  },
+  {
+    "query": "flat with intercom and fire safety",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "intercom",
+        "fire_safety"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 31
+  },
+  {
+    "query": "apartment with 24x7 water supply and solar",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "water_supply",
+        "solar"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 32
+  },
+  {
+    "query": "villa with ev charging and clubhouse",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "amenities": [
+        "ev_charging",
+        "clubhouse"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 33
+  },
+  {
+    "query": "flat with jogging track and children's play area",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "jogging_track",
+        "childrens_play_area"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 34
+  },
+  {
+    "query": "apartment with modular kitchen and pooja room",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "modular_kitchen",
+        "pooja_room"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 35
+  },
+  {
+    "query": "flat with balcony and private terrace",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "balcony",
+        "private_terrace"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 36
+  },
+  {
+    "query": "villa with home theatre and terrace garden",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "amenities": [
+        "home_theatre",
+        "terrace_garden"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 37
+  },
+  {
+    "query": "apartment with study room and store room",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "study_room",
+        "store_room"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 38
+  },
+  {
+    "query": "independent house with servant room and lawn",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "amenities": [
+        "servant_room",
+        "lawn"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 39
+  },
+  {
+    "query": "flat with indoor games and sports facilities",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "indoor_games",
+        "sports_facilities"
+      ]
+    },
+    "category": "amenities_coverage",
+    "notes": "",
+    "id": 40
+  },
+  {
+    "query": "unfurnished 2 bhk flat",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "furnishing": "unfurnished"
+    },
+    "category": "furnishing_variant",
+    "notes": "dev's dataset entries never test unfurnished, only the standalone unit test does",
+    "id": 41
+  },
+  {
+    "query": "apartment for rent, not furnished",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "furnishing": "unfurnished"
+    },
+    "category": "furnishing_variant",
+    "notes": "'not furnished' phrasing",
+    "id": 42
+  },
+  {
+    "query": "semi-furnished villa for sale",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "furnishing": "semi_furnished"
+    },
+    "category": "furnishing_variant",
+    "notes": "hyphenated form",
+    "id": 43
+  },
+  {
+    "query": "furnished flat near IT Park",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "furnishing": "fully_furnished",
+      "location": {
+        "type": "poi",
+        "query": "IT Park"
+      }
+    },
+    "category": "furnishing_variant",
+    "notes": "bare 'furnished' (low-confidence fallback path), untested in dev's dataset entries",
+    "id": 44
+  },
+  {
+    "query": "2 bhk flat for rent in Bengaluru",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Bengaluru"
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 45
+  },
+  {
+    "query": "3 bhk villa for sale in Hyderabad",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Hyderabad"
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 46
+  },
+  {
+    "query": "1 bhk flat for rent in Mumbai under 30000",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Mumbai"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 30000.0
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 47
+  },
+  {
+    "query": "2 bhk apartment for rent in Delhi",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Delhi"
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 48
+  },
+  {
+    "query": "independent house for sale in Pune",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Pune"
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 49
+  },
+  {
+    "query": "2 bhk flat in Kolkata with parking",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "location": {
+        "type": "area_or_city",
+        "query": "Kolkata"
+      },
+      "amenities": [
+        "parking"
+      ]
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 50
+  },
+  {
+    "query": "flat for rent in Vellore near VIT",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "poi",
+        "query": "VIT"
+      }
+    },
+    "category": "multi_city",
+    "notes": "location extraction prefers the POI construction ('near VIT') over the earlier bare city mention 'in Vellore' - POI check runs first in extract_location",
+    "id": 51
+  },
+  {
+    "query": "3 bhk villa for sale in Ahmedabad",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Ahmedabad"
+      }
+    },
+    "category": "multi_city",
+    "notes": "",
+    "id": 52
+  },
+  {
+    "query": "flat close to IIT Madras",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "IIT Madras"
+      }
+    },
+    "category": "location_poi",
+    "notes": "'close to' preposition, dev tests 'close to Phoenix Mall' only",
+    "id": 53
+  },
+  {
+    "query": "2 bhk near airport",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "location": {
+        "type": "poi",
+        "query": "airport"
+      }
+    },
+    "category": "location_poi",
+    "notes": "generic single-word POI",
+    "id": 54
+  },
+  {
+    "query": "villa around Phoenix Mall",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "location": {
+        "type": "poi",
+        "query": "Phoenix Mall"
+      }
+    },
+    "category": "location_poi",
+    "notes": "'around' as location preposition, not price approximation - dev tests 'around' only for price",
+    "id": 55
+  },
+  {
+    "query": "flat within 5 km of Anna University",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Anna University"
+      }
+    },
+    "category": "location_poi",
+    "notes": "",
+    "id": 56
+  },
+  {
+    "query": "2 bhk within 3 km of Vellore Fort",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "location": {
+        "type": "poi",
+        "query": "Vellore Fort"
+      }
+    },
+    "category": "location_poi",
+    "notes": "",
+    "id": 57
+  },
+  {
+    "query": "flat next to Central Railway Station",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Central Railway Station"
+      }
+    },
+    "category": "location_poi",
+    "notes": "'next to' preposition, untested in dev",
+    "id": 58
+  },
+  {
+    "query": "house beside Marina Beach",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "Marina Beach"
+      }
+    },
+    "category": "location_poi",
+    "notes": "",
+    "id": 59
+  },
+  {
+    "query": "flat available to let in Adyar",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Adyar"
+      }
+    },
+    "category": "indian_english",
+    "notes": "",
+    "id": 60
+  },
+  {
+    "query": "house required for rent near railway station",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "listing_type": "rent",
+      "location": {
+        "type": "poi",
+        "query": "railway station"
+      }
+    },
+    "category": "indian_english",
+    "notes": "",
+    "id": 61
+  },
+  {
+    "query": "looking for a flat near Anna University",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "Anna University"
+      }
+    },
+    "category": "indian_english",
+    "notes": "",
+    "id": 62
+  },
+  {
+    "query": "need a 2bhk around Velachery",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "location": {
+        "type": "poi",
+        "query": "Velachery"
+      }
+    },
+    "category": "indian_english",
+    "notes": "'around' correctly read as location preposition here, not price - no number+unit follows it",
+    "id": 63
+  },
+  {
+    "query": "want villa for sale in Coimbatore",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Coimbatore"
+      }
+    },
+    "category": "indian_english",
+    "notes": "",
+    "id": 64
+  },
+  {
+    "query": "property to let in Nungambakkam",
+    "expected": {
+      "intent": "property_search",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Nungambakkam"
+      }
+    },
+    "category": "indian_english",
+    "notes": "'property' itself has no property_type mapping - only listing_type + location expected",
+    "id": 65
+  },
+  {
+    "query": "urgently required 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent"
+    },
+    "category": "indian_english",
+    "notes": "",
+    "id": 66
+  },
+  {
+    "query": "appartment for rent in Chennai",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Chennai"
+      }
+    },
+    "category": "typo",
+    "notes": "double-p typo on 'apartment' - property_type is expected to be MISSED (regex requires exact 'apartments?'); listing_type and location should still be extracted correctly. This is a known, documented limitation (no fuzzy matching), not a bug - see docs/PHASE_2_5_NLP_EVALUATION.md error analysis.",
+    "id": 67
+  },
+  {
+    "query": "furnshed 2bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "furnishing": "fully_furnished"
+    },
+    "category": "typo",
+    "notes": "'furnshed' typo - furnishing is expected to be MISSED; bedrooms/property_type/listing_type unaffected since they don't depend on that token.",
+    "id": 68
+  },
+  {
+    "query": "flat with parkin and gym",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "amenities": [
+        "parking",
+        "gym"
+      ]
+    },
+    "category": "typo",
+    "notes": "'parkin' typo - the 'parking' amenity is expected to be MISSED while 'gym' (spelled correctly) is still found. Tests that one typo doesn't corrupt sibling extractions.",
+    "id": 69
+  },
+  {
+    "query": "villaa for sale near Tambaram",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "poi",
+        "query": "Tambaram"
+      }
+    },
+    "category": "typo",
+    "notes": "double-a typo on 'villa' - property_type is expected to be MISSED; listing_type and location unaffected. NOTE: 'villaa' does NOT accidentally match \\bvilla\\b because \\b requires a non-word character or string boundary immediately after 'villa', and 'a' is a word character - the regex correctly fails here, this is not a coincidental pass.",
+    "id": 70
+  },
+  {
+    "query": "flat near SRM",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "location": {
+        "type": "poi",
+        "query": "SRM"
+      }
+    },
+    "category": "ambiguous",
+    "notes": "short/ambiguous POI name with 'near' (dev only tests this POI with 'around')",
+    "id": 71
+  },
+  {
+    "query": "house near airport",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "independent_house",
+      "location": {
+        "type": "poi",
+        "query": "airport"
+      }
+    },
+    "category": "ambiguous",
+    "notes": "",
+    "id": 72
+  },
+  {
+    "query": "VIT",
+    "expected": {
+      "intent": "unknown"
+    },
+    "category": "ambiguous",
+    "notes": "a bare landmark name with zero preposition/constraint has no domain signal at all and correctly returns unknown - it is not itself a known city, and without 'near'/'in' there is nothing to classify",
+    "id": 73
+  },
+  {
+    "query": "nice apartment",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment"
+    },
+    "category": "ambiguous",
+    "notes": "'nice' must not be converted into any field",
+    "id": 74
+  },
+  {
+    "query": "cheap apartment",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment"
+    },
+    "category": "ambiguous",
+    "notes": "'cheap' alone, no location this time - must not produce a price",
+    "id": 75
+  },
+  {
+    "query": "budget friendly 2 bhk",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0
+    },
+    "category": "ambiguous",
+    "notes": "'budget friendly' must not produce a price value despite containing the word 'budget'",
+    "id": 76
+  },
+  {
+    "query": "pet friendly 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent"
+    },
+    "category": "unsupported",
+    "notes": "'pet friendly' is a recognized unsupported phrase; mapped fields still extracted normally alongside it",
+    "id": 77
+  },
+  {
+    "query": "corner flat for sale",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "apartment",
+      "listing_type": "sell"
+    },
+    "category": "unsupported",
+    "notes": "'corner' is only recognized as unsupported in the fixed phrase 'corner plot', not 'corner flat' - intent is still correctly property_search because 'flat' itself maps to a real property_type. Documents a real (non-scored) ontology gap.",
+    "id": 78
+  },
+  {
+    "query": "good ventilation and natural light",
+    "expected": {
+      "intent": "unknown"
+    },
+    "category": "unsupported",
+    "notes": "no known amenity, property type, or unsupported-phrase pattern matches any of this - correctly falls through to unknown, an honest 'we don't understand this at all' rather than a guess",
+    "id": 79
+  },
+  {
+    "query": "ready to move 3 bhk apartment",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "apartment"
+    },
+    "category": "unsupported",
+    "notes": "'ready to move' is a recognized unsupported phrase",
+    "id": 80
+  },
+  {
+    "query": "2 bhk builder floor for rent in Gurgaon under 20000 with power backup",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "builder_floor",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Gurgaon"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 20000.0
+      },
+      "amenities": [
+        "power_backup"
+      ]
+    },
+    "category": "multi_constraint",
+    "notes": "",
+    "id": 81
+  },
+  {
+    "query": "3 bhk villa for sale in Hyderabad below 1 crore with clubhouse and gym",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Hyderabad"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 10000000.0
+      },
+      "amenities": [
+        "clubhouse",
+        "gym"
+      ]
+    },
+    "category": "multi_constraint",
+    "notes": "",
+    "id": 82
+  },
+  {
+    "query": "unfurnished 1 bhk flat for rent near Anna University under 12000",
+    "expected": {
+      "intent": "property_search",
+      "furnishing": "unfurnished",
+      "bedrooms": 1.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "poi",
+        "query": "Anna University"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 12000.0
+      }
+    },
+    "category": "multi_constraint",
+    "notes": "",
+    "id": 83
+  },
+  {
+    "query": "pg for rent near VIT Vellore under 7000 with wifi",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "pg_hostel",
+      "listing_type": "rent",
+      "location": {
+        "type": "poi",
+        "query": "VIT Vellore"
+      },
+      "price": {
+        "operator": "lte",
+        "value": 7000.0
+      }
+    },
+    "category": "multi_constraint",
+    "notes": "'wifi' has no amenity mapping - expected amenities list is empty; only tests the other fields",
+    "id": 84
+  },
+  {
+    "query": "2 bhk independent house for sale in Coimbatore above 60 lakh with solar and balcony",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "independent_house",
+      "listing_type": "sell",
+      "location": {
+        "type": "area_or_city",
+        "query": "Coimbatore"
+      },
+      "price": {
+        "operator": "gte",
+        "value": 6000000.0
+      },
+      "amenities": [
+        "solar",
+        "balcony"
+      ]
+    },
+    "category": "multi_constraint",
+    "notes": "",
+    "id": 85
+  },
+  {
+    "query": "1 bedroom flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "apartment",
+      "listing_type": "rent"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 86
+  },
+  {
+    "query": "2 bedroom flat for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "sell"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 87
+  },
+  {
+    "query": "3 bedroom villa for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "villa",
+      "listing_type": "rent"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 88
+  },
+  {
+    "query": "4 bedroom villa for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 4.0,
+      "property_type": "villa",
+      "listing_type": "sell"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 89
+  },
+  {
+    "query": "1 bedroom independent house for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "independent_house",
+      "listing_type": "rent"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 90
+  },
+  {
+    "query": "2 bedroom independent house for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "independent_house",
+      "listing_type": "sell"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 91
+  },
+  {
+    "query": "3 bedroom builder floor for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 3.0,
+      "property_type": "builder_floor",
+      "listing_type": "rent"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 92
+  },
+  {
+    "query": "4 bedroom builder floor for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 4.0,
+      "property_type": "builder_floor",
+      "listing_type": "sell"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 93
+  },
+  {
+    "query": "1 bedroom farmhouse for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 1.0,
+      "property_type": "farm_house",
+      "listing_type": "rent"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 94
+  },
+  {
+    "query": "2 bedroom farmhouse for sale",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "farm_house",
+      "listing_type": "sell"
+    },
+    "category": "generated_grid_bedroom_phrasing",
+    "notes": "",
+    "id": 95
+  },
+  {
+    "query": "villa below 15 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 1500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 96
+  },
+  {
+    "query": "villa below 35 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 3500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 97
+  },
+  {
+    "query": "villa below 60 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 6000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 98
+  },
+  {
+    "query": "villa below 90 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 9000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 99
+  },
+  {
+    "query": "villa up to 15 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 1500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 100
+  },
+  {
+    "query": "villa up to 35 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 3500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 101
+  },
+  {
+    "query": "villa up to 60 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 6000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 102
+  },
+  {
+    "query": "villa up to 90 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "lte",
+        "value": 9000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 103
+  },
+  {
+    "query": "villa over 15 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 1500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 104
+  },
+  {
+    "query": "villa over 35 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 3500000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 105
+  },
+  {
+    "query": "villa over 60 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 6000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 106
+  },
+  {
+    "query": "villa over 90 lakh",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "price": {
+        "operator": "gte",
+        "value": 9000000.0
+      }
+    },
+    "category": "generated_grid_price",
+    "notes": "",
+    "id": 107
+  },
+  {
+    "query": "Bengaluru 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Bengaluru"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 108
+  },
+  {
+    "query": "Hyderabad 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Hyderabad"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 109
+  },
+  {
+    "query": "Mumbai 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Mumbai"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 110
+  },
+  {
+    "query": "Delhi 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Delhi"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 111
+  },
+  {
+    "query": "Pune 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Pune"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 112
+  },
+  {
+    "query": "Kolkata 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Kolkata"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 113
+  },
+  {
+    "query": "Coimbatore 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Coimbatore"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 114
+  },
+  {
+    "query": "Vellore 2 bhk flat for rent",
+    "expected": {
+      "intent": "property_search",
+      "bedrooms": 2.0,
+      "property_type": "apartment",
+      "listing_type": "rent",
+      "location": {
+        "type": "area_or_city",
+        "query": "Vellore"
+      }
+    },
+    "category": "generated_grid_city",
+    "notes": "bare city name with no preposition, at the START of the query",
+    "id": 115
+  },
+  {
+    "query": "villa for rent with intercom",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "intercom"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 116
+  },
+  {
+    "query": "villa for sale with intercom",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "intercom"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 117
+  },
+  {
+    "query": "villa for rent with fire safety",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "fire_safety"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 118
+  },
+  {
+    "query": "villa for sale with fire safety",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "fire_safety"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 119
+  },
+  {
+    "query": "villa for rent with solar",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "solar"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 120
+  },
+  {
+    "query": "villa for sale with solar",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "solar"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 121
+  },
+  {
+    "query": "villa for rent with clubhouse",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "clubhouse"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 122
+  },
+  {
+    "query": "villa for sale with clubhouse",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "clubhouse"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 123
+  },
+  {
+    "query": "villa for rent with jogging track",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "jogging_track"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 124
+  },
+  {
+    "query": "villa for sale with jogging track",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "jogging_track"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 125
+  },
+  {
+    "query": "villa for rent with balcony",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "balcony"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 126
+  },
+  {
+    "query": "villa for sale with balcony",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "balcony"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 127
+  },
+  {
+    "query": "villa for rent with home theatre",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "home_theatre"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 128
+  },
+  {
+    "query": "villa for sale with home theatre",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "home_theatre"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 129
+  },
+  {
+    "query": "villa for rent with pooja room",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "rent",
+      "amenities": [
+        "pooja_room"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 130
+  },
+  {
+    "query": "villa for sale with pooja room",
+    "expected": {
+      "intent": "property_search",
+      "property_type": "villa",
+      "listing_type": "sell",
+      "amenities": [
+        "pooja_room"
+      ]
+    },
+    "category": "generated_grid_amenity",
+    "notes": "",
+    "id": 131
+  }
+]

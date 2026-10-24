@@ -1,0 +1,674 @@
+{% from "_field_macros.html" import render_field, render_group %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Listing - SmartHomes</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+
+    <!-- Reuses the SAME dynamic property listing form styles/behavior
+         as the registration form (templates/rentals.html) - no second
+         edit-only stylesheet or script. -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='property_form.css') }}"
+    >
+
+    <style>
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .edit-page-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px 60px;
+        }
+
+        .edit-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .edit-page-header h2 {
+            margin: 0;
+        }
+
+        .back-to-profile {
+            display: inline-block;
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-to-profile:hover {
+            text-decoration: underline;
+        }
+
+        .flash {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .flash-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .flash-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .pf-form {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .pf-existing-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 15px;
+        }
+
+        .pf-existing-image-item {
+            width: 160px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        .pf-existing-image-item img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .pf-existing-image-item select {
+            width: 100%;
+            margin-bottom: 6px;
+        }
+
+        .pf-existing-remove-label {
+            color: #c0392b;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="edit-page-wrapper">
+
+        <div class="edit-page-header">
+            <h2>Edit Listing</h2>
+            <a href="{{ url_for('property.profile') }}" class="back-to-profile">&larr; Back to Profile</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if not location_search_enabled %}
+            <div class="pf-geoapify-disabled-note">
+                Location search is currently unavailable
+                (no location provider API key configured). You
+                can still click on the map or drag the marker
+                to set the exact location.
+            </div>
+        {% endif %}
+
+        <div id="sellForm">
+
+            <form
+                class="pf-form"
+                action="{{ url_for('property.update_listing', property_id=listing._id) }}"
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+
+                <!-- ==================================================
+                     LISTING TYPE / PROPERTY TYPE
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+
+                    <h4>What are you listing?</h4>
+
+                    <div class="pf-fields-grid">
+
+                        <div class="pf-field">
+                            <label for="pf_listing_type">Listing Type *</label>
+                            <select id="pf_listing_type" name="listing_type" required>
+                                {% for value, label in field_config.listingTypes %}
+                                    <option value="{{ value }}" {{ "selected" if listing.listing.type == value else "" }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="pf-field">
+                            <label for="pf_property_type">Property Type *</label>
+                            <select id="pf_property_type" name="property_type" required>
+                                <option value="">Choose Property Type</option>
+                                {% for value, label in field_config.propertyTypes %}
+                                    <option value="{{ value }}" {{ "selected" if listing.property.type == value else "" }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     LISTING BASICS
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+                    <h4>Listing Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.commonListingFields, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     ROOMS
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="rooms">
+                    <h4>Rooms</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.rooms, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     AREA
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="area">
+                    <h4>Area</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.area, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     BUILDING
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="building">
+                    <h4>Building Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.building, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     PROJECT / SOCIETY
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="project">
+                    <h4>Project / Society</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.project, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     PARKING
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="parking">
+                    <h4>Parking</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.parking, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     TYPE-SPECIFIC DETAILS
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="extra">
+                    <h4>Additional Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.extra, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     LEGAL
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="legal">
+                    <h4>Legal / Ownership</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.legal, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     PG / HOSTEL DETAILS
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-group="pg">
+                    <h4>PG / Hostel Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.groups.pg, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     RENT DETAILS (rent listings only, except PG)
+                ================================================== -->
+
+                <div
+                    class="pf-section pf-group"
+                    data-listing-only="rent"
+                    data-property-exclude="pg_hostel"
+                >
+                    <h4>Rent Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.rentFields, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     SALE DETAILS (sell listings only)
+                ================================================== -->
+
+                <div
+                    class="pf-section pf-group"
+                    data-listing-only="sale"
+                >
+                    <h4>Sale Details</h4>
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.saleFields, field_values) }}
+                    </div>
+                </div>
+
+
+                <!-- ==================================================
+                     LOCATION
+
+                     Pre-seeded at the property's CURRENT coordinates
+                     (window.PROPERTY_EDIT_INITIAL_COORDS below, read by
+                     static/property_form.js's initMap()) - editing a
+                     listing never silently resets it to the default
+                     campus marker. Changing it here is what
+                     update_listing() uses to decide whether to re-run
+                     nearby-facility enrichment.
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+
+                    <h4>Location</h4>
+
+                    {% if location_search_enabled %}
+
+                        <label for="pfLocationSearch">Search Property Location</label>
+
+                        <div class="pf-location-search-wrapper">
+
+                            <input
+                                type="text"
+                                id="pfLocationSearch"
+                                placeholder="Search for your property location..."
+                                autocomplete="off"
+                            >
+
+                            <div id="pfLocationSuggestions" class="pf-location-suggestions"></div>
+
+                        </div>
+
+                        <p class="pf-hint">
+                            Search and select a new location, or drag the
+                            marker, only if you want to change where this
+                            property is located.
+                        </p>
+
+                    {% endif %}
+
+                    <div id="pfPropertyMap"></div>
+
+                    <div class="pf-fields-grid">
+                        {{ render_group(field_config.locationFields, field_values) }}
+                    </div>
+
+                    <input
+                        type="hidden"
+                        id="pf_latitude"
+                        name="latitude"
+                        value="{{ initial_coords.lat if initial_coords else '' }}"
+                        required
+                    >
+                    <input
+                        type="hidden"
+                        id="pf_longitude"
+                        name="longitude"
+                        value="{{ initial_coords.lon if initial_coords else '' }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- ==================================================
+                     AMENITIES
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+
+                    <h4>Amenities</h4>
+
+                    {% for category, options in field_config.amenityCategories.items() %}
+
+                        <div class="pf-amenity-category">
+
+                            <h5>{{ category | replace("_", " ") | title }}</h5>
+
+                            <div class="pf-amenity-chips">
+
+                                {% for value, label in options %}
+
+                                    <label class="pf-amenity-chip">
+                                        <input
+                                            type="checkbox"
+                                            name="amenities"
+                                            value="{{ value }}"
+                                            {{ "checked" if value in selected_amenities else "" }}
+                                        >
+                                        {{ label }}
+                                    </label>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="pf-field">
+                        <label for="pf_custom_amenities">
+                            Other Amenities (comma separated)
+                        </label>
+                        <input
+                            type="text"
+                            id="pf_custom_amenities"
+                            name="custom_amenities"
+                            value="{{ custom_amenities_text }}"
+                            placeholder="Example: Rainwater Harvesting, Rooftop Lounge"
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     PHOTOS
+
+                     Existing images can be kept, individually removed,
+                     and/or re-categorized without re-uploading. New
+                     images are entirely optional here (unlike
+                     registration) - at least one image must remain
+                     across existing-kept + newly-added, enforced
+                     server-side in update_listing().
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+
+                    <h4>Photos &amp; Media</h4>
+
+                    {% if existing_images %}
+
+                        <label>Current Images</label>
+
+                        <div class="pf-existing-images">
+
+                            {% for filename in existing_images %}
+
+                                {% set meta = image_meta_by_filename.get(filename, {}) %}
+
+                                <div class="pf-existing-image-item">
+
+                                    <img
+                                        src="{{ url_for('static', filename='images/properties/' + filename) }}"
+                                        alt="Property image"
+                                    >
+
+                                    <select name="existing_image_category_{{ filename }}">
+                                        {% for value, label in image_categories %}
+                                            <option value="{{ value }}" {{ "selected" if meta.get('category', 'other') == value else "" }}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="cover_image"
+                                            value="existing:{{ filename }}"
+                                            {{ "checked" if meta.get('is_cover') else "" }}
+                                        >
+                                        Cover photo
+                                    </label>
+
+                                    <br>
+
+                                    <label class="pf-existing-remove-label">
+                                        <input type="checkbox" name="remove_images" value="{{ filename }}">
+                                        Remove this image
+                                    </label>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                    <label for="pf_images">
+                        Add New Images (optional, up to 20)
+                    </label>
+
+                    <input
+                        type="file"
+                        id="pf_images"
+                        name="images"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        multiple
+                    >
+
+                    <div id="pfImagePreviewList" class="pf-image-list"></div>
+
+                    <label for="pf_videos" style="margin-top: 15px; display: block;">
+                        Replace Property Videos (optional, up to 5 - leave empty to keep existing)
+                    </label>
+
+                    <input
+                        type="file"
+                        id="pf_videos"
+                        name="videos"
+                        accept=".mp4,.webm,.mov"
+                        multiple
+                    >
+
+                    <label for="pf_floor_plan">Replace Floor Plan (optional - leave empty to keep existing)</label>
+                    <input
+                        type="file"
+                        id="pf_floor_plan"
+                        name="floor_plan"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                    >
+
+                    <label for="pf_brochure">Replace Brochure (optional, PDF - leave empty to keep existing)</label>
+                    <input
+                        type="file"
+                        id="pf_brochure"
+                        name="brochure"
+                        accept=".pdf"
+                    >
+
+                    <label for="pf_virtual_tour_url">Virtual Tour URL (optional)</label>
+                    <input
+                        type="url"
+                        id="pf_virtual_tour_url"
+                        name="virtual_tour_url"
+                        value="{{ (listing.media or {}).get('virtual_tour_url') or '' }}"
+                        placeholder="https://..."
+                    >
+
+                </div>
+
+
+                <!-- ==================================================
+                     CONTACT
+                ================================================== -->
+
+                <div class="pf-section pf-group" data-always-show="true">
+
+                    <h4>Contact Information</h4>
+
+                    <div class="pf-fields-grid">
+
+                        <div class="pf-field">
+                            <label for="pf_contact_name">Contact Name *</label>
+                            <input
+                                type="text"
+                                id="pf_contact_name"
+                                name="contact_name"
+                                value="{{ (listing.contact or {}).get('name') or '' }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="pf-field">
+                            <label for="pf_contact_phone">Contact Phone *</label>
+                            <input
+                                type="text"
+                                id="pf_contact_phone"
+                                name="contact_phone"
+                                value="{{ (listing.contact or {}).get('phone') or '' }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="pf-field">
+                            <label for="pf_contact_whatsapp">WhatsApp Number</label>
+                            <input
+                                type="text"
+                                id="pf_contact_whatsapp"
+                                name="contact_whatsapp"
+                                value="{{ (listing.contact or {}).get('whatsapp') or '' }}"
+                            >
+                        </div>
+
+                        <div class="pf-field">
+                            <label for="pf_preferred_contact_method">Preferred Contact Method</label>
+                            {% set current_contact_method = (listing.contact or {}).get('preferred_contact_method', 'phone') %}
+                            <select id="pf_preferred_contact_method" name="preferred_contact_method">
+                                <option value="phone" {{ "selected" if current_contact_method == "phone" else "" }}>Phone</option>
+                                <option value="whatsapp" {{ "selected" if current_contact_method == "whatsapp" else "" }}>WhatsApp</option>
+                                <option value="email" {{ "selected" if current_contact_method == "email" else "" }}>Email</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button type="submit" class="pf-submit-button">
+                    Save Changes
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================
+         FIELD CONFIG (single source of truth, shared with backend)
+    ==================================================== -->
+
+    <script>
+        window.PROPERTY_FIELD_CONFIG = {{ field_config | tojson }};
+        window.PROPERTY_IMAGE_CATEGORIES = {{ image_categories | tojson }};
+        window.LOCATION_SEARCH_ENABLED = {{ location_search_enabled | tojson }};
+        window.PROPERTY_EDIT_INITIAL_COORDS = {{ initial_coords | tojson }};
+    </script>
+
+    <script src="{{ url_for('static', filename='property_form.js') }}"></script>
+
+    <script>
+        // No tab-toggle on this dedicated edit page (unlike
+        // rentals.html's buy/sell tabs) - the map lives in a visible
+        // section from the start, so initialize it directly once
+        // property_form.js has set up window.pfInitMapIfVisible.
+        if (window.pfInitMapIfVisible) {
+            window.pfInitMapIfVisible();
+        }
+    </script>
+
+</body>
+
+</html>

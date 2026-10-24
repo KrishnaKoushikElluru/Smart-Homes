@@ -1,0 +1,5191 @@
+{
+  "generated_at_utc": "2026-09-11T13:38:42Z",
+  "model": "ai4bharat/indictrans2-indic-en-dist-200M",
+  "dataset_path": "/mnt/c/Users/koush/OneDrive/Documents/sw3/evaluation/nlp_multilingual/data/multilingual_dev_queries.json",
+  "dataset_size": 84,
+  "model_load_seconds": 8.14322304725647,
+  "translation": {
+    "n_queries_requiring_translation": 65,
+    "n_translation_failures": 65,
+    "translation_success_rate": 0.0,
+    "translation_errors": {
+      "12": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "13": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "14": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "15": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "16": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "17": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "18": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "19": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "20": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "21": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "22": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "23": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "24": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "25": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "26": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "27": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "28": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "29": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "71": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "76": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "77": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "78": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "83": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "30": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "31": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "32": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "33": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "34": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "35": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "36": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "37": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "38": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "39": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "40": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "41": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "42": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "43": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "44": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "45": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "46": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "47": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "70": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "79": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "82": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "48": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "49": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "50": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "51": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "52": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "53": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "54": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "55": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "56": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "57": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "58": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "59": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "60": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "61": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "62": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "63": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "64": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "65": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "72": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "80": "AttributeError: 'NoneType' object has no attribute 'shape'",
+      "81": "AttributeError: 'NoneType' object has no attribute 'shape'"
+    },
+    "total_translation_wall_seconds": 0.9252119064331055,
+    "avg_latency_ms_per_query": 14.226135840782753,
+    "max_latency_ms_per_query": 35.15338897705078,
+    "min_latency_ms_per_query": 9.291716984340123,
+    "peak_rss_kb_before": 461308,
+    "peak_rss_kb_after": 703228
+  },
+  "overall": {
+    "n_queries": 84,
+    "intent_accuracy": 0.2261904761904762,
+    "exact_match_accuracy": 0.14285714285714285,
+    "slot_precision": 0.8823529411764706,
+    "slot_recall": 0.18292682926829268,
+    "slot_f1": 0.30303030303030304,
+    "per_field": {
+      "listing_type": {
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "support": 8
+      },
+      "property_type": {
+        "precision": 0.6666666666666666,
+        "recall": 0.2,
+        "f1": 0.30769230769230765,
+        "support": 60
+      },
+      "bedrooms": {
+        "precision": 1.0,
+        "recall": 0.15625,
+        "f1": 0.2702702702702703,
+        "support": 32
+      },
+      "furnishing": {
+        "precision": 1.0,
+        "recall": 0.14285714285714285,
+        "f1": 0.25,
+        "support": 7
+      },
+      "price": {
+        "precision": 1.0,
+        "recall": 0.16279069767441862,
+        "f1": 0.28,
+        "support": 43
+      },
+      "area": {
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "support": 16
+      },
+      "amenities": {
+        "precision": null,
+        "recall": null,
+        "f1": null,
+        "support": 0
+      },
+      "location": {
+        "precision": 1.0,
+        "recall": 0.175,
+        "f1": 0.2978723404255319,
+        "support": 80
+      }
+    }
+  },
+  "english_control": {
+    "n": 19,
+    "exact_match_accuracy": 0.631578947368421,
+    "intent_accuracy": 1.0
+  },
+  "native_script_indic": {
+    "n": 30,
+    "exact_match_accuracy": 0.0,
+    "intent_accuracy": 0.0
+  },
+  "code_mixed": {
+    "n": 35,
+    "exact_match_accuracy": 0.0,
+    "intent_accuracy": 0.0
+  },
+  "category_breakdown": {
+    "area_variant": {
+      "n": 4,
+      "exact_match_accuracy": 0.25,
+      "intent_accuracy": 0.25
+    },
+    "location_poi": {
+      "n": 22,
+      "exact_match_accuracy": 0.09090909090909091,
+      "intent_accuracy": 0.09090909090909091
+    },
+    "multi_constraint": {
+      "n": 9,
+      "exact_match_accuracy": 0.2222222222222222,
+      "intent_accuracy": 0.2222222222222222
+    },
+    "nearby_facility": {
+      "n": 12,
+      "exact_match_accuracy": 0.25,
+      "intent_accuracy": 0.25
+    },
+    "numeric_unit": {
+      "n": 10,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.7
+    },
+    "price_variant": {
+      "n": 8,
+      "exact_match_accuracy": 0.25,
+      "intent_accuracy": 0.25
+    },
+    "simple_bhk": {
+      "n": 7,
+      "exact_match_accuracy": 0.14285714285714285,
+      "intent_accuracy": 0.14285714285714285
+    },
+    "simple_furnishing": {
+      "n": 5,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "simple_multi": {
+      "n": 7,
+      "exact_match_accuracy": 0.14285714285714285,
+      "intent_accuracy": 0.14285714285714285
+    }
+  },
+  "language_breakdown": {
+    "en": {
+      "n": 19,
+      "exact_match_accuracy": 0.631578947368421,
+      "intent_accuracy": 1.0
+    },
+    "hi": {
+      "n": 8,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "hi-en": {
+      "n": 13,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "ta": {
+      "n": 12,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "ta-en": {
+      "n": 11,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "te": {
+      "n": 10,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    },
+    "te-en": {
+      "n": 11,
+      "exact_match_accuracy": 0.0,
+      "intent_accuracy": 0.0
+    }
+  },
+  "poi_preservation": {
+    "n_poi_queries": 22,
+    "n_fully_preserved": 0,
+    "rate": 0.0,
+    "details": [
+      {
+        "expected_terms": [
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 14,
+        "query": "VIT சென்னை அருகில் பிளாட்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT Chennai",
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 22,
+        "query": "VIT Chennai pakkathula flat venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Mambakkam"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 23,
+        "query": "Mambakkam pakkam 3 BHK veedu venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "gym"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 26,
+        "query": "gym pakkathula flat",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Tata Homes"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 28,
+        "query": "Tata Homes pakkam flat venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 32,
+        "query": "VIT चेन्नई के पास फ्लैट",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT Chennai",
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 40,
+        "query": "VIT Chennai ke paas flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Mambakkam"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 41,
+        "query": "Mambakkam ke paas 3 BHK ghar chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "gym"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 44,
+        "query": "gym ke paas flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Tata Homes"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 46,
+        "query": "Tata Homes ke paas flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 50,
+        "query": "VIT చెన్నై దగ్గర ఫ్లాట్",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT Chennai",
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 58,
+        "query": "VIT Chennai daggara flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Mambakkam"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 59,
+        "query": "Mambakkam daggara 3 BHK illu kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "gym"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 62,
+        "query": "gym daggara flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Tata Homes"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 64,
+        "query": "Tata Homes daggara flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "VIT Chennai",
+          "VIT"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 76,
+        "query": "VIT Chennai அருகில் பிளாட் வேண்டும்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "SRM"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 77,
+        "query": "SRM University pakkam flat venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "hospital"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 79,
+        "query": "hospital ke paas flat",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "mall"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 80,
+        "query": "mall daggara flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Tata Homes"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 81,
+        "query": "Tata Homes అపార్ట్మెంట్ కావాలి",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "Mambakkam"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 82,
+        "query": "Mambakkam mein flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "expected_terms": [
+          "SRM"
+        ],
+        "preserved_terms": [],
+        "fully_preserved": false,
+        "id": 83,
+        "query": "SRM க்கு அருகில் பிளாட்",
+        "language": "ta",
+        "translated": null
+      }
+    ]
+  },
+  "numeric_preservation": {
+    "n_numeric_queries": 36,
+    "n_fully_preserved": 0,
+    "rate": 0.0,
+    "details": [
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 12,
+        "query": "சென்னையில் 2 BHK பிளாட் வேண்டும்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 13,
+        "query": "30 ஆயிரத்திற்கு கீழ் 2 BHK பிளாட்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 15,
+        "query": "பாதி பர்னிஷ் செய்யப்பட்ட 2 BHK",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 18,
+        "query": "மாம்பாக்கம் அருகில் 3 BHK வீடு",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 19,
+        "query": "1200 சதுர அடி பிளாட்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 20,
+        "query": "Chennai la 2 BHK flat venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 21,
+        "query": "Chennai la 2 BHK flat venum 30k kulla",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 23,
+        "query": "Mambakkam pakkam 3 BHK veedu venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 24,
+        "query": "semi furnished 2 BHK flat Chennai la",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 27,
+        "query": "30 thousand kulla 2 BHK",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 29,
+        "query": "1200 sqft flat Chennai la venum",
+        "language": "ta-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 30,
+        "query": "चेन्नई में 2 BHK फ्लैट चाहिए",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 31,
+        "query": "30 हज़ार के अंदर 2 BHK फ्लैट",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 33,
+        "query": "अर्ध सुसज्जित 2 BHK",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 36,
+        "query": "मंबक्कम के पास 3 BHK घर",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 37,
+        "query": "1200 वर्ग फुट फ्लैट",
+        "language": "hi",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 38,
+        "query": "Chennai mein 30k ke andar 2 BHK flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 39,
+        "query": "Chennai mein 2 BHK flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 41,
+        "query": "Mambakkam ke paas 3 BHK ghar chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 42,
+        "query": "semi furnished 2 BHK flat chahiye",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 45,
+        "query": "30 hazaar ke andar 2 BHK",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 47,
+        "query": "1200 sqft flat chahiye Chennai mein",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 48,
+        "query": "చెన్నైలో 2 BHK ఫ్లాట్ కావాలి",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 49,
+        "query": "30 వేలలోపు 2 BHK ఫ్లాట్",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 51,
+        "query": "సెమీ ఫర్నిష్డ్ 2 BHK",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 54,
+        "query": "మాంబాక్కం దగ్గర 3 BHK ఇల్లు",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 55,
+        "query": "1200 చదరపు అడుగుల ఫ్లాట్",
+        "language": "te",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 56,
+        "query": "Chennai lo 30k lopala 2 BHK flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 57,
+        "query": "Chennai lo 2 BHK flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "3"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 59,
+        "query": "Mambakkam daggara 3 BHK illu kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 60,
+        "query": "semi furnished 2 BHK flat kavali",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "2",
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 63,
+        "query": "30 vela lopala 2 BHK",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "1200"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 65,
+        "query": "1200 sqft flat kavali Chennai lo",
+        "language": "te-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 70,
+        "query": "30 hazaar wala flat",
+        "language": "hi-en",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 71,
+        "query": "30 ஆயிரம் ரூபாய் பிளாட்",
+        "language": "ta",
+        "translated": null
+      },
+      {
+        "original_numbers": [
+          "30"
+        ],
+        "translated_numbers": [],
+        "fully_preserved": false,
+        "partially_preserved": false,
+        "id": 72,
+        "query": "30 వేలు రూపాయలు ఫ్లాట్",
+        "language": "te",
+        "translated": null
+      }
+    ]
+  },
+  "representative_translation_examples": [
+    {
+      "id": 12,
+      "language": "ta",
+      "category": "simple_bhk",
+      "original": "சென்னையில் 2 BHK பிளாட் வேண்டும்",
+      "translated": null
+    },
+    {
+      "id": 20,
+      "language": "ta-en",
+      "category": "simple_bhk",
+      "original": "Chennai la 2 BHK flat venum",
+      "translated": null
+    },
+    {
+      "id": 30,
+      "language": "hi",
+      "category": "simple_bhk",
+      "original": "चेन्नई में 2 BHK फ्लैट चाहिए",
+      "translated": null
+    },
+    {
+      "id": 38,
+      "language": "hi-en",
+      "category": "multi_constraint",
+      "original": "Chennai mein 30k ke andar 2 BHK flat chahiye",
+      "translated": null
+    },
+    {
+      "id": 48,
+      "language": "te",
+      "category": "simple_bhk",
+      "original": "చెన్నైలో 2 BHK ఫ్లాట్ కావాలి",
+      "translated": null
+    },
+    {
+      "id": 56,
+      "language": "te-en",
+      "category": "multi_constraint",
+      "original": "Chennai lo 30k lopala 2 BHK flat kavali",
+      "translated": null
+    }
+  ],
+  "failures_sample": [
+    {
+      "id": 12,
+      "query": "சென்னையில் 2 BHK பிளாட் வேண்டும்",
+      "category": "simple_bhk",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 13,
+      "query": "30 ஆயிரத்திற்கு கீழ் 2 BHK பிளாட்",
+      "category": "price_variant",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 14,
+      "query": "VIT சென்னை அருகில் பிளாட்",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 15,
+      "query": "பாதி பர்னிஷ் செய்யப்பட்ட 2 BHK",
+      "category": "simple_furnishing",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 16,
+      "query": "வாடகைக்கு வில்லா",
+      "category": "simple_multi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 17,
+      "query": "ஜிம் அருகில் பிளாட்",
+      "category": "nearby_facility",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 18,
+      "query": "மாம்பாக்கம் அருகில் 3 BHK வீடு",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 19,
+      "query": "1200 சதுர அடி பிளாட்",
+      "category": "area_variant",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 20,
+      "query": "Chennai la 2 BHK flat venum",
+      "category": "simple_bhk",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 21,
+      "query": "Chennai la 2 BHK flat venum 30k kulla",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 22,
+      "query": "VIT Chennai pakkathula flat venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 23,
+      "query": "Mambakkam pakkam 3 BHK veedu venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 24,
+      "query": "semi furnished 2 BHK flat Chennai la",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 25,
+      "query": "rent ku villa venum",
+      "category": "simple_multi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 26,
+      "query": "gym pakkathula flat",
+      "category": "nearby_facility",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 27,
+      "query": "30 thousand kulla 2 BHK",
+      "category": "price_variant",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 28,
+      "query": "Tata Homes pakkam flat venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'tata homes')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 29,
+      "query": "1200 sqft flat Chennai la venum",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 30,
+      "query": "चेन्नई में 2 BHK फ्लैट चाहिए",
+      "category": "simple_bhk",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 31,
+      "query": "30 हज़ार के अंदर 2 BHK फ्लैट",
+      "category": "price_variant",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    }
+  ],
+  "per_query": [
+    {
+      "id": 0,
+      "query": "2 BHK flat in Chennai",
+      "category": "simple_bhk",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "2 BHK flat in Chennai",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": {
+          "value": 2.0,
+          "confidence": 0.97,
+          "source": "explicit_numeric_pattern:bhk"
+        },
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai",
+          "raw_text": "in chennai",
+          "confidence": 0.75
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 1,
+      "query": "flat for rent near VIT Chennai",
+      "category": "location_poi",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "flat for rent near VIT Chennai",
+        "intent": "property_search",
+        "listing_type": {
+          "value": "rent",
+          "confidence": 0.95,
+          "source": "lexicon_match:\\bfor rent\\b"
+        },
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai",
+          "raw_text": "near vit chennai",
+          "confidence": 0.85
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "listing_type": "rent",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 2,
+      "query": "2 BHK flat under 30000",
+      "category": "price_variant",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "2 BHK flat under 30000",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": {
+          "value": 2.0,
+          "confidence": 0.97,
+          "source": "explicit_numeric_pattern:bhk"
+        },
+        "furnishing": null,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0,
+          "value_min": null,
+          "value_max": null,
+          "unit": "inr",
+          "raw_text": "under 30000"
+        },
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 3,
+      "query": "semi furnished 2 BHK near SRM",
+      "category": "multi_constraint",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "semi furnished 2 BHK near SRM",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": {
+          "value": 2.0,
+          "confidence": 0.97,
+          "source": "explicit_numeric_pattern:bhk"
+        },
+        "furnishing": {
+          "value": "semi_furnished",
+          "confidence": 0.95,
+          "source": "lexicon_match:semi_furnished"
+        },
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "poi",
+          "query": "SRM",
+          "raw_text": "near srm",
+          "confidence": 0.85
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0,
+        "location": {
+          "type": "poi",
+          "query": "SRM"
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 4,
+      "query": "villa for sale in Chennai",
+      "category": "simple_multi",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "villa for sale in Chennai",
+        "intent": "property_search",
+        "listing_type": {
+          "value": "sell",
+          "confidence": 0.95,
+          "source": "lexicon_match:\\bfor sale\\b"
+        },
+        "property_type": {
+          "value": "villa",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bvilla\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai",
+          "raw_text": "in chennai",
+          "confidence": 0.75
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "sell",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 5,
+      "query": "flat near a gym",
+      "category": "nearby_facility",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "flat near a gym",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [
+          {
+            "category": "gym",
+            "radius_m": null,
+            "raw_text": "near a gym",
+            "confidence": 0.8
+          }
+        ],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 6,
+      "query": "2 BHK apartment near Mambakkam under 30k",
+      "category": "multi_constraint",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "2 BHK apartment near Mambakkam under 30k",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": {
+          "value": 2.0,
+          "confidence": 0.97,
+          "source": "explicit_numeric_pattern:bhk"
+        },
+        "furnishing": null,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0,
+          "value_min": null,
+          "value_max": null,
+          "unit": "inr",
+          "raw_text": "under 30 k"
+        },
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam",
+          "raw_text": "near mambakkam",
+          "confidence": 0.85
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        },
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 7,
+      "query": "flat near Tata Homes",
+      "category": "location_poi",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "flat near Tata Homes",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes",
+          "raw_text": "near tata homes",
+          "confidence": 0.85
+        },
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 8,
+      "query": "1200 sqft flat",
+      "category": "area_variant",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "1200 sqft flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": {
+          "operator": "eq",
+          "value": 1200.0,
+          "value_min": null,
+          "value_max": null,
+          "unit": "sqft",
+          "raw_text": "1200 sqft"
+        },
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 9,
+      "query": "flat between 20k and 30k",
+      "category": "price_variant",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "flat between 20k and 30k",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": {
+          "operator": "between",
+          "value": null,
+          "value_min": 20000.0,
+          "value_max": 30000.0,
+          "unit": "inr",
+          "raw_text": "between 20 k and 30 k"
+        },
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "price": {
+          "operator": "between",
+          "value_min": 20000.0,
+          "value_max": 30000.0
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 10,
+      "query": "3 BHK house near a railway station",
+      "category": "nearby_facility",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "3 BHK house near a railway station",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "independent_house",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bhouses?\\b"
+        },
+        "bedrooms": {
+          "value": 3.0,
+          "confidence": 0.97,
+          "source": "explicit_numeric_pattern:bhk"
+        },
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [
+          {
+            "category": "railway_station",
+            "radius_m": null,
+            "raw_text": "near a railway station",
+            "confidence": 0.8
+          }
+        ],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "nearby_facilities": [
+          {
+            "category": "railway_station"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 11,
+      "query": "flat near a hospital in Chennai",
+      "category": "nearby_facility",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": true,
+      "predicted": {
+        "raw_query": "flat near a hospital in Chennai",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai",
+          "raw_text": "in chennai",
+          "confidence": 0.75
+        },
+        "nearby_facilities": [
+          {
+            "category": "hospital",
+            "radius_m": null,
+            "raw_text": "near a hospital",
+            "confidence": 0.8
+          }
+        ],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "nearby_facilities": [
+          {
+            "category": "hospital"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 66,
+      "query": "20k flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "20k flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 20000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 20000.0)"
+      ],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 67,
+      "query": "30k flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "30k flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 68,
+      "query": "50k flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "50k flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 50000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 50000.0)"
+      ],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 69,
+      "query": "30 thousand rupees flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "30 thousand rupees flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 73,
+      "query": "50 lakh flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "50 lakh flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 5000000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 5000000.0)"
+      ],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 74,
+      "query": "1.5 crore villa",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "1.5 crore villa",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "villa",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bvilla\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "price": {
+          "operator": "eq",
+          "value": 15000000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 15000000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 75,
+      "query": "1200 square feet flat",
+      "category": "numeric_unit",
+      "language": "en",
+      "intent_correct": true,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "1200 square feet flat",
+        "intent": "property_search",
+        "listing_type": null,
+        "property_type": {
+          "value": "apartment",
+          "confidence": 0.9,
+          "source": "lexicon_match:\\bflats?\\b|\\bapartments?\\b"
+        },
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": {
+          "operator": "eq",
+          "value": 1200.0,
+          "value_min": null,
+          "value_max": null,
+          "unit": "sqft",
+          "raw_text": "1200 square feet"
+        },
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": []
+      },
+      "expected": {
+        "intent": "property_search",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [],
+      "extra_slots": [
+        "('property_type', 'apartment')"
+      ]
+    },
+    {
+      "id": 12,
+      "query": "சென்னையில் 2 BHK பிளாட் வேண்டும்",
+      "category": "simple_bhk",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 13,
+      "query": "30 ஆயிரத்திற்கு கீழ் 2 BHK பிளாட்",
+      "category": "price_variant",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 14,
+      "query": "VIT சென்னை அருகில் பிளாட்",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 15,
+      "query": "பாதி பர்னிஷ் செய்யப்பட்ட 2 BHK",
+      "category": "simple_furnishing",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 16,
+      "query": "வாடகைக்கு வில்லா",
+      "category": "simple_multi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 17,
+      "query": "ஜிம் அருகில் பிளாட்",
+      "category": "nearby_facility",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 18,
+      "query": "மாம்பாக்கம் அருகில் 3 BHK வீடு",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 19,
+      "query": "1200 சதுர அடி பிளாட்",
+      "category": "area_variant",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 20,
+      "query": "Chennai la 2 BHK flat venum",
+      "category": "simple_bhk",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 21,
+      "query": "Chennai la 2 BHK flat venum 30k kulla",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 22,
+      "query": "VIT Chennai pakkathula flat venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 23,
+      "query": "Mambakkam pakkam 3 BHK veedu venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 24,
+      "query": "semi furnished 2 BHK flat Chennai la",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 25,
+      "query": "rent ku villa venum",
+      "category": "simple_multi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 26,
+      "query": "gym pakkathula flat",
+      "category": "nearby_facility",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 27,
+      "query": "30 thousand kulla 2 BHK",
+      "category": "price_variant",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 28,
+      "query": "Tata Homes pakkam flat venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'tata homes')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 29,
+      "query": "1200 sqft flat Chennai la venum",
+      "category": "multi_constraint",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 30,
+      "query": "चेन्नई में 2 BHK फ्लैट चाहिए",
+      "category": "simple_bhk",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 31,
+      "query": "30 हज़ार के अंदर 2 BHK फ्लैट",
+      "category": "price_variant",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 32,
+      "query": "VIT चेन्नई के पास फ्लैट",
+      "category": "location_poi",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 33,
+      "query": "अर्ध सुसज्जित 2 BHK",
+      "category": "simple_furnishing",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 34,
+      "query": "किराए के लिए विला",
+      "category": "simple_multi",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 35,
+      "query": "जिम के पास फ्लैट",
+      "category": "nearby_facility",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 36,
+      "query": "मंबक्कम के पास 3 BHK घर",
+      "category": "location_poi",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 37,
+      "query": "1200 वर्ग फुट फ्लैट",
+      "category": "area_variant",
+      "language": "hi",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 38,
+      "query": "Chennai mein 30k ke andar 2 BHK flat chahiye",
+      "category": "multi_constraint",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 39,
+      "query": "Chennai mein 2 BHK flat chahiye",
+      "category": "simple_bhk",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 40,
+      "query": "VIT Chennai ke paas flat chahiye",
+      "category": "location_poi",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 41,
+      "query": "Mambakkam ke paas 3 BHK ghar chahiye",
+      "category": "location_poi",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 42,
+      "query": "semi furnished 2 BHK flat chahiye",
+      "category": "simple_furnishing",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0,
+        "property_type": "apartment"
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 43,
+      "query": "rent ke liye villa chahiye",
+      "category": "simple_multi",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 44,
+      "query": "gym ke paas flat chahiye",
+      "category": "nearby_facility",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 45,
+      "query": "30 hazaar ke andar 2 BHK",
+      "category": "price_variant",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 46,
+      "query": "Tata Homes ke paas flat chahiye",
+      "category": "location_poi",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'tata homes')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 47,
+      "query": "1200 sqft flat chahiye Chennai mein",
+      "category": "multi_constraint",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 48,
+      "query": "చెన్నైలో 2 BHK ఫ్లాట్ కావాలి",
+      "category": "simple_bhk",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 49,
+      "query": "30 వేలలోపు 2 BHK ఫ్లాట్",
+      "category": "price_variant",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 50,
+      "query": "VIT చెన్నై దగ్గర ఫ్లాట్",
+      "category": "location_poi",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 51,
+      "query": "సెమీ ఫర్నిష్డ్ 2 BHK",
+      "category": "simple_furnishing",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 52,
+      "query": "అద్దెకు విల్లా",
+      "category": "simple_multi",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 53,
+      "query": "జిమ్ దగ్గర ఫ్లాట్",
+      "category": "nearby_facility",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 54,
+      "query": "మాంబాక్కం దగ్గర 3 BHK ఇల్లు",
+      "category": "location_poi",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 55,
+      "query": "1200 చదరపు అడుగుల ఫ్లాట్",
+      "category": "area_variant",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 56,
+      "query": "Chennai lo 30k lopala 2 BHK flat kavali",
+      "category": "multi_constraint",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 57,
+      "query": "Chennai lo 2 BHK flat kavali",
+      "category": "simple_bhk",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 58,
+      "query": "VIT Chennai daggara flat kavali",
+      "category": "location_poi",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 59,
+      "query": "Mambakkam daggara 3 BHK illu kavali",
+      "category": "location_poi",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 3.0,
+        "property_type": "independent_house",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 3.0)",
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')",
+        "('property_type', 'independent_house')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 60,
+      "query": "semi furnished 2 BHK flat kavali",
+      "category": "simple_furnishing",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "furnishing": "semi_furnished",
+        "bedrooms": 2.0,
+        "property_type": "apartment"
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('furnishing', 'semi_furnished')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 61,
+      "query": "rent ki villa kavali",
+      "category": "simple_multi",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "villa",
+        "listing_type": "rent"
+      },
+      "missed_slots": [
+        "('listing_type', 'rent')",
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 62,
+      "query": "gym daggara flat kavali",
+      "category": "nearby_facility",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "nearby_facilities": [
+          {
+            "category": "gym"
+          }
+        ]
+      },
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 63,
+      "query": "30 vela lopala 2 BHK",
+      "category": "price_variant",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "bedrooms": 2.0,
+        "price": {
+          "operator": "lte",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('bedrooms', 2.0)",
+        "('price_operator', 'lte')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 64,
+      "query": "Tata Homes daggara flat kavali",
+      "category": "location_poi",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'tata homes')",
+        "('location_type', 'poi')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 65,
+      "query": "1200 sqft flat kavali Chennai lo",
+      "category": "multi_constraint",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "property_type": "apartment",
+        "location": {
+          "type": "area_or_city",
+          "query": "Chennai"
+        },
+        "area": {
+          "operator": "eq",
+          "value": 1200.0
+        }
+      },
+      "missed_slots": [
+        "('area_operator', 'eq')",
+        "('area_value', 1200.0)",
+        "('location_query', 'chennai')",
+        "('location_type', 'area_or_city')",
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 70,
+      "query": "30 hazaar wala flat",
+      "category": "numeric_unit",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 71,
+      "query": "30 ஆயிரம் ரூபாய் பிளாட்",
+      "category": "numeric_unit",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 72,
+      "query": "30 వేలు రూపాయలు ఫ్లాట్",
+      "category": "numeric_unit",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "price": {
+          "operator": "eq",
+          "value": 30000.0
+        }
+      },
+      "missed_slots": [
+        "('price_operator', 'eq')",
+        "('price_value', 30000.0)"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 76,
+      "query": "VIT Chennai அருகில் பிளாட் வேண்டும்",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "location": {
+          "type": "poi",
+          "query": "VIT Chennai"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'vit chennai')",
+        "('location_type', 'poi')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 77,
+      "query": "SRM University pakkam flat venum",
+      "category": "location_poi",
+      "language": "ta-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "location": {
+          "type": "poi",
+          "query": "SRM University"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'srm university')",
+        "('location_type', 'poi')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 78,
+      "query": "ரயில் நிலையம் அருகில் பிளாட்",
+      "category": "nearby_facility",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "nearby_facilities": [
+          {
+            "category": "railway_station"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 79,
+      "query": "hospital ke paas flat",
+      "category": "nearby_facility",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "nearby_facilities": [
+          {
+            "category": "hospital"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 80,
+      "query": "mall daggara flat kavali",
+      "category": "nearby_facility",
+      "language": "te-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "nearby_facilities": [
+          {
+            "category": "shopping_mall"
+          }
+        ]
+      },
+      "missed_slots": [],
+      "extra_slots": []
+    },
+    {
+      "id": 81,
+      "query": "Tata Homes అపార్ట్మెంట్ కావాలి",
+      "category": "location_poi",
+      "language": "te",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "location": {
+          "type": "poi",
+          "query": "Tata Homes"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'tata homes')",
+        "('location_type', 'poi')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 82,
+      "query": "Mambakkam mein flat chahiye",
+      "category": "location_poi",
+      "language": "hi-en",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "location": {
+          "type": "poi",
+          "query": "Mambakkam"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'mambakkam')",
+        "('location_type', 'poi')"
+      ],
+      "extra_slots": []
+    },
+    {
+      "id": 83,
+      "query": "SRM க்கு அருகில் பிளாட்",
+      "category": "location_poi",
+      "language": "ta",
+      "intent_correct": false,
+      "exact_match": false,
+      "predicted": {
+        "raw_query": "",
+        "intent": "unknown",
+        "listing_type": null,
+        "property_type": null,
+        "bedrooms": null,
+        "furnishing": null,
+        "price": null,
+        "area": null,
+        "amenities": [],
+        "location": null,
+        "nearby_facilities": [],
+        "unsupported_phrases": [],
+        "warnings": [
+          "empty query"
+        ]
+      },
+      "expected": {
+        "intent": "property_search",
+        "location": {
+          "type": "poi",
+          "query": "SRM"
+        }
+      },
+      "missed_slots": [
+        "('location_query', 'srm')",
+        "('location_type', 'poi')"
+      ],
+      "extra_slots": []
+    }
+  ]
+}

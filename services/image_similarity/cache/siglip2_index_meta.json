@@ -1,0 +1,674 @@
+[
+  {
+    "property_id": "House_001",
+    "image_id": "House_001/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_001\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:42.445188+00:00"
+  },
+  {
+    "property_id": "House_001",
+    "image_id": "House_001/bedroom_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_001\\bedroom_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:43.106781+00:00"
+  },
+  {
+    "property_id": "House_001",
+    "image_id": "House_001/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_001\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:43.784030+00:00"
+  },
+  {
+    "property_id": "House_001",
+    "image_id": "House_001/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_001\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:44.479571+00:00"
+  },
+  {
+    "property_id": "House_002",
+    "image_id": "House_002/bathroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_002\\bathroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:45.179979+00:00"
+  },
+  {
+    "property_id": "House_002",
+    "image_id": "House_002/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_002\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:45.810647+00:00"
+  },
+  {
+    "property_id": "House_002",
+    "image_id": "House_002/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_002\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:46.523939+00:00"
+  },
+  {
+    "property_id": "House_002",
+    "image_id": "House_002/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_002\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:47.203720+00:00"
+  },
+  {
+    "property_id": "House_003",
+    "image_id": "House_003/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_003\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:47.857280+00:00"
+  },
+  {
+    "property_id": "House_003",
+    "image_id": "House_003/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_003\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:48.511082+00:00"
+  },
+  {
+    "property_id": "House_003",
+    "image_id": "House_003/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_003\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:49.163084+00:00"
+  },
+  {
+    "property_id": "House_004",
+    "image_id": "House_004/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_004\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:49.824439+00:00"
+  },
+  {
+    "property_id": "House_004",
+    "image_id": "House_004/bedroom_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_004\\bedroom_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:50.480324+00:00"
+  },
+  {
+    "property_id": "House_004",
+    "image_id": "House_004/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_004\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:51.137074+00:00"
+  },
+  {
+    "property_id": "House_004",
+    "image_id": "House_004/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_004\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:51.808589+00:00"
+  },
+  {
+    "property_id": "House_004",
+    "image_id": "House_004/living_room_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_004\\living_room_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:52.456509+00:00"
+  },
+  {
+    "property_id": "House_005",
+    "image_id": "House_005/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_005\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:53.137644+00:00"
+  },
+  {
+    "property_id": "House_005",
+    "image_id": "House_005/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_005\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:53.819680+00:00"
+  },
+  {
+    "property_id": "House_005",
+    "image_id": "House_005/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_005\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:54.507096+00:00"
+  },
+  {
+    "property_id": "House_005",
+    "image_id": "House_005/sit_out_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_005\\sit_out_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:55.165207+00:00"
+  },
+  {
+    "property_id": "House_006",
+    "image_id": "House_006/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_006\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:55.806153+00:00"
+  },
+  {
+    "property_id": "House_006",
+    "image_id": "House_006/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_006\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:56.476166+00:00"
+  },
+  {
+    "property_id": "House_006",
+    "image_id": "House_006/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_006\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:57.150217+00:00"
+  },
+  {
+    "property_id": "House_006",
+    "image_id": "House_006/needs_review_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_006\\needs_review_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:57.815351+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/common_bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\common_bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:58.532115+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/common_bedroom_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\common_bedroom_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:59.151333+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/devotional_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\devotional_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:11:59.806043+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:00.505857+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/kitchen_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\kitchen_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:01.187547+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:01.854047+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/living_room_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\living_room_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:02.486671+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/living_room_03.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\living_room_03.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:03.160581+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/master_bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\master_bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:03.787837+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/master_bedroom_02.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\master_bedroom_02.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:04.451442+00:00"
+  },
+  {
+    "property_id": "House_007",
+    "image_id": "House_007/sit_out_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_007\\sit_out_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:05.104393+00:00"
+  },
+  {
+    "property_id": "House_008",
+    "image_id": "House_008/balcony_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_008\\balcony_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:05.743567+00:00"
+  },
+  {
+    "property_id": "House_008",
+    "image_id": "House_008/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_008\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:06.396341+00:00"
+  },
+  {
+    "property_id": "House_008",
+    "image_id": "House_008/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_008\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:07.059579+00:00"
+  },
+  {
+    "property_id": "House_008",
+    "image_id": "House_008/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_008\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:07.663711+00:00"
+  },
+  {
+    "property_id": "House_009",
+    "image_id": "House_009/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_009\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:08.392274+00:00"
+  },
+  {
+    "property_id": "House_009",
+    "image_id": "House_009/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_009\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:09.088127+00:00"
+  },
+  {
+    "property_id": "House_009",
+    "image_id": "House_009/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_009\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:09.762525+00:00"
+  },
+  {
+    "property_id": "House_009",
+    "image_id": "House_009/needs_review_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_009\\needs_review_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:10.429975+00:00"
+  },
+  {
+    "property_id": "House_010",
+    "image_id": "House_010/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_010\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:11.034073+00:00"
+  },
+  {
+    "property_id": "House_010",
+    "image_id": "House_010/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_010\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:11.649177+00:00"
+  },
+  {
+    "property_id": "House_010",
+    "image_id": "House_010/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_010\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:12.249343+00:00"
+  },
+  {
+    "property_id": "House_011",
+    "image_id": "House_011/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_011\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:12.868999+00:00"
+  },
+  {
+    "property_id": "House_012",
+    "image_id": "House_012/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_012\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:13.455950+00:00"
+  },
+  {
+    "property_id": "House_012",
+    "image_id": "House_012/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_012\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:14.025630+00:00"
+  },
+  {
+    "property_id": "House_012",
+    "image_id": "House_012/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_012\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:14.619586+00:00"
+  },
+  {
+    "property_id": "House_012",
+    "image_id": "House_012/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_012\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:15.204289+00:00"
+  },
+  {
+    "property_id": "House_013",
+    "image_id": "House_013/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_013\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:15.794353+00:00"
+  },
+  {
+    "property_id": "House_013",
+    "image_id": "House_013/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_013\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:16.370778+00:00"
+  },
+  {
+    "property_id": "House_013",
+    "image_id": "House_013/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_013\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:16.941849+00:00"
+  },
+  {
+    "property_id": "House_013",
+    "image_id": "House_013/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_013\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:17.523519+00:00"
+  },
+  {
+    "property_id": "House_014",
+    "image_id": "House_014/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_014\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:18.156505+00:00"
+  },
+  {
+    "property_id": "House_014",
+    "image_id": "House_014/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_014\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:18.715459+00:00"
+  },
+  {
+    "property_id": "House_014",
+    "image_id": "House_014/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_014\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:19.336611+00:00"
+  },
+  {
+    "property_id": "House_014",
+    "image_id": "House_014/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_014\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:19.954482+00:00"
+  },
+  {
+    "property_id": "House_015",
+    "image_id": "House_015/balcony_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_015\\balcony_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:20.570317+00:00"
+  },
+  {
+    "property_id": "House_015",
+    "image_id": "House_015/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_015\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:21.171238+00:00"
+  },
+  {
+    "property_id": "House_015",
+    "image_id": "House_015/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_015\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:21.794925+00:00"
+  },
+  {
+    "property_id": "House_016",
+    "image_id": "House_016/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_016\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:22.400169+00:00"
+  },
+  {
+    "property_id": "House_016",
+    "image_id": "House_016/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_016\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:22.997263+00:00"
+  },
+  {
+    "property_id": "House_017",
+    "image_id": "House_017/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_017\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:23.594242+00:00"
+  },
+  {
+    "property_id": "House_017",
+    "image_id": "House_017/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_017\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:24.189399+00:00"
+  },
+  {
+    "property_id": "House_017",
+    "image_id": "House_017/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_017\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:24.800443+00:00"
+  },
+  {
+    "property_id": "House_017",
+    "image_id": "House_017/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_017\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:25.348647+00:00"
+  },
+  {
+    "property_id": "House_018",
+    "image_id": "House_018/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_018\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:25.948500+00:00"
+  },
+  {
+    "property_id": "House_018",
+    "image_id": "House_018/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_018\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:26.533959+00:00"
+  },
+  {
+    "property_id": "House_018",
+    "image_id": "House_018/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_018\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:27.134708+00:00"
+  },
+  {
+    "property_id": "House_018",
+    "image_id": "House_018/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_018\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:27.733419+00:00"
+  },
+  {
+    "property_id": "House_019",
+    "image_id": "House_019/bathroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_019\\bathroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:28.321899+00:00"
+  },
+  {
+    "property_id": "House_019",
+    "image_id": "House_019/bedroom_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_019\\bedroom_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:28.947982+00:00"
+  },
+  {
+    "property_id": "House_019",
+    "image_id": "House_019/kitchen_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_019\\kitchen_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:29.551872+00:00"
+  },
+  {
+    "property_id": "House_019",
+    "image_id": "House_019/living_room_01.jpg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_019\\living_room_01.jpg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:30.113727+00:00"
+  },
+  {
+    "property_id": "House_020",
+    "image_id": "House_020/bathroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_020\\bathroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:30.711857+00:00"
+  },
+  {
+    "property_id": "House_020",
+    "image_id": "House_020/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_020\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:31.321672+00:00"
+  },
+  {
+    "property_id": "House_020",
+    "image_id": "House_020/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_020\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:31.917327+00:00"
+  },
+  {
+    "property_id": "House_020",
+    "image_id": "House_020/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_020\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:32.512951+00:00"
+  },
+  {
+    "property_id": "House_021",
+    "image_id": "House_021/bathroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_021\\bathroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:33.120466+00:00"
+  },
+  {
+    "property_id": "House_021",
+    "image_id": "House_021/bedroom_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_021\\bedroom_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:33.748133+00:00"
+  },
+  {
+    "property_id": "House_021",
+    "image_id": "House_021/kitchen_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_021\\kitchen_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:34.365696+00:00"
+  },
+  {
+    "property_id": "House_021",
+    "image_id": "House_021/living_room_01.jpeg",
+    "image_path": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\properties\\House_021\\living_room_01.jpeg",
+    "model_id": "google/siglip2-base-patch16-224",
+    "embedding_dim": 768,
+    "created_at": "2026-09-18T09:12:34.935700+00:00"
+  }
+]

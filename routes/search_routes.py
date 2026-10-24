@@ -1,0 +1,760 @@
+from flask import (
+    Blueprint,
+    request,
+    jsonify,
+    current_app
+)
+
+from flask_login import login_required
+
+from services.nlp.parser import parse as parse_nlp_query
+from services import search_orchestration
+from services.external_property_sources import square_yards_service
+
+
+search_bp = Blueprint(
+    "search",
+    __name__
+)
+
+
+# This route's own page-level default - NOT a square_yards_service.py
+# or search_orchestration.py concept (see orchestrate_search()'s
+# default_listing_type docstring). Used only as a last-resort fallback
+# when the request supplies no explicit listing_type override AND the
+# NLP parse found no explicit rent/sale intent in the query text
+# either - both of those still take precedence over this default.
+RENTALS_PAGE_DEFAULT_LISTING_TYPE = "rent"
+
+
+# ============================================================
+# PROPERTY SERVICE
+# ============================================================
+
+def get_property_service():
+
+    return current_app.extensions[
+        "property_service"
+    ]
+
+
+# ============================================================
+# RESULT SERIALIZATION
+#
+# Extracted verbatim from the original inline loop (Phase 3) so both
+# the existing ranked_search() path and the new natural-language
+# search path (services/search_orchestration.py) share one
+# serializer. No behavior change: filtered_search() results simply
+# have no "_match_score" key, and .get("_match_score", 0) already
+# handled that missing-key case before this extraction.
+# ============================================================
+
+def _serialize_property(property_item):
+
+    listing = property_item.get(
+        "listing",
+        {}
+    )
+
+
+    property_data = property_item.get(
+        "property",
+        {}
+    )
+
+
+    location = property_item.get(
+        "location",
+        {}
+    )
+
+
+    description = property_item.get(
+        "description",
+        {}
+    )
+
+
+    contact = property_item.get(
+        "contact",
+        {}
+    )
+
+
+    media = property_item.get(
+        "media",
+        {}
+    )
+
+
+    source = property_item.get(
+        "source",
+        {}
+    )
+
+
+    # ============================================================
+    # COORDINATES
+    # ============================================================
+
+    coordinates = location.get(
+        "coordinates"
+    )
+
+
+    latitude = None
+
+    longitude = None
+
+
+    if coordinates:
+
+        coordinate_values = (
+            coordinates.get(
+                "coordinates",
+                []
+            )
+        )
+
+
+        if len(
+            coordinate_values
+        ) == 2:
+
+            longitude = (
+                coordinate_values[0]
+            )
+
+            latitude = (
+                coordinate_values[1]
+            )
+
+
+    # ============================================================
+    # IMAGES
+    # ============================================================
+
+    images = media.get(
+        "images",
+        []
+    )
+
+
+    image_filename = (
+
+        images[0]
+
+        if images
+
+        else None
+    )
+
+
+    # ============================================================
+    # RESULT
+    # ============================================================
+
+    # Phase 5 (Part 7/8/9): only present when this search actually used
+    # a nearby-facility requirement (see
+    # services/search_orchestration.py's _attach_matched_nearby_facilities())
+    # - an ordinary search (manual filters, or an NLP query with no
+    # "near a gym" style constraint) never gets this key attached to
+    # the property document at all, so `result` below omits it
+    # entirely rather than including an empty list - existing response
+    # shape/size for ordinary searches is unaffected.
+    matched_nearby_facilities = property_item.get(
+        "_matched_nearby_facilities"
+    )
+
+    result = {
+
+        "id": str(
+            property_item["_id"]
+        ),
+
+        "match_score":
+            property_item.get(
+                "_match_score",
+                0
+            ),
+
+        "property_type":
+            property_data.get(
+                "type"
+            ),
+
+        "listing_type":
+            listing.get(
+                "type"
+            ),
+
+        "price":
+            listing.get(
+                "price"
+            ),
+
+        "bhk":
+            property_data.get(
+                "bhk"
+            ),
+
+        "area":
+            property_data.get(
+                "area_sqft"
+            ),
+
+        "description":
+            description.get(
+                "text"
+            ),
+
+        "contact_name":
+            contact.get(
+                "name"
+            ),
+
+        "contact_phone":
+            contact.get(
+                "phone"
+            ),
+
+        "address":
+            location.get(
+                "address"
+            ),
+
+        "city":
+            location.get(
+                "city"
+            ),
+
+        "locality":
+            location.get(
+                "locality"
+            ),
+
+        "latitude":
+            latitude,
+
+        "longitude":
+            longitude,
+
+        "amenities":
+            property_item.get(
+                "features",
+                []
+            ),
+
+        # Stage 2 (Phase 4): a trimmed view of the property's stored
+        # nearby_facilities (services/nearby_facility_service.py) - only
+        # the fields a result-explanation UI actually needs
+        # (category/name/distance_m), never internal fields like
+        # provider_id/coordinates/fetched_at. Used to show e.g. "Gym
+        # 650m away" using the REAL stored distance for THIS property,
+        # never a fabricated one - see templates/rentals.html's
+        # result-explanation rendering.
+        "nearby_facilities":
+            [
+                {
+                    "category": facility.get("category"),
+                    "name": facility.get("name"),
+                    "distance_m": facility.get("distance_m"),
+                }
+                for facility in property_item.get("nearby_facilities", []) or []
+            ],
+
+        "image_filename":
+            image_filename,
+
+        "images":
+            images,
+
+        "status":
+            listing.get(
+                "status"
+            ),
+
+        "source":
+            source.get(
+                "type"
+            ),
+
+        "source_url":
+            source.get(
+                "url"
+            )
+    }
+
+    if matched_nearby_facilities is not None:
+
+        # Concise, query-specific field ("Part 9" of this phase) - the
+        # facility that actually satisfied each requested nearby-
+        # facility category, with its real stored name/distance_m.
+        # Deliberately separate from the full "nearby_facilities" trim
+        # above, which is every stored facility on the property, not
+        # just the ones the query asked about.
+        result["matched_nearby_facilities"] = matched_nearby_facilities
+
+    return result
+
+
+# ============================================================
+# EXTERNAL (SQUARE YARDS) RESULT SERIALIZATION
+#
+# Deliberately a SEPARATE, additive shape from _serialize_property()'s
+# above, not a reuse of its "source"/"source_url" keys - those already
+# mean a SmartHomes property's OWN origin metadata (property_item.
+# source.type/url, e.g. "owner"-posted), which is unrelated to "which
+# search provider found this result" and must not be silently
+# repurposed. Every SmartHomes result additionally gets
+# "provider": "smarthomes" tagged at its call site (search_rentals()
+# below) so the frontend can branch on ONE consistent field regardless
+# of which provider a result came from.
+# ============================================================
+
+def _serialize_external_result(normalized):
+
+    images = normalized.get("images") or []
+
+    return {
+        "provider": "squareyards",
+        "external_id": normalized.get("external_id"),
+        "title": normalized.get("title"),
+        "property_type": normalized.get("property_type"),
+        "listing_type": normalized.get("listing_type"),
+        "price": normalized.get("price"),
+        "price_on_request": normalized.get("price_on_request", False),
+        "bhk": normalized.get("bhk"),
+        "area": normalized.get("area_sqft"),
+        "furnishing": normalized.get("furnishing"),
+        "amenities": normalized.get("amenities") or [],
+        "city": normalized.get("city"),
+        "locality": normalized.get("locality"),
+        "image_url": images[0] if images else None,
+        "images": images,
+        "source_url": normalized.get("source_url"),
+    }
+
+
+def _external_search_results(applied_filters, config=None):
+    """Square Yards candidates for the SAME applied_filters
+    search_orchestration.orchestrate_search() already computed for
+    SmartHomes' own MongoDB search - no second NLP pass (Phase 4).
+
+    NEVER raises and NEVER blocks the SmartHomes result set on a
+    Square Yards problem (Phase 5/13): any failure inside
+    square_yards_service.search_rental_properties() already resolves
+    to an empty list on its own (see that module's docstring), and
+    this wrapper adds one more layer of defense + a short, secret-free
+    internal log line, consistent with this file's existing
+    try/except-at-the-route-boundary convention (see search_rentals()'s
+    own query-parsing error handling above).
+
+    Returns (serialized_results, error_message_or_None) - the error
+    message is informational only (surfaced to the frontend as
+    "external_search_error" so Phase 13's "useful logging" requirement
+    extends to the response too, without ever turning into an HTTP
+    error for the whole request)."""
+
+    try:
+        normalized_candidates = square_yards_service.search_rental_properties(
+            applied_filters, config=config
+        )
+        return [_serialize_external_result(n) for n in normalized_candidates], None
+    except Exception as error:  # noqa: BLE001 - external provider must never break this route
+        print(f"Square Yards external search failed: {error!r}")
+        return [], "Square Yards search is currently unavailable."
+
+
+# ============================================================
+# SEARCH PROPERTIES
+# ============================================================
+
+@search_bp.route(
+    "/search_rentals",
+    methods=["POST"]
+)
+@login_required
+def search_rentals():
+
+    data = request.get_json()
+
+
+    if not data:
+
+        return jsonify({
+            "error": "Invalid request."
+        }), 400
+
+
+    # ========================================================
+    # BUDGET
+    # ========================================================
+
+    budget_value = data.get(
+        "budget",
+        0
+    )
+
+
+    try:
+
+        budget = int(
+            budget_value
+        )
+
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return jsonify({
+            "error": "Budget must be a valid number."
+        }), 400
+
+
+    if budget < 0:
+
+        return jsonify({
+            "error": "Budget cannot be negative."
+        }), 400
+
+
+    # ========================================================
+    # CITY
+    # ========================================================
+
+    city = data.get(
+        "city",
+        ""
+    )
+
+
+    if city:
+
+        city = city.strip()
+
+
+    # ========================================================
+    # LOCALITY
+    # ========================================================
+
+    locality = data.get(
+        "locality",
+        ""
+    )
+
+
+    if locality:
+
+        locality = locality.strip()
+
+
+    # ========================================================
+    # LISTING TYPE
+    # ========================================================
+
+    listing_type = data.get(
+        "listing_type",
+        ""
+    )
+
+
+    if listing_type:
+
+        listing_type = (
+            listing_type
+            .strip()
+            .lower()
+        )
+
+
+    # ========================================================
+    # PROPERTY TYPE
+    # ========================================================
+
+    property_type = data.get(
+        "property_type",
+        ""
+    )
+
+
+    if property_type:
+
+        property_type = (
+            property_type
+            .strip()
+            .lower()
+        )
+
+
+    # ========================================================
+    # BHK
+    # ========================================================
+
+    bhk_value = data.get(
+        "bhk"
+    )
+
+
+    bhk = None
+
+
+    if bhk_value not in [
+        None,
+        ""
+    ]:
+
+        try:
+
+            bhk = int(
+                bhk_value
+            )
+
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            return jsonify({
+                "error": "BHK must be a valid number."
+            }), 400
+
+
+        if bhk <= 0:
+
+            return jsonify({
+                "error": "BHK must be positive."
+            }), 400
+
+
+    # ========================================================
+    # SEARCH PREFERENCES
+    # ========================================================
+
+    preferences = {
+
+        "budget":
+            budget,
+
+        "city":
+            city,
+
+        "locality":
+            locality,
+
+        "listing_type":
+            listing_type,
+
+        "property_type":
+            property_type,
+
+        "bhk":
+            bhk
+    }
+
+
+    # ========================================================
+    # NATURAL-LANGUAGE QUERY (Phase 3 - optional, additive)
+    #
+    # A "query" field is entirely optional. When absent (every caller
+    # before Phase 3, and any caller that keeps using only the
+    # structured fields above), behavior below is byte-for-byte the
+    # original ranked_search() path - see the else branch. Only when a
+    # non-empty "query" is supplied does this route go through
+    # services/search_orchestration.py's NLP + POI-resolution + real
+    # MongoDB filter pipeline. Explicit structured fields already
+    # parsed above (budget/city/locality/listing_type/property_type/
+    # bhk) always take precedence over whatever the natural-language
+    # query would have produced for that same field - see
+    # search_orchestration.merge_structured_fields()'s docstring.
+    # ========================================================
+
+    query = (
+        data.get("query") or ""
+    ).strip()[:500]
+
+    property_service = (
+        get_property_service()
+    )
+
+    if query:
+
+        osm_service = current_app.extensions.get(
+            "osm_location_service"
+        )
+
+        mappls_key = current_app.config.get(
+            "MAPPLS_API_KEY"
+        )
+
+        ola_key = current_app.config.get(
+            "OLA_MAPS_API_KEY"
+        )
+
+        poi_radius_km = current_app.config.get(
+            "SEARCH_POI_RADIUS_KM",
+            search_orchestration.DEFAULT_POI_RADIUS_KM
+        )
+
+        location_bias = (
+            data.get("location_bias") or ""
+        ).strip() or None
+
+
+        # ====================================================
+        # EXPLICIT COORDINATES (optional - "pick one of these"
+        # follow-up after an earlier AMBIGUOUS result)
+        #
+        # When the frontend already knows exactly which place the user
+        # meant (they clicked one of location_resolution.alternates
+        # from a PREVIOUS ambiguous response), it sends that option's
+        # coordinates directly instead of the free-text POI mention
+        # being re-resolved - which would just be ambiguous again,
+        # since the query text itself hasn't changed. Both fields must
+        # be present and valid together, or neither is used; a lone/
+        # malformed value is a client bug, not a search input, so it
+        # is rejected rather than silently ignored.
+        # ====================================================
+
+        explicit_coordinates = None
+
+        location_lat_raw = data.get("location_lat")
+        location_lon_raw = data.get("location_lon")
+
+        if location_lat_raw is not None or location_lon_raw is not None:
+
+            try:
+
+                explicit_latitude = float(location_lat_raw)
+                explicit_longitude = float(location_lon_raw)
+
+                if not -90 <= explicit_latitude <= 90:
+                    raise ValueError
+
+                if not -180 <= explicit_longitude <= 180:
+                    raise ValueError
+
+            except (TypeError, ValueError):
+
+                return jsonify({
+                    "error": "location_lat/location_lon must both be valid coordinates."
+                }), 400
+
+            explicit_coordinates = (
+                explicit_latitude,
+                explicit_longitude
+            )
+
+
+        overrides = {
+            "listing_type": listing_type,
+            "property_type": property_type,
+            "bhk": bhk,
+            "budget": budget,
+            "city": city,
+            "locality": locality,
+        }
+
+        orchestration_result = search_orchestration.orchestrate_search(
+            query,
+            overrides,
+            mappls_key,
+            osm_service,
+            property_service,
+            poi_radius_km=poi_radius_km,
+            location_bias=location_bias,
+            explicit_coordinates=explicit_coordinates,
+            ola_api_key=ola_key,
+            default_listing_type=RENTALS_PAGE_DEFAULT_LISTING_TYPE,
+        )
+
+        results = [
+            {**_serialize_property(property_item), "provider": "smarthomes"}
+            for property_item in orchestration_result["properties"]
+        ]
+
+        external_results, external_search_error = _external_search_results(
+            orchestration_result["applied_filters"], config=current_app.config
+        )
+        results.extend(external_results)
+
+        return jsonify({
+
+            "properties":
+                results,
+
+            "parsed_query":
+                orchestration_result["parsed_query"],
+
+            "location_resolution":
+                orchestration_result["location_resolution"],
+
+            "applied_filters":
+                orchestration_result["applied_filters"],
+
+            "nearby_facility_enrichment_caveat":
+                orchestration_result.get("nearby_facility_enrichment_caveat"),
+
+            "external_search_error":
+                external_search_error
+
+        })
+
+
+    # ========================================================
+    # RANKED MONGODB SEARCH (original structured-search path,
+    # unchanged)
+    # ========================================================
+
+    properties = (
+        property_service.ranked_search(
+            preferences
+        )
+    )
+
+    results = [
+        _serialize_property(property_item)
+        for property_item in properties
+    ]
+
+    return jsonify({
+
+        "properties":
+            results
+
+    })
+
+
+# ============================================================
+# NLP QUERY PARSING (Phase 2 - standalone, testing only)
+#
+# Converts a natural-language search query into the structured
+# representation defined in services/nlp/schema.py. Deliberately NOT
+# connected to property retrieval yet - this endpoint exists so Phase 2
+# can be exercised and verified independently before any later
+# integration phase decides how (or whether) to feed its output into
+# ranked_search()/Phase 1's POI resolver. Calling this endpoint never
+# touches MongoDB, Mappls, or OSM - see services/nlp/parser.py's module
+# docstring and test_nlp_parser.py's boundary tests.
+# ============================================================
+
+@search_bp.route(
+    "/api/search/parse-query",
+    methods=["POST"]
+)
+@login_required
+def parse_query():
+
+    data = request.get_json(silent=True) or {}
+
+    query = (data.get("query") or "").strip()[:500]
+
+    if not query:
+        return jsonify({"error": "A 'query' field is required."}), 400
+
+    structured = parse_nlp_query(query)
+
+    return jsonify(structured.to_dict())

@@ -1,0 +1,13 @@
+{
+  "model": "google/siglip2-base-patch16-224",
+  "device": "cpu",
+  "model_load_seconds": 61.8057703999948,
+  "n_houses": 21,
+  "n_images_scanned": 84,
+  "n_images_indexed": 84,
+  "n_failures": 0,
+  "failures": [],
+  "embedding_dim": 768,
+  "total_seconds": 229.23443650000263,
+  "avg_seconds_per_image": 2.728981386904793
+}

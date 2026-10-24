@@ -1,0 +1,74 @@
+{
+  "source_run": "C:\\Users\\koush\\OneDrive\\Documents\\sw3\\evaluation\\nlp\\results\\test_run_20260909T063401Z.json",
+  "n_total_queries": 132,
+  "n_failures": 4,
+  "n_typo_failures": 4,
+  "n_genuine_parser_gap_failures": 0,
+  "field_failure_counts": {
+    "property_type": 2,
+    "furnishing": 1,
+    "amenities": 1
+  },
+  "failures": [
+    {
+      "id": 67,
+      "query": "appartment for rent in Chennai",
+      "dataset_category": "typo",
+      "intent_correct": true,
+      "missed_slots": [
+        "('property_type', 'apartment')"
+      ],
+      "extra_slots": [],
+      "missed_fields": [
+        "property_type"
+      ],
+      "extra_fields": [],
+      "classification": "typo (documented, uncorrected)"
+    },
+    {
+      "id": 68,
+      "query": "furnshed 2bhk flat for rent",
+      "dataset_category": "typo",
+      "intent_correct": true,
+      "missed_slots": [
+        "('furnishing', 'fully_furnished')"
+      ],
+      "extra_slots": [],
+      "missed_fields": [
+        "furnishing"
+      ],
+      "extra_fields": [],
+      "classification": "typo (documented, uncorrected)"
+    },
+    {
+      "id": 69,
+      "query": "flat with parkin and gym",
+      "dataset_category": "typo",
+      "intent_correct": true,
+      "missed_slots": [
+        "('amenity', 'parking')"
+      ],
+      "extra_slots": [],
+      "missed_fields": [
+        "amenities"
+      ],
+      "extra_fields": [],
+      "classification": "typo (documented, uncorrected)"
+    },
+    {
+      "id": 70,
+      "query": "villaa for sale near Tambaram",
+      "dataset_category": "typo",
+      "intent_correct": true,
+      "missed_slots": [
+        "('property_type', 'villa')"
+      ],
+      "extra_slots": [],
+      "missed_fields": [
+        "property_type"
+      ],
+      "extra_fields": [],
+      "classification": "typo (documented, uncorrected)"
+    }
+  ]
+}

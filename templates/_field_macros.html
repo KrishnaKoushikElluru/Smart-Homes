@@ -1,0 +1,137 @@
+
+{% macro render_field(field, value=none) -%}
+<div
+    class="pf-field"
+    data-field="{{ field.name }}"
+    data-applies-to="{{ field.applies_to | join(',') if field.applies_to else '' }}"
+>
+
+    {% if field.kind == "bool" %}
+
+        <label class="pf-checkbox-label" for="pf_{{ field.name }}">
+            <input
+                type="checkbox"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                {{ "checked" if value else "" }}
+            >
+            {{ field.label }}
+        </label>
+
+    {% else %}
+
+        <label for="pf_{{ field.name }}">
+            {{ field.label }}{% if field.required %} *{% endif %}
+        </label>
+
+        {% if field.kind == "str" %}
+
+            <input
+                type="text"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                maxlength="{{ field.maxlen or 255 }}"
+                value="{{ value if value is not none else '' }}"
+                {{ "required" if field.required else "" }}
+            >
+
+        {% elif field.kind == "text" %}
+
+            <textarea
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                rows="4"
+                maxlength="{{ field.maxlen or 5000 }}"
+            >{{- value if value is not none else '' -}}</textarea>
+
+        {% elif field.kind == "int" %}
+
+            <input
+                type="number"
+                step="1"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
+                {% if field.min is not none %}min="{{ field.min }}"{% endif %}
+                {% if field.max is not none %}max="{{ field.max }}"{% endif %}
+                {{ "required" if field.required else "" }}
+            >
+
+        {% elif field.kind == "float" %}
+
+            <input
+                type="number"
+                step="any"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
+                {% if field.min is not none %}min="{{ field.min }}"{% endif %}
+                {% if field.max is not none %}max="{{ field.max }}"{% endif %}
+                {{ "required" if field.required else "" }}
+            >
+
+        {% elif field.kind == "tribool" %}
+
+            <select id="pf_{{ field.name }}" name="{{ field.name }}">
+                <option value="" {{ "selected" if value is none else "" }}>Not specified</option>
+                <option value="yes" {{ "selected" if value == true else "" }}>Yes</option>
+                <option value="no" {{ "selected" if value == false else "" }}>No</option>
+            </select>
+
+        {% elif field.kind == "select" %}
+
+            <select
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                {{ "required" if field.required else "" }}
+            >
+                <option value="">Select {{ field.label }}</option>
+
+                {% for option_value, option_label in field.options %}
+                    <option
+                        value="{{ option_value }}"
+                        {{ "selected" if value is not none and (option_value | string) == (value | string) else "" }}
+                    >
+                        {{ option_label }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+        {% elif field.kind == "date" %}
+
+            <input
+                type="date"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                value="{{ value if value is not none else '' }}"
+                {{ "required" if field.required else "" }}
+            >
+
+        {% elif field.kind == "pincode" %}
+
+            <input
+                type="text"
+                id="pf_{{ field.name }}"
+                name="{{ field.name }}"
+                pattern="[0-9]{6}"
+                maxlength="6"
+                value="{{ value if value is not none else '' }}"
+                placeholder="e.g. 500001"
+            >
+
+        {% endif %}
+
+    {% endif %}
+
+</div>
+{%- endmacro %}
+
+
+{% macro render_group(fields, values={}) -%}
+
+    {% for field in fields %}
+        {{ render_field(field, values.get(field.name)) }}
+    {% endfor %}
+
+{%- endmacro %}

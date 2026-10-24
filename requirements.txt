@@ -1,0 +1,17 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Migrate
+Flask-Login
+Flask-WTF
+WTForms
+email-validator
+python-dotenv
+requests
+Pillow
+torch>=2.0
+transformers>=4.51
+numpy>=1.24
+pymongo
+google-genai
+mcp==2.2.0

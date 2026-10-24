@@ -1,0 +1,34 @@
+{
+  "image_level_metric": {
+    "n_queries": 84,
+    "n_valid_queries": 83,
+    "n_skipped_no_positive": 1,
+    "recall_at_k": {
+      "1": 0.43373493975903615,
+      "3": 0.5903614457831325,
+      "5": 0.6626506024096386,
+      "10": 0.8313253012048193
+    },
+    "mrr": 0.5499817612927952,
+    "mean_positive_similarity": 0.8103101287392017,
+    "mean_top_negative_similarity": 0.8684919868801816
+  },
+  "property_level_metric": {
+    "n_queries": 84,
+    "n_valid_queries": 83,
+    "recall_at_k": {
+      "1": 0.43373493975903615,
+      "3": 0.6024096385542169,
+      "5": 0.7228915662650602,
+      "10": 0.891566265060241
+    },
+    "mrr": 0.563257965162643
+  },
+  "historical_siglip2": {
+    "recall_at_1": 0.434,
+    "recall_at_3": 0.59,
+    "recall_at_5": 0.663,
+    "recall_at_10": 0.831,
+    "mrr": 0.55
+  }
+}

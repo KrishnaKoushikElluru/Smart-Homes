@@ -1,0 +1,21 @@
+# Phase 6 image-similarity benchmark - ISOLATED dependencies.
+#
+# These are intentionally NOT added to the project's root
+# requirements.txt or its Flask .venv - torch + transformers are heavy
+# (multi-GB with model weights) and are only ever needed when a human
+# explicitly runs this benchmark, never at Flask startup or in the
+# normal test suite. Install into whatever separate interpreter you
+# run evaluation/image_similarity/benchmark.py with, e.g.:
+#
+#     pip install -r evaluation/image_similarity/requirements.txt
+#
+# transformers is pinned to >=4.51 because SigLIP2 support
+# (google/siglip2-*) was not yet present as of transformers==4.49.0
+# (confirmed by direct import check during this benchmark's
+# development); 4.57.6 (the last 4.x release before the 5.x major
+# version) is what this benchmark was actually developed and run
+# against.
+torch>=2.0
+transformers==4.57.6
+Pillow
+psutil

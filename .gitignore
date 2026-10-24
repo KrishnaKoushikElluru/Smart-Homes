@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+env/
+.claude/
+
+# Environment / secrets
+.env
+secret.env
+*.env
+
+# Flask
+instance/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+*test
+
+# Benchmark caches / raw run logs (regenerable; the curated
+# results/*.json and results/*.csv summaries are the actual citable
+# artifacts and stay tracked)
+geo_coordinate_benchmark/cache/
+geo_coordinate_benchmark/*_log.txt
+evaluation/*/cache/
+
+# Overture's raw response dumps EVERY candidate in the download window
+# (up to 27k+ rows for dense-urban queries) - 257MB in one observed run.
+# Far too large to commit; the curated benchmark_results.json (best
+# candidate + top alternates per query) is the tracked artifact instead.
+geo_coordinate_benchmark/results/overture_results.json
